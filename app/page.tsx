@@ -1,37 +1,173 @@
-export default function Page() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-black px-6 text-neutral-400">
-      <div className="flex w-full max-w-md flex-col items-start gap-8">
-        <svg
-          fill="currentColor"
-          viewBox="0 0 147 70"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          className="size-10 text-white"
-        >
-          <path d="M56 50.2031V14H70V60.1562C70 65.5928 65.5928 70 60.1562 70C57.5605 70 54.9982 68.9992 53.1562 67.1573L0 14H19.7969L56 50.2031Z" />
-          <path d="M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z" />
-        </svg>
+import Link from 'next/link'
+import Image from 'next/image'
+import { ArrowRight, BookOpen, Coffee, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { SiteHeader } from '@/components/site-header'
+import { SiteFooter } from '@/components/site-footer'
+import { StoryCard } from '@/components/story-card'
+import { STORIES, BLOG_POSTS, OWNER_NOTES } from '@/lib/stories'
 
-        <div className="space-y-3">
-          <h1 className="text-balance text-2xl font-semibold tracking-tight text-white">
-            To get started, describe what you want to build.
-          </h1>
-          <p className="text-pretty text-sm leading-relaxed text-neutral-500">
-            This is the default page for a fresh v0 project. Open the prompt and
-            tell v0 what to create, or browse the{' '}
-            <a
-              href="https://v0.app/templates"
-              target="_blank"
-              rel="noreferrer"
-              className="text-neutral-300 underline underline-offset-4 hover:text-white"
-            >
-              Community
-            </a>{' '}
-            for inspiration.
-          </p>
-        </div>
+export default function HomePage() {
+  const featured = STORIES.slice(0, 4)
+  const popular = [...STORIES].sort((a, b) => b.views - a.views).slice(0, 4)
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="relative overflow-hidden border-b border-border">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-16">
+            <div className="flex flex-col gap-5">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">
+                <Coffee className="size-4" />
+                Đọc truyện bên tách cà phê
+              </span>
+              <h1 className="text-balance font-serif text-4xl font-bold leading-tight md:text-5xl">
+                Mỗi câu chuyện là một tách cà phê cho tâm hồn
+              </h1>
+              <p className="text-pretty text-lg leading-relaxed text-muted-foreground">
+                Quán Truyện là góc nhỏ ấm áp để bạn thả mình vào những trang
+                tiểu thuyết, ngôn tình, kiếm hiệp và huyền huyễn. Thong thả đọc,
+                lưu lại yêu thích và cùng bình luận nhé.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="lg">
+                  <Link href="/truyen">
+                    <BookOpen className="size-4" />
+                    Bắt đầu đọc
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/da-hoan-thanh">Truyện đã hoàn thành</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border shadow-lg">
+              <Image
+                src="/hero-reading.png"
+                alt="Một cuốn sách mở bên tách cà phê nóng"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Featured */}
+        <section className="mx-auto max-w-6xl px-4 py-12">
+          <SectionHeader
+            title="Truyện mới nổi bật"
+            desc="Những câu chuyện đang được quán giới thiệu"
+            href="/truyen"
+          />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {featured.map((s) => (
+              <StoryCard key={s.slug} story={s} />
+            ))}
+          </div>
+        </section>
+
+        {/* Popular */}
+        <section className="border-y border-border bg-card">
+          <div className="mx-auto max-w-6xl px-4 py-12">
+            <SectionHeader
+              title="Được đọc nhiều nhất"
+              desc="Bảng xếp hạng theo lượt đọc tại quán"
+              href="/truyen"
+            />
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {popular.map((s) => (
+                <StoryCard key={s.slug} story={s} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Blog */}
+        <section className="mx-auto max-w-6xl px-4 py-12">
+          <SectionHeader
+            title="Blog của quán"
+            desc="Tâm sự, mẹo đọc và những góc nhìn từ chủ quán"
+            href="/blog"
+          />
+          <div className="grid gap-5 md:grid-cols-3">
+            {BLOG_POSTS.map((post) => (
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md"
+              >
+                <span className="w-fit rounded-full bg-accent/20 px-3 py-1 text-xs font-semibold text-accent-foreground">
+                  {post.category}
+                </span>
+                <h3 className="font-serif text-lg font-bold leading-snug group-hover:text-primary">
+                  {post.title}
+                </h3>
+                <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                  {post.excerpt}
+                </p>
+                <span className="mt-auto flex items-center gap-1 text-sm font-semibold text-primary">
+                  Đọc tiếp <ArrowRight className="size-4" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Owner note teaser */}
+        <section className="mx-auto max-w-6xl px-4 pb-12">
+          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-secondary p-8 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Sparkles className="size-6" />
+              </span>
+              <div>
+                <h2 className="font-serif text-2xl font-bold">
+                  Đôi lời từ chủ quán
+                </h2>
+                <p className="mt-1 max-w-xl text-pretty leading-relaxed text-muted-foreground">
+                  {OWNER_NOTES[0].body}
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="default" className="shrink-0">
+              <Link href="/luu-y">
+                Xem tất cả lưu ý
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  )
+}
+
+function SectionHeader({
+  title,
+  desc,
+  href,
+}: {
+  title: string
+  desc: string
+  href: string
+}) {
+  return (
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        <h2 className="font-serif text-2xl font-bold md:text-3xl">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
       </div>
-    </main>
+      <Link
+        href={href}
+        className="hidden shrink-0 items-center gap-1 text-sm font-semibold text-primary hover:underline sm:flex"
+      >
+        Xem tất cả <ArrowRight className="size-4" />
+      </Link>
+    </div>
   )
 }

@@ -1,32 +1,27 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Lora, Nunito } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { FavoritesProvider } from '@/components/favorites-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const lora = Lora({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-lora',
+  display: 'swap',
+})
+
+const nunito = Nunito({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-nunito',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Quán Truyện - Đọc truyện chữ bên tách cà phê',
+  description:
+    'Quán Truyện là góc đọc truyện chữ ấm áp: tiểu thuyết, ngôn tình, kiếm hiệp và những lưu ý từ chủ quán.',
   generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
 }
 
 export default function RootLayout({
@@ -35,9 +30,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="vi"
+      className={`${lora.variable} ${nunito.variable} bg-background`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased">
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <FavoritesProvider>{children}</FavoritesProvider>
+        </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
