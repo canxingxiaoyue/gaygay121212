@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { StoryCard } from '@/components/story-card'
-import { STORIES, BLOG_POSTS, OWNER_NOTES } from '@/lib/stories'
+import { STORIES, OWNER_NOTES } from '@/lib/stories'
 
 export default function HomePage() {
   const featured = STORIES.slice(0, 4)
@@ -83,37 +83,6 @@ export default function HomePage() {
                 <StoryCard key={s.slug} story={s} />
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Blog */}
-        <section className="mx-auto max-w-6xl px-4 py-12">
-          <SectionHeader
-            title="Blog của quán"
-            desc="Tâm sự, mẹo đọc và những góc nhìn từ chủ quán"
-            href="/blog"
-          />
-          <div className="grid gap-5 md:grid-cols-3">
-            {BLOG_POSTS.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md"
-              >
-                <span className="w-fit rounded-full bg-accent/20 px-3 py-1 text-xs font-semibold text-accent-foreground">
-                  {post.category}
-                </span>
-                <h3 className="font-serif text-lg font-bold leading-snug group-hover:text-primary">
-                  {post.title}
-                </h3>
-                <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                  {post.excerpt}
-                </p>
-                <span className="mt-auto flex items-center gap-1 text-sm font-semibold text-primary">
-                  Đọc tiếp <ArrowRight className="size-4" />
-                </span>
-              </Link>
-            ))}
           </div>
         </section>
 

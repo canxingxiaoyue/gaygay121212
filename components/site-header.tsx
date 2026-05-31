@@ -21,7 +21,6 @@ const NAV = [
   { href: '/', label: 'Trang chủ' },
   { href: '/truyen', label: 'Tủ truyện' },
   { href: '/da-hoan-thanh', label: 'Đã hoàn thành' },
-  { href: '/blog', label: 'Blog' },
   { href: '/luu-y', label: 'Lưu ý của quán' },
   { href: '/yeu-thich', label: 'Yêu thích' },
 ]

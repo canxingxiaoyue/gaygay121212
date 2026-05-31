@@ -209,57 +209,6 @@ export const STORIES: Story[] = [
   },
 ]
 
-export type BlogPost = {
-  slug: string
-  title: string
-  excerpt: string
-  date: string
-  category: string
-  content: string[]
-}
-
-export const BLOG_POSTS: BlogPost[] = [
-  {
-    slug: 'cach-chon-truyen-de-doc',
-    title: 'Cách chọn một cuốn truyện hợp gu để đọc',
-    excerpt:
-      'Giữa hàng ngàn đầu truyện, làm sao để tìm được cuốn khiến bạn thức trắng đêm? Vài mẹo nhỏ từ quán.',
-    date: '12 Tháng 5, 2026',
-    category: 'Mẹo đọc',
-    content: [
-      'Đọc truyện cũng giống như chọn một loại cà phê. Có người thích vị đậm đắng của kiếm hiệp, có người mê chút ngọt ngào của ngôn tình.',
-      'Lời khuyên đầu tiên: đừng vội đánh giá qua bìa. Hãy đọc thử ba chương đầu, nếu giọng văn cuốn bạn đi thì đó là dấu hiệu tốt.',
-      'Thứ hai, hãy để ý đến nhịp truyện. Một câu chuyện hay không nhất thiết phải nhanh, nhưng phải khiến bạn muốn lật sang trang tiếp theo.',
-    ],
-  },
-  {
-    slug: 'vi-sao-toi-mo-quan-truyen',
-    title: 'Vì sao tôi mở Quán Truyện',
-    excerpt:
-      'Một chút tâm sự của chủ quán về hành trình biến niềm đam mê đọc thành một góc nhỏ chia sẻ với mọi người.',
-    date: '28 Tháng 4, 2026',
-    category: 'Tâm sự',
-    content: [
-      'Tôi vẫn nhớ những buổi chiều mưa, cuộn mình trong chăn với một cuốn tiểu thuyết và tách cà phê nóng. Đó là khoảnh khắc bình yên nhất.',
-      'Quán Truyện ra đời từ mong muốn chia sẻ cảm giác ấy. Một nơi không xô bồ, chỉ có chữ nghĩa và những câu chuyện được kể bằng cả tấm lòng.',
-      'Cảm ơn bạn đã ghé quán. Hãy cứ thong thả, gọi một tách cà phê tưởng tượng và bắt đầu trang đầu tiên nhé.',
-    ],
-  },
-  {
-    slug: 'top-the-loai-duoc-yeu-thich',
-    title: 'Top thể loại được độc giả yêu thích nhất',
-    excerpt:
-      'Thống kê vui từ quán về những thể loại đang khiến độc giả mê mẩn trong thời gian gần đây.',
-    date: '15 Tháng 4, 2026',
-    category: 'Bảng xếp hạng',
-    content: [
-      'Dẫn đầu bảng vẫn là ngôn tình đô thị, với những câu chuyện gần gũi và dễ đồng cảm.',
-      'Theo sát phía sau là huyền huyễn tu tiên, thể loại luôn có lượng độc giả trung thành đông đảo.',
-      'Bất ngờ của mùa này là sự trỗi dậy của trinh thám, khi độc giả ngày càng yêu thích những câu chuyện đòi hỏi tư duy.',
-    ],
-  },
-]
-
 export const OWNER_NOTES = [
   {
     title: 'Lịch cập nhật truyện',
@@ -281,10 +230,6 @@ export const OWNER_NOTES = [
 
 export function getStory(slug: string) {
   return STORIES.find((s) => s.slug === slug)
-}
-
-export function getBlogPost(slug: string) {
-  return BLOG_POSTS.find((p) => p.slug === slug)
 }
 
 export function formatViews(n: number) {

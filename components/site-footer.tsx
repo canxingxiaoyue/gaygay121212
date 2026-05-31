@@ -36,9 +36,6 @@ export function SiteFooter() {
           <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">
             Về quán
           </h3>
-          <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
-            Blog của quán
-          </Link>
           <Link href="/luu-y" className="text-sm text-muted-foreground hover:text-foreground">
             Lưu ý của chủ quán
           </Link>
