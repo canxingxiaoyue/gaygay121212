@@ -49,24 +49,25 @@ export function SiteHeader() {
           Tàn Tinh Hiểu Nguyệt
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 lg:flex">
+      <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => {
             const active =
               item.href === '/'
                 ? pathname === '/'
                 : pathname.startsWith(item.href)
-            <Link
-  key={item.href}
-  href={item.href}
-  className={cn(
-    'rounded-full px-2 py-2 text-sm font-semibold transition-colors whitespace-nowrap',
-    active
-      ? 'bg-secondary text-secondary-foreground'
-      : 'text-muted-foreground hover:text-foreground',
-  )}
->
-  {item.label}
-</Link>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'rounded-full px-2 py-2 text-sm font-semibold transition-colors whitespace-nowrap',
+                  active
+                    ? 'bg-secondary text-secondary-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {item.label}
+              </Link>
             )
           })}
         </nav>
