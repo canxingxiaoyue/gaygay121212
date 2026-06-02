@@ -46,10 +46,9 @@ export function SiteHeader() {
             <Coffee className="size-5" />
           </span>
           <span className="font-serif text-xl font-bold tracking-tight">
-            Quán Truyện
+          Tàn Tinh Hiểu Nguyệt
           </span>
         </Link>
-
         <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => {
             const active =
@@ -101,7 +100,7 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
-                <SheetTitle className="font-serif text-xl">Quán Truyện</SheetTitle>
+                <SheetTitle className="font-serif text-xl">Tàn Tinh Hiểu Nguyệt</SheetTitle>
               </SheetHeader>
               <form onSubmit={submitSearch} className="px-4">
                 <div className="relative">
