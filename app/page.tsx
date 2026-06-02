@@ -21,15 +21,13 @@ export default function HomePage() {
             <div className="flex flex-col gap-5">
               <span className="inline-flex w-fit items-center gap-2 rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-secondary-foreground">
                 <Coffee className="size-4" />
-                Đọc truyện bên tách cà phê
+                Chúc cho mỗi người đều sở hữu bình minh của riêng mình.
               </span>
               <h1 className="text-balance font-serif text-4xl font-bold leading-tight md:text-5xl">
-                Mỗi câu chuyện là một tách cà phê cho tâm hồn
+               残星晓月
               </h1>
               <p className="text-pretty text-lg leading-relaxed text-muted-foreground">
-                Quán Truyện là góc nhỏ ấm áp để bạn thả mình vào những trang
-                tiểu thuyết, ngôn tình, kiếm hiệp và huyền huyễn. Thong thả đọc,
-                lưu lại yêu thích và cùng bình luận nhé.
+                残星晓月，为何内心依然眷恋往事？
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
