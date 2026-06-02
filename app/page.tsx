@@ -21,9 +21,9 @@ export default function HomePage() {
             <div className="flex flex-col gap-5">
         <div className="flex w-fit items-center gap-2.5 animate-pulse">
   <Coffee className="size-5 text-amber-600/80" />
-  <span className="italic font-serif text-base md:text-lg text-amber-800/90 dark:text-amber-200/90 tracking-wide">
-    “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
-  </span>
+ <p className="italic font-serif text-lg md:text-xl text-amber-800/80 dark:text-amber-200/80 tracking-wide">
+  “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
+</p>
 </div>
               <h1 className="text-balance font-serif text-4xl font-bold leading-tight md:text-5xl">
                残星晓月
