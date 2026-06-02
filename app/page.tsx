@@ -19,12 +19,12 @@ export default function HomePage() {
         <section className="relative overflow-hidden border-b border-border">
           <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-16">
             <div className="flex flex-col gap-5">
-        <div className="flex w-fit items-center gap-2.5 animate-pulse">
-  <Coffee className="size-5 text-amber-600/80" />
- <p className="italic font-serif text-lg md:text-xl text-amber-800/80 dark:text-amber-200/80 tracking-wide">
-  “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
-</p>
-</div>
+              
+              {/* Dòng trích dẫn tĩnh lặng, không nhấp nháy, không cốc cà phê */}
+              <p className="italic font-serif text-lg md:text-xl text-amber-800/80 dark:text-amber-200/80 tracking-wide">
+                “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
+              </p>
+
               <h1 className="text-balance font-serif text-4xl font-bold leading-tight md:text-5xl">
                残星晓月
               </h1>
