@@ -6,7 +6,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { StoryCard } from '@/components/story-card'
 import { STORIES, OWNER_NOTES } from '@/lib/stories'
-
+import Comments from '@/components/comments'
 export default function HomePage() {
   const featured = STORIES.slice(0, 4)
   const popular = [...STORIES].sort((a, b) => b.views - a.views).slice(0, 4)
@@ -110,6 +110,7 @@ export default function HomePage() {
             </Button>
           </div>
         </section>
+          <Comments />
       </main>
       <SiteFooter />
     </div>
