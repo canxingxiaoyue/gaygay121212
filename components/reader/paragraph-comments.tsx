@@ -136,7 +136,7 @@ export function ParagraphComments({
 
           {/* Discord Reaction Board */}
           <div className="text-center space-y-2 mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider block text-stone-400 dark:text-stone-500">Bày tỏ cảm xúc với đoạn này:</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider block text-stone-400 dark:text-stone-500">Đặt dấu chân lên đây</span>
             <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-40 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
               {sortedStickers.map((sticker) => {
                 const count = paraComments.filter(c => c.reaction === sticker.id).length
