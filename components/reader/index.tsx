@@ -108,7 +108,7 @@ const POPUP_THEME_MAPPING: Record<string, any> = {
     quote: "bg-stone-950/40 border-stone-800 text-stone-400",
     input: "border-stone-800 bg-[#131110] focus-visible:ring-stone-700",
     text: "text-stone-300",
-    button: "hover:bg-stone-800 text-stone-200",
+    button: "hover:bg-stone-850 focus-visible:ring-0",
     reactionBg: "bg-stone-950/40 border-stone-800",
     activeEmoji: "bg-[#EADBC8] border-[#EADBC8] text-stone-950 shadow-[0_0_15px_rgba(234,219,200,0.3)]",
     sendBtn: "bg-stone-800 hover:bg-stone-700 text-stone-100 shadow-[0_4px_10px_rgba(0,0,0,0.3)]",
@@ -313,13 +313,9 @@ export function ChapterReader({
     try {
       const counts = await getChapterParagraphCommentCounts(story.slug, chapter.number)
       const countsMap: Record<number, number> = {}
-      counts.forEach(row => {
-        countsMap[row.paragraph_index] = row.comment_count
-      })
+      counts.forEach(row => { countsMap[row.paragraph_index] = row.comment_count })
       setParaCommentCounts(countsMap)
-    } catch (err) {
-      console.error("Lỗi nạp số lượng bình luận đoạn:", err)
-    }
+    } catch (err) {}
   }
 
   const loadChapterComments = async () => {
@@ -334,10 +330,7 @@ export function ChapterReader({
     }
   }
 
-  useEffect(() => {
-    loadCommentCounts()
-    loadChapterComments()
-  }, [story.slug, chapter.number])
+  useEffect(() => { loadCommentCounts(); loadChapterComments() }, [story.slug, chapter.number])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -700,14 +693,11 @@ export function ChapterReader({
         return (idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId && comm.paragraph_index === -1
       })
       if (existing) {
-        const res = await deleteParagraphComment(existing.id)
-        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
-        else { loadChapterComments(); loadCommentCounts() }
+        await deleteParagraphComment(existing.id); loadChapterComments(); loadCommentCounts()
       } else {
         const dbSenderName = `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`
-        const res = await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
-        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
-        else { loadChapterComments(); loadCommentCounts() }
+        await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
+        loadChapterComments(); loadCommentCounts()
       }
     } catch (err) { setChapterComments(previousComments) }
   }
@@ -766,7 +756,7 @@ export function ChapterReader({
     }
   }
 
-  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (HÀM BỊ THIẾU GÂY LỖI) [2]
+  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI) [2]
   const handleStickerClick = async (stickerId: string) => {
     if (!isSignedIn || !user) {
       alert("Vui lòng đăng nhập!")
@@ -826,25 +816,6 @@ export function ChapterReader({
 
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
-
-  const handleOpenParaComment = async (index: number, rawText: string) => {
-    setActiveParaIndex(index)
-    setActiveParaText(rawText)
-    setParaCommentOpen(true)
-    setIsLoadingComments(true)
-    setCommentImgUrl('')
-    setEditingCommentId(null)
-
-    try {
-      const list = await getParagraphComments(story.slug, chapter.number, index)
-      setParaComments(list || [])
-    } catch (error) {
-      console.error("Lỗi khi tải bình luận:", error)
-    } finally {
-      setIsLoadingComments(false)
-    }
-  }
-
   const handleStartCommentEdit = (id: number, currentText: string) => { setEditingCommentId(id); setEditingCommentText(currentText) }
 
   const handleSaveCommentEdit = async (id: number) => {
@@ -972,10 +943,12 @@ export function ChapterReader({
 
   return (
     <div className="relative">
+      {/* 🌟 MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div className="fixed inset-0 z-[85]" onClick={() => setContextMenuVisible(false)} onContextMenu={(e) => { e.preventDefault(); setContextMenuVisible(false) }} />
       )}
 
+      {/* 🌟 MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()} className="fixed z-[95] flex flex-col bg-stone-950 text-stone-100 py-1.5 rounded-xl shadow-2xl border border-stone-800 w-52 text-sm font-sans" style={{ top: `${contextMenuPosition.top}px`, left: `${contextMenuPosition.left}px` }}>
           <button type="button" onClick={() => { restoreCursorPosition(); document.execCommand('insertHTML', false, '<span id="MAGIC_MARKER"></span>'); fileInputRef.current?.click(); setContextMenuVisible(false) }} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-stone-900 text-left w-full text-amber-400 font-semibold">
