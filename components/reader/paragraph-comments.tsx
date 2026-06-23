@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Loader2, X, ImageIcon, MessageSquare } from 'lucide-react'
+import { Loader2, X, Image as ImageIcon, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -31,7 +31,7 @@ interface ParagraphCommentsProps {
   handleStartCommentEdit: (id: number, text: string) => void
   handleSaveCommentEdit: (id: number) => void
   handleDeleteComment: (id: number) => void
-  setEditingCommentId: (id: number | null) => void // 🌟 ĐÃ THÊM KHAI BÁO BIẾN TRONG INTERFACE
+  setEditingCommentId: (id: number | null) => void
   isSignedIn: boolean
   user: any
   isAdmin: boolean
@@ -71,7 +71,7 @@ export function ParagraphComments({
   handleStartCommentEdit,
   handleSaveCommentEdit,
   handleDeleteComment,
-  setEditingCommentId, // 🌟 ĐÃ NHẬN BIẾN Ở ĐÂY
+  setEditingCommentId,
   isSignedIn,
   user,
   isAdmin,
@@ -85,13 +85,16 @@ export function ParagraphComments({
   expandedCommentIds,
   toggleExpanded,
 }: ParagraphCommentsProps) {
-  
-  // Hàm nạp phản hồi con cho bình luận đoạn văn
+
+  // 🌟 LỌC LẤY BÌNH LUẬN GỐC (LOẠI BỎ TOÀN BỘ PHẢN HỒI CON VÀ RÁC DISCORD KHỎI LUỒNG CHÍNH)
+  const rootComments = textComments.filter(c => !c.content?.includes('||PARENT_ID||:'))
+
+  // Hàm nạp các phản hồi con gắn với bình luận gốc
   const getReplies = (parentId: number) => {
-    return paraComments.filter(c => c.content?.includes(`||PARENT_ID||:${parentId}`))
+    return textComments.filter(c => c.content?.includes(`||PARENT_ID||:${parentId}`))
   }
 
-  // Hàm click phản hồi điền tag @Username
+  // 🌟 Hàm xử lý khi bấm phản hồi: tự động điền tag tên @Username thông minh
   const handleReplyClick = (id: number, userName: string) => {
     if (replyingToId === id) {
       setReplyingToId(null)
@@ -118,7 +121,7 @@ export function ParagraphComments({
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
             <div className="flex items-center gap-2">
-              <img src="/klein.png" alt="Klein" className="w-7 h-5.5 object-contain" />
+              <img src="/klein.png" alt="Klein" className="w-7 h-5.5 object-contain dark:brightness-125 dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]" />
               <span className="font-serif font-bold text-base">₍^ &gt;⩊&lt; ^₎Ⳋ Gửi lời meo meo vào đây</span>
             </div>
             <button
@@ -129,18 +132,24 @@ export function ParagraphComments({
             </button>
           </div>
 
-          {/* Quote Card */}
+          {/* Trích dẫn đoạn văn được bình luận */}
           <div className={cn("p-3.5 rounded-2xl text-xs italic line-clamp-3 leading-relaxed border mb-4 mt-2", POPUP_THEME_MAPPING[readerTheme]?.quote)}>
             &ldquo;{activeParaText}&rdquo;
           </div>
 
-          {/* Discord Reaction Board */}
+          {/* Bày tỏ cảm xúc dạng nhãn dán Klein xếp lưới */}
           <div className="text-center space-y-2 mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider block text-stone-400 dark:text-stone-500">Đặt dấu chân lên đây</span>
+            <span
+              className="block text-center text-[11px] text-[#b9abc9] italic tracking-widest"
+              style={{ textShadow: "0 0 8px rgba(220,220,255,0.4)" }}
+            >
+              ⋆｡˚☾ Dấu chân dưới trăng ☽˚｡⋆
+            </span>
             <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-40 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
               {sortedStickers.map((sticker) => {
                 const count = paraComments.filter(c => c.reaction === sticker.id).length
                 const isSelected = userReactions.includes(sticker.id)
+                const displayCount = count
 
                 return (
                   <button
@@ -156,9 +165,9 @@ export function ParagraphComments({
                     <div className="w-10 h-10 flex items-center justify-center">
                       <img src={`/stickers/${sticker.file}`} alt={sticker.label} className="w-full h-full object-contain rounded-md" />
                     </div>
-                    {count > 0 && (
+                    {displayCount > 0 && (
                       <span className={cn("text-[9px] font-bold px-1 py-0.5 rounded-full border leading-none scale-90", isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeBadge : POPUP_THEME_MAPPING[readerTheme]?.inactiveBadge)}>
-                        {count}
+                        {displayCount}
                       </span>
                     )}
                   </button>
@@ -167,15 +176,15 @@ export function ParagraphComments({
             </div>
           </div>
 
-          {/* Comment Thread List */}
+          {/* Danh sách bình luận lồng nhau */}
           <div className="flex-1 overflow-y-auto space-y-3.5 py-2 pr-1 min-h-[150px]">
             {isLoadingComments ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Loader2 className="size-5 animate-spin text-[#8B5E3C] dark:text-[#EADBC8]" />
                 <span className="text-xs text-stone-400">Đang tải bình luận đoạn...</span>
               </div>
-            ) : textComments.length > 0 ? (
-              textComments.map((comm) => {
+            ) : rootComments.length > 0 ? (
+              rootComments.map((comm) => {
                 const idParts = (comm.sender_name || '').split(' ||USER_ID||:')
                 const rawName = idParts[0] || 'Ẩn danh'
                 const restParts = idParts[1] || ''
@@ -187,11 +196,12 @@ export function ParagraphComments({
                 const textPart = contentParts[0]
                 const imgPart = contentParts[1]
 
+                // 🌟 LẤY CÁC PHẢN HỒI CỦA BÌNH LUẬN NÀY
                 const replies = getReplies(comm.id)
                 const isExpanded = expandedCommentIds.includes(comm.id)
 
                 return (
-                  <div key={comm.id} className="flex gap-2.5 items-start text-xs border-b border-stone-150/40 dark:border-stone-850/30 pb-2.5">
+                  <div key={comm.id} className="flex gap-2.5 items-start text-xs border-b border-stone-150/40 dark:border-stone-850/30 pb-4">
                     {displayAvatar ? (
                       <img src={displayAvatar} alt={rawName} className="size-7 rounded-full object-cover shrink-0 border border-stone-200 dark:border-stone-700 shadow-sm" />
                     ) : (
@@ -208,7 +218,7 @@ export function ParagraphComments({
                             (() => {
                               const sticker = sortedStickers.find(s => s.id === comm.reaction)
                               if (sticker) {
-                                return <img src={`/stickers/${sticker.file}`} alt={sticker.label} className="size-5.5 object-contain filter drop-shadow-sm select-none" />
+                                return <img src={`/stickers/${sticker.file}`} alt={sticker.label} className="size-5.5 object-contain filter drop-shadow-sm select-none" title={sticker.label} />
                               }
                               return <span className="text-xs">{comm.reaction}</span>
                             })()
@@ -218,7 +228,7 @@ export function ParagraphComments({
                       </div>
 
                       {editingCommentId === comm.id ? (
-                        <Input
+                        <Input 
                           value={editingCommentText}
                           onChange={(e) => setEditingCommentText(e.target.value)}
                           className="h-8.5 text-xs rounded-full border-stone-250 w-full mt-1 bg-transparent px-3 text-stone-800 dark:text-stone-200"
@@ -229,17 +239,17 @@ export function ParagraphComments({
                       )}
 
                       {imgPart && (
-                        <div className="relative mt-2 max-w-[150px] rounded-lg overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm cursor-zoom-in">
-                          <img src={imgPart} alt="Ảnh đính kèm" className="object-cover w-full max-h-32" onClick={() => window.open(imgPart, '_blank')} />
+                        <div className="relative mt-2 max-w-[150px] rounded-lg overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm cursor-zoom-in group">
+                          <img src={imgPart} alt="Ảnh đính kèm" className="object-cover w-full max-h-32 transition-transform duration-300 group-hover:scale-105" onClick={() => window.open(imgPart, '_blank')} />
                         </div>
                       )}
 
-                      {/* Actions */}
+                      {/* Actions: Phản hồi, Sửa, Xóa */}
                       <div className="flex gap-3 text-[10px] mt-1 select-none font-bold">
                         {editingCommentId === comm.id ? (
                           <>
-                            <button onClick={() => handleSaveCommentEdit(comm.id)} className="hover:text-green-600">Lưu</button>
-                            <button onClick={() => setEditingCommentId(null)} className="hover:text-stone-600">Hủy</button>
+                            <button onClick={() => handleSaveCommentEdit(comm.id)} className="hover:text-green-600 transition-colors text-stone-400 dark:text-stone-500">Lưu</button>
+                            <button onClick={() => setEditingCommentId(null)} className="hover:text-stone-600 dark:hover:text-stone-300 transition-colors text-stone-400 dark:text-stone-500">Hủy</button>
                           </>
                         ) : (
                           <>
@@ -256,14 +266,14 @@ export function ParagraphComments({
                         )}
                       </div>
 
-                      {/* Reply Form */}
+                      {/* Form nhập phản hồi */}
                       {replyingToId === comm.id && (
-                        <div className="mt-2.5 flex gap-2 max-w-md items-center animate-in slide-in-from-top-1 duration-150">
+                        <div className="mt-2.5 flex gap-2 max-w-sm items-center animate-in slide-in-from-top-1 duration-150">
                           <Input
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder={`Phản hồi ${rawName}...`}
-                            className={cn("h-8 rounded-full text-xs px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
+                            className={cn("h-8 rounded-full text-[11px] px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
                             disabled={isSending}
                             onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)}
                           />
@@ -273,9 +283,10 @@ export function ParagraphComments({
                         </div>
                       )}
 
-                      {/* Replies Thread */}
+                      {/* 🌟 VÙNG HIỂN THỊ PHẢN HỒI CON (REPLIES) LỒNG NHAU */}
                       {replies.length > 0 && (
-                        <div className="mt-2 text-left">
+                        <div className="mt-2.5 space-y-2">
+                          {/* Nút Xem / Ẩn phản hồi (Thiết kế bé mèo Klein) */}
                           <button onClick={() => toggleExpanded(comm.id)} className="flex items-center gap-1.5 text-[10px] font-bold text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
                             <span>₍^•⩊•^₎Ⳋ</span> {isExpanded ? "Ẩn phản hồi" : `Xem ${replies.length} phản hồi`}
                           </button>
@@ -287,10 +298,12 @@ export function ParagraphComments({
                                 const rRawName = rIdParts[0] || 'Ẩn danh'
                                 const rCommentUserId = (rIdParts[1] || '').split(' ||AVATAR_URL||:')[0] || ''
                                 const rDisplayAvatar = (rIdParts[1] || '').split(' ||AVATAR_URL||:')[1] || ''
+                                
+                                // Lọc bỏ mã ||PARENT_ID|| để lấy văn bản thuần hiển thị
                                 const rTextPart = (reply.content || '').split(' ||PARENT_ID||:')[0]
 
                                 return (
-                                  <div key={reply.id} className="flex gap-2 items-start">
+                                  <div key={reply.id} className="flex gap-2 items-start animate-fade-in">
                                     {rDisplayAvatar ? (
                                       <img src={rDisplayAvatar} alt={rRawName} className="size-6 rounded-full object-cover shrink-0 border" />
                                     ) : (
@@ -300,9 +313,10 @@ export function ParagraphComments({
                                     )}
                                     <div className="flex-1 space-y-0.5">
                                       <div className="flex justify-between items-center">
-                                        <span className="font-bold text-stone-800 dark:text-stone-350">{rRawName}</span>
+                                        <span className="font-bold text-stone-800 dark:text-stone-300">{rRawName}</span>
                                         <span className="text-[8px] text-stone-400">{new Date(reply.created_at).toLocaleDateString('vi-VN')}</span>
                                       </div>
+                                      
                                       {editingCommentId === reply.id ? (
                                         <Input
                                           value={editingCommentText}
@@ -322,6 +336,7 @@ export function ParagraphComments({
                                           </>
                                         ) : (
                                           <>
+                                            {/* Nút phản hồi vĩnh viễn cho phản hồi con */}
                                             {isSignedIn && (
                                               <button onClick={() => handleReplyClick(reply.id, rRawName)} className="text-stone-450 hover:text-stone-600 dark:hover:text-stone-300">Phản hồi</button>
                                             )}
@@ -335,18 +350,18 @@ export function ParagraphComments({
                                         )}
                                       </div>
 
-                                      {/* Khung nhập phản hồi con lồng nhau */}
+                                      {/* Form nhập phản hồi con lồng nhau */}
                                       {replyingToId === reply.id && (
-                                        <div className="mt-2 flex gap-2 max-w-md items-center animate-in slide-in-from-top-1 duration-150">
+                                        <div className="mt-2 flex gap-2 max-w-[200px] sm:max-w-xs items-center animate-in slide-in-from-top-1 duration-150">
                                           <Input
                                             value={replyText}
                                             onChange={(e) => setReplyText(e.target.value)}
                                             placeholder={`Phản hồi ${rRawName}...`}
-                                            className={cn("h-8 rounded-full text-xs px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
+                                            className={cn("h-8 rounded-full text-[10px] px-3 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
                                             disabled={isSending}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)} // Gắn ID cha gốc để luồng phẳng
                                           />
-                                          <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[10px] font-bold px-3", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
+                                          <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[9px] font-bold px-2.5", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
                                             {isSending ? <Loader2 className="size-3 animate-spin" /> : "Gửi"}
                                           </Button>
                                         </div>
@@ -371,19 +386,27 @@ export function ParagraphComments({
             )}
           </div>
 
-          {/* Form Comment Box */}
+          {/* Khung dưới cùng: Nhập bình luận mới */}
           {!isSignedIn ? (
-            <div className="text-center py-4 bg-stone-50/50 dark:bg-stone-950/20 rounded-2xl border border-dashed mt-2">
-              <p className="text-xs text-stone-500">Vui lòng <Link href="/sign-in" className="text-[#8B5E3C] dark:text-[#EADBC8] hover:underline font-bold">đăng nhập</Link> để gửi lời meo meo.</p>
+            <div className="text-center py-4 bg-stone-50/50 dark:bg-stone-950/20 rounded-2xl border border-dashed border-stone-200 dark:border-stone-850 mt-2">
+              <p className="text-xs text-stone-500">
+                Vui lòng <Link href="/sign-in" className="text-[#8B5E3C] dark:text-[#EADBC8] hover:underline font-bold">đăng nhập</Link> để gửi lời meo meo.
+              </p>
             </div>
           ) : (
             <div className="border-t border-stone-100 dark:border-stone-850 pt-4 mt-2 space-y-2.5">
               {commentImgUrl && (
                 <div className="relative inline-block mt-1">
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-[#E5D8C8]">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-[#E5D8C8] shadow-sm">
                     <img src={commentImgUrl} alt="Preview" className="object-cover w-full h-full" />
                   </div>
-                  <button onClick={() => setCommentImgUrl('')} className={cn("absolute -top-1.5 -right-1.5 rounded-full p-0.5 border shadow", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
+                  <button 
+                    onClick={() => setCommentImgUrl('')}
+                    className={cn(
+                      "absolute -top-1.5 -right-1.5 rounded-full p-0.5 border shadow transition-transform active:scale-95",
+                      POPUP_THEME_MAPPING[readerTheme]?.sendBtn
+                    )}
+                  >
                     <X className="size-2.5" />
                   </button>
                 </div>
@@ -397,12 +420,16 @@ export function ParagraphComments({
                   size="icon"
                   onClick={() => commentFileInputRef.current?.click()}
                   disabled={isUploadingCommentImg || isSending}
-                  className={cn("h-10 w-10 shrink-0 rounded-full border transition-colors", POPUP_THEME_MAPPING[readerTheme]?.input, "hover:bg-[#F4EEE6] dark:hover:bg-stone-850")}
+                  className={cn(
+                    "h-10 w-10 shrink-0 rounded-full border transition-colors",
+                    POPUP_THEME_MAPPING[readerTheme]?.input,
+                    POPUP_THEME_MAPPING[readerTheme]?.imgBtn
+                  )}
                 >
-                  {isUploadingCommentImg ? <Loader2 className="size-4 animate-spin text-[#8B5E3C]" /> : <ImageIcon className="size-4 text-[#8B5E3C] dark:text-[#EADBC8]" />}
+                  {isUploadingCommentImg ? <Loader2 className="size-4 animate-spin text-[#8B5E3C] dark:text-[#EADBC8]" /> : <ImageIcon className="size-4 text-[#8B5E3C] dark:text-[#EADBC8]" />}
                 </Button>
 
-                <Input
+                <Input 
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Gửi bình luận hoặc cảm nhận..."
@@ -410,7 +437,11 @@ export function ParagraphComments({
                   disabled={isSending}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendParaComment()}
                 />
-                <Button onClick={handleSendParaComment} disabled={isSending || isUploadingCommentImg || (!commentText.trim() && !commentImgUrl)} className={cn("rounded-full h-10 px-5 text-xs font-bold transition-all", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
+                <Button 
+                  onClick={handleSendParaComment}
+                  disabled={isSending || isUploadingCommentImg || (!commentText.trim() && !commentImgUrl)}
+                  className={cn("rounded-full h-10 px-5 text-xs font-bold transition-all", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}
+                >
                   {isSending ? <Loader2 className="size-3.5 animate-spin" /> : "Gửi"}
                 </Button>
               </div>
