@@ -24,7 +24,7 @@ import {
   deleteParagraphComment, 
   updateParagraphComment, 
   getChapterParagraphCommentCounts, 
-  getChapterAllComments // 🌟 ĐÃ BỔ SUNG IMPORT ĐẦY ĐỦ Ở ĐÂY TRÁNH LỖI BIÊN DỊCH [1.1.2]
+  getChapterAllComments 
 } from '@/app/actions/paragraph-comments'
 import { cn } from '@/lib/utils'
 
@@ -700,11 +700,14 @@ export function ChapterReader({
         return (idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId && comm.paragraph_index === -1
       })
       if (existing) {
-        await deleteParagraphComment(existing.id); loadChapterComments(); loadCommentCounts()
+        const res = await deleteParagraphComment(existing.id)
+        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
+        else { loadChapterComments(); loadCommentCounts() }
       } else {
         const dbSenderName = `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`
-        await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
-        loadChapterComments(); loadCommentCounts()
+        const res = await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
+        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
+        else { loadChapterComments(); loadCommentCounts() }
       }
     } catch (err) { setChapterComments(previousComments) }
   }
@@ -763,7 +766,29 @@ export function ChapterReader({
     }
   }
 
-  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI) [2]
+  const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
+  const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
+
+  // 🌟 KHÔI PHỤC LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
+  const handleOpenParaComment = async (index: number, rawText: string) => {
+    setActiveParaIndex(index)
+    setActiveParaText(rawText)
+    setParaCommentOpen(true)
+    setIsLoadingComments(true)
+    setCommentImgUrl('')
+    setEditingCommentId(null)
+
+    try {
+      const list = await getParagraphComments(story.slug, chapter.number, index)
+      setParaComments(list || [])
+    } catch (error) {
+      console.error("Lỗi khi tải bình luận:", error)
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }
+
+  // 🌟 KHÔI PHỤC LẠI HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI) [2]
   const handleStickerClick = async (stickerId: string) => {
     if (!isSignedIn || !user) {
       alert("Vui lòng đăng nhập!")
@@ -818,28 +843,6 @@ export function ChapterReader({
       }
     } catch (err) { 
       setParaComments(previousComments) 
-    }
-  }
-
-  const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
-  const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
-
-  // 🌟 KHÔI PHỤC LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
-  const handleOpenParaComment = async (index: number, rawText: string) => {
-    setActiveParaIndex(index)
-    setActiveParaText(rawText)
-    setParaCommentOpen(true)
-    setIsLoadingComments(true)
-    setCommentImgUrl('')
-    setEditingCommentId(null)
-
-    try {
-      const list = await getParagraphComments(story.slug, chapter.number, index)
-      setParaComments(list || [])
-    } catch (error) {
-      console.error("Lỗi khi tải bình luận:", error)
-    } finally {
-      setIsLoadingComments(false)
     }
   }
 
@@ -923,6 +926,7 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
+  // 🌟 ĐỒNG BỘ COMPONENT CHUYỂN CHƯƠNG NAV [2]
   const Nav = ({ className }: { className?: string }) => (
     <div className={cn('flex items-center justify-between gap-2', className)}>
       <Button 
@@ -970,12 +974,10 @@ export function ChapterReader({
 
   return (
     <div className="relative">
-      {/* 🌟 MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div className="fixed inset-0 z-[85]" onClick={() => setContextMenuVisible(false)} onContextMenu={(e) => { e.preventDefault(); setContextMenuVisible(false) }} />
       )}
 
-      {/* 🌟 MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()} className="fixed z-[95] flex flex-col bg-stone-950 text-stone-100 py-1.5 rounded-xl shadow-2xl border border-stone-800 w-52 text-sm font-sans" style={{ top: `${contextMenuPosition.top}px`, left: `${contextMenuPosition.left}px` }}>
           <button type="button" onClick={() => { restoreCursorPosition(); document.execCommand('insertHTML', false, '<span id="MAGIC_MARKER"></span>'); fileInputRef.current?.click(); setContextMenuVisible(false) }} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-stone-900 text-left w-full text-amber-400 font-semibold">
@@ -1095,7 +1097,7 @@ export function ChapterReader({
                     className={cn(
                       "transition-all duration-200 flex items-center justify-center border shrink-0 self-center rounded-full p-1 shadow-sm active:scale-90 w-11 h-9 relative",
                       count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
-                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
+                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3E2E]"
                     )}
                     title={`Xem ${count} bình luận`}
                   >
