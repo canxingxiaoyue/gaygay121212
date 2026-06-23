@@ -1121,40 +1121,46 @@ export function ChapterReader({
 
         {!isEditing && (
           <ChapterComments
-            chapterComments={chapterComments}
-            isLoading={isLoadingChapterComments}
-            isSending={isSending}
-            isUploadingCommentImg={isUploadingChapterCommentImg}
-            commentText={chapterCommentText}
-            setCommentText={setChapterCommentText}
-            commentImgUrl={chapterCommentImgUrl}
-            setCommentImgUrl={setChapterCommentImgUrl}
-            commentFileInputRef={chapterCommentFileInputRef}
-            handleCommentImageUpload={handleChapterCommentImageUpload}
-            handleStickerClick={handleChapterStickerClick}
-            handleSendChapterComment={handleSendChapterComment}
-            userReactions={chapterUserReactions}
-            sortedStickers={sortedStickers}
-            parsedParagraphs={parsedParagraphs}
-            editingCommentId={editingCommentId}
-            editingCommentText={editingCommentText}
-            setEditingCommentText={setEditingCommentText}
-            handleStartCommentEdit={handleStartCommentEdit}
-            handleSaveCommentEdit={handleSaveCommentEdit}
-            handleDeleteComment={handleDeleteComment}
-            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
-            user={user}
-            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
-            POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
-            readerTheme={readerTheme}
-            replyingToId={chapterReplyingToId}
-            setReplyingToId={setChapterReplyingToId}
-            replyText={chapterReplyText}
-            setReplyText={setChapterReplyText}
-            handleSendReply={handleSendChapterReply}
-            expandedCommentIds={chapterExpandedCommentIds}
-            toggleExpanded={toggleChapterExpanded}
-          />
+  chapterComments={chapterComments}
+  isLoading={isLoadingChapterComments}
+  isSending={isSending}
+  isUploadingCommentImg={isUploadingChapterCommentImg}
+  commentText={chapterCommentText}
+  setCommentText={setChapterCommentText}
+  commentImgUrl={chapterCommentImgUrl}
+  setCommentImgUrl={setChapterCommentImgUrl}
+  commentFileInputRef={chapterCommentFileInputRef}
+  handleCommentImageUpload={handleChapterCommentImageUpload}
+  handleStickerClick={handleChapterStickerClick}
+  handleSendChapterComment={handleSendChapterComment}
+  userReactions={chapterUserReactions}
+  sortedStickers={sortedStickers}
+  parsedParagraphs={parsedParagraphs}
+
+  editingCommentId={editingCommentId}
+  setEditingCommentId={setEditingCommentId}
+  editingCommentText={editingCommentText}
+  setEditingCommentText={setEditingCommentText}
+
+  handleStartCommentEdit={handleStartCommentEdit}
+  handleSaveCommentEdit={handleSaveCommentEdit}
+  handleDeleteComment={handleDeleteComment}
+
+  isSignedIn={!!isSignedIn}
+  user={user}
+  isAdmin={!!isAdmin}
+
+  POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
+  readerTheme={readerTheme}
+
+  replyingToId={chapterReplyingToId}
+  setReplyingToId={setChapterReplyingToId}
+  replyText={chapterReplyText}
+  setReplyText={setChapterReplyText}
+  handleSendReply={handleSendChapterReply}
+  expandedCommentIds={chapterExpandedCommentIds}
+  toggleExpanded={toggleChapterExpanded}
+/>
         )}
 
         <ParagraphComments
