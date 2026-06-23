@@ -182,7 +182,7 @@ export default async function StoryDetailPage({
             storySlug={story.slug}
             chapters={mergedChapters}
             volumes={volumes}
-            isAdmin={isAdmin}
+            isAdmin={!!isAdmin}
           />
         </section>
 
