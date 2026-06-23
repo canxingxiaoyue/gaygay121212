@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Loader2, X, Image as ImageIcon, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -28,6 +27,7 @@ interface ChapterCommentsProps {
   handleStartCommentEdit: (id: number, text: string) => void
   handleSaveCommentEdit: (id: number) => void
   handleDeleteComment: (id: number) => void
+  setEditingCommentId: (id: number | null) => void // 🌟 ĐÃ THÊM KHAI BÁO BIẾN TRONG INTERFACE
   isSignedIn: boolean
   user: any
   isAdmin: boolean
@@ -61,6 +61,7 @@ export function ChapterComments({
   handleStartCommentEdit,
   handleSaveCommentEdit,
   handleDeleteComment,
+  setEditingCommentId, // 🌟 ĐÃ NHẬN BIẾN THỰC THI Ở ĐÂY
   isSignedIn,
   user,
   isAdmin,
@@ -74,16 +75,16 @@ export function ChapterComments({
   expandedCommentIds,
   toggleExpanded,
 }: ChapterCommentsProps) {
-  
-  // 🌟 LỌC LẤY BÌNH LUẬN GỐC (LOẠI BỎ TOÀN BỘ PHẢN HỒI CON KHỎI LUỒNG CHÍNH)
-  const rootComments = chapterComments.filter(c => !c.content?.includes('||PARENT_ID||:'))
+  // Lọc các phản hồi lồng nhau và cảm xúc Discord để chỉ hiển thị cột chữ chuẩn [1.1.2]
+  const rootComments = chapterComments.filter(
+    c => c.content && c.content !== '||DISCORD_REACTION||' && !c.content?.includes('||PARENT_ID||:')
+  )
 
-  // Hàm nạp các phản hồi con gắn với bình luận gốc
   const getReplies = (parentId: number) => {
     return chapterComments.filter(c => c.content?.includes(`||PARENT_ID||:${parentId}`))
   }
 
-  // 🌟 Hàm xử lý khi bấm phản hồi: tự động điền tag tên @Username [1, 2]
+  // Hàm xử lý khi bấm phản hồi: tự động điền tag tên @Username [1, 2]
   const handleReplyClick = (id: number, userName: string) => {
     if (replyingToId === id) {
       setReplyingToId(null)
@@ -196,8 +197,6 @@ export function ChapterComments({
                       <span className="text-[9px] text-stone-400">{new Date(comm.created_at).toLocaleDateString('vi-VN')}</span>
                     </div>
 
-                    {/* 🌟 ĐÃ XÓA HOÀN TOÀN HỘP TRÍCH DẪN ĐOẠN VĂN THEO YÊU CẦU ĐỂ TRÁNH TRÙNG LẶP CHỮ [1.1.2] */}
-
                     {editingCommentId === comm.id ? (
                       <Input
                         value={editingCommentText}
@@ -225,7 +224,7 @@ export function ChapterComments({
                       ) : (
                         <>
                           {isSignedIn && (
-                            <button onClick={() => handleReplyClick(comm.id, rawName)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">Phản hồi</button>
+                            <button onClick={() => handleReplyClick(comm.id, rawName)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300">Phản hồi</button>
                           )}
                           {(isAdmin || (isSignedIn && user?.id === commentUserId)) && (
                             <>
@@ -272,7 +271,7 @@ export function ChapterComments({
                               const rTextPart = (reply.content || '').split(' ||PARENT_ID||:')[0]
 
                               return (
-                                <div key={reply.id} className="flex gap-2 items-start animate-fade-in">
+                                <div key={reply.id} className="flex gap-2 items-start">
                                   {rDisplayAvatar ? (
                                     <img src={rDisplayAvatar} alt={rRawName} className="size-6 rounded-full object-cover shrink-0 border" />
                                   ) : (
@@ -327,7 +326,7 @@ export function ChapterComments({
                                           placeholder={`Phản hồi ${rRawName}...`}
                                           className={cn("h-8 rounded-full text-xs px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
                                           disabled={isSending}
-                                          onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)} // Lưu ID cha là ID gốc comm.id để giữ Flat lồng nhau gọn gàng!
+                                          onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)}
                                         />
                                         <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[10px] font-bold px-3", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
                                           {isSending ? <Loader2 className="size-3 animate-spin" /> : "Gửi"}
