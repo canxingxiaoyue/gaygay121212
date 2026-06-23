@@ -426,7 +426,6 @@ export function ChapterReader({
     setHistory(updatedHistory)
   }
 
-  // 🌟 HÀM KHỞI CHẠY SOẠN THẢO ADMIN (ĐÃ KHÔI PHỤC LẠI CHỐNG LỖI STARTEDITING)
   const startEditing = () => {
     setEditTitle(chapter.title)
     const isRawText = chapter.content && chapter.content.length > 0 && !chapter.content[0].trim().startsWith('<')
@@ -445,12 +444,9 @@ export function ChapterReader({
     const savedDraft = typeof window !== 'undefined' ? localStorage.getItem(draftKey) : null
     if (savedDraft) {
       try {
-        const { title: dTitle, content: dContent } = JSON.parse(savedDraft)
+        const { dTitle, dContent } = JSON.parse(savedDraft)
         if (dContent && dContent !== initialHtml && confirm("Hệ thống phát hiện có bản nháp tự động chưa được lưu lên máy chủ từ lần soạn thảo trước. Bạn có muốn phục hồi không?")) {
-          setEditTitle(dTitle)
-          setEditText(dContent)
-          setEditorHtml(dContent)
-          setLiveWordCount(countWords(dContent))
+          setEditTitle(dTitle); setEditText(dContent); setEditorHtml(dContent); setLiveWordCount(countWords(dContent))
           initialHtml = dContent
         }
       } catch (e) {}
@@ -786,7 +782,7 @@ export function ChapterReader({
     }
   }
 
-  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI)
+  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI) [2]
   const handleStickerClick = async (stickerId: string) => {
     if (!isSignedIn || !user) {
       alert("Vui lòng đăng nhập!")
@@ -994,15 +990,20 @@ export function ChapterReader({
 
       <article
         className={cn(
-          "mx-auto w-full transition-all duration-300 relative border shadow-lg p-6 md:p-8 rounded-2xl",
+          "mx-auto w-full transition-all duration-300 relative border shadow-lg p-6 md:p-8 rounded-2xl animate-fade-in",
+          // Chiều rộng nội dung động
           containerWidth === 'xl' && "max-w-xl",
           containerWidth === '2xl' && "max-w-2xl",
           containerWidth === '3xl' && "max-w-3xl",
+          // Áp dụng lớp CSS động của hệ màu mới
           THEME_MAPPING[readerTheme]?.container,
           THEME_MAPPING[readerTheme]?.text
         )}
       >
-        <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
+        {/* 🌟 THẺ STYLE TỰ ĐỘNG TẢI TRỰC TIẾP CÁC GOOGLE FONTS */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');
+        `}} />
 
         {/* Toolbar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
@@ -1138,9 +1139,9 @@ export function ChapterReader({
             handleStartCommentEdit={handleStartCommentEdit}
             handleSaveCommentEdit={handleSaveCommentEdit}
             handleDeleteComment={handleDeleteComment}
-            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU BOOLEAN CHUẨN TRÁNH TYPE ERROR
+            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
             user={user}
-            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU BOOLEAN CHUẨN TRÁNH TYPE ERROR
+            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
             POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
             readerTheme={readerTheme}
             replyingToId={chapterReplyingToId}
@@ -1178,9 +1179,9 @@ export function ChapterReader({
           handleStartCommentEdit={handleStartCommentEdit}
           handleSaveCommentEdit={handleSaveCommentEdit}
           handleDeleteComment={handleDeleteComment}
-          isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU BOOLEAN CHUẨN TRÁNH TYPE ERROR
+          isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
           user={user}
-          isAdmin={!!isAdmin} // 🌟 ÉP KIỂU BOOLEAN CHUẨN TRÁNH TYPE ERROR
+          isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
           POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
           readerTheme={readerTheme}
           replyingToId={replyingToId}
