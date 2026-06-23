@@ -117,7 +117,7 @@ export default async function ChapterPage({
       <SiteHeader />
       <main className="flex-1 px-4 py-8">
         {/* Truyền thêm prop isAdmin lấy trực tiếp từ Server xuống */}
-        <ChapterReader story={story} chapter={chapterWithContent as any} isAdmin={isAdmin} />
+        <ChapterReader story={story} chapter={chapterWithContent as any} isAdmin={!!isAdmin} />
       </main>
       <SiteFooter />
     </div>
