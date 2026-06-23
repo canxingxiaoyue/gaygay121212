@@ -3,7 +3,7 @@
 import { sql } from '@vercel/postgres'
 
 /**
- * LẤY DANH SÁCH ĐÁNH GIÁ/BÌNH LUẬN TRUYỆN (Sử dụng đúng cột story_id gốc của bạn)
+ * LẤY DANH SÁCH ĐÁNH GIÁ/BÌNH LUẬN TRUYỆN
  */
 export async function getComments(storySlug: string) {
   try {
@@ -20,7 +20,28 @@ export async function getComments(storySlug: string) {
 }
 
 /**
- * 🌟 HÀM THÊM ĐÁNH GIÁ NÂNG CẤP: TỰ ĐỘNG BẮN THÔNG BÁO CHO ĐỘC GIẢ VÀ ADMIN (ĐÃ SỬA CỘT STORY_ID CHUẨN) [2]
+ * 🌟 HÀM LẤY ĐIỂM ĐÁNH GIÁ TRUNG BÌNH CỦA TRUYỆN (ĐÃ KHÔI PHỤC CHỐNG LỖI BIÊN DỊCH) [2]
+ */
+export async function getStoryRating(storySlug: string) {
+  try {
+    const { rows } = await sql`
+      SELECT rating FROM comments 
+      WHERE story_id = ${storySlug} AND parent_id IS NULL AND rating > 0
+    `
+    if (rows.length === 0) {
+      return { average: "5.0", count: 0 }
+    }
+    const total = rows.reduce((acc, row) => acc + (row.rating || 0), 0)
+    const average = (total / rows.length).toFixed(1)
+    return { average, count: rows.length }
+  } catch (error) {
+    console.error("Lỗi tính điểm đánh giá truyện:", error)
+    return { average: "5.0", count: 0 }
+  }
+}
+
+/**
+ * HÀM THÊM ĐÁNH GIÁ NÂNG CẤP: TỰ ĐỘNG BẮN THÔNG BÁO CHO ĐỘC GIẢ VÀ ADMIN
  */
 export async function addComment(
   storySlug: string,
@@ -36,7 +57,7 @@ export async function addComment(
   }
 
   try {
-    // 1. LƯU ĐÁNH GIÁ MỚI VÀO DATABASE (Sử dụng đúng cột story_id chuẩn của bạn) [1.1.2]
+    // 1. LƯU ĐÁNH GIÁ MỚI VÀO DATABASE
     await sql`
       INSERT INTO comments (story_id, user_id, user_name, user_avatar, content, rating, parent_id, created_at)
       VALUES (${storySlug}, ${userId}, ${userName}, ${userAvatar}, ${content}, ${rating}, ${parentId || null}, NOW())
@@ -46,19 +67,17 @@ export async function addComment(
     // 🌟 LOGIC BẮN THÔNG BÁO TỰ ĐỘNG (BACKGROUND NOTIFICATIONS)
     // =========================================================
     
-    // Cắt ngắn nội dung đánh giá để làm văn bản xem trước (Preview Text) gọn gàng
     let cleanText = content.trim()
     if (cleanText.length > 50) {
       cleanText = cleanText.substring(0, 50) + '...'
     }
 
     if (parentId) {
-      // A. ĐÂY LÀ PHẢN HỒI (REPLY): Tìm người gửi bình luận cha để bắn thông báo cho họ [2]
+      // A. ĐÂY LÀ PHẢN HỒI (REPLY)
       const { rows: parentRows } = await sql`SELECT user_id FROM comments WHERE id = ${parentId} LIMIT 1`
       if (parentRows.length > 0) {
         const parentUserId = parentRows[0].user_id
         
-        // Chỉ bắn thông báo nếu người phản hồi không phải là chủ nhân tự chat với chính mình [2]
         if (parentUserId !== userId) {
           await sql`
             INSERT INTO notifications (recipient_id, sender_name, sender_avatar, type, story_slug, chapter_number, preview_text, target_link, created_at)
@@ -67,7 +86,7 @@ export async function addComment(
         }
       }
     } else {
-      // B. ĐÂY LÀ ĐÁNH GIÁ TRUYỆN MỚI (NEW REVIEW): Gửi thông báo cho hòm thư của Admin [2]
+      // B. ĐÂY LÀ ĐÁNH GIÁ TRUYỆN MỚI
       await sql`
         INSERT INTO notifications (recipient_id, sender_name, sender_avatar, type, story_slug, chapter_number, preview_text, target_link, created_at)
         VALUES ('ADMIN', ${userName}, ${userAvatar}, 'NEW_COMMENT', ${storySlug}, 0, ${cleanText}, ${`/truyen/${storySlug}`}, NOW())
