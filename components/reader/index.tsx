@@ -43,9 +43,10 @@ const FONT_MAPPING: Record<string, string> = {
   manrope: "'Manrope', sans-serif",
 }
 
+// 🌟 BẢNG MÀU ĐỌC TRUYỆN CHUẨN: CHỈ CHỨA 4 THUỘC TÍNH ĐÚNG KIỂU DỮ LIỆU [1]
 const THEME_MAPPING: Record<string, { container: string; text: string; badge: string; navBtn: string }> = {
   light: {
-    container: "bg-[#FFFDFB] text-stone-900 border-stone-200/60 dark:border-stone-850",
+    container: "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/60 dark:border-stone-850",
     text: "text-stone-900 dark:text-stone-100",
     badge: "bg-[#8B5E3C] text-white border-white dark:border-stone-900",
     navBtn: "border-stone-200 bg-transparent text-stone-700 hover:bg-[#F4EEE6] hover:border-stone-300 transition-colors"
@@ -63,10 +64,106 @@ const THEME_MAPPING: Record<string, { container: string; text: string; badge: st
     navBtn: "border-[#EADBC8] bg-transparent text-[#5C3D2E] hover:bg-[#EADBC8]/70 hover:border-[#DEC4B0] transition-colors"
   },
   emerald: {
-    container: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3] shadow-[0_20px_50px_rgba(59,77,49,0.15)]",
-    text: "text-[#3B4D31]/90",
+    container: "bg-[#EAEFE3] border-[#D2DAC3]",
+    text: "text-[#3B4D31]",
     badge: "bg-[#3B4D31] text-[#EAEFE3] border-[#EAEFE3]",
     navBtn: "border-[#D2DAC3] bg-transparent text-[#3B4D31] hover:bg-[#DDE6D5]/70 hover:border-[#C8D3BE] transition-colors"
+  },
+  coffee: {
+    container: "bg-[#F0E6DF] border-[#DECAC0]",
+    text: "text-[#4A3228]",
+    badge: "bg-[#4A3228] text-[#F0E6DF] border-[#F0E6DF]",
+    navBtn: "border-[#DECAC0] bg-transparent text-[#4A3228] hover:bg-[#E0D2C8]/70 hover:border-[#D0BFAF] transition-colors"
+  },
+  rose: {
+    container: "bg-[#FDF0F2] border-[#F5D6D8]",
+    text: "text-[#632B30]",
+    badge: "bg-[#632B30] text-[#FDF0F2] border-[#FDF0F2]",
+    navBtn: "border-[#F5D6D8] bg-transparent text-[#632B30] hover:bg-[#F9E2E5]/70 hover:border-[#EDCCD2] transition-colors"
+  }
+}
+
+const KLEIN_BTN_THEME: Record<string, string> = {
+  light: "bg-[#F4EEE6] border-[#E5D8C8] hover:bg-[#EADBCE] text-[#5C3D2E]",
+  dark: "bg-stone-850/80 border-stone-800 hover:bg-stone-800 text-[#efebe9]",
+  sepia: "bg-[#EADBC8]/70 border-[#DEC4B0] hover:bg-[#DEC4B0] text-[#5C3D2E]",
+  emerald: "bg-[#DDE6D5] border-[#C8D3BE] hover:bg-[#C8D3BE] text-[#3B4D31]",
+  coffee: "bg-[#E0D2C8] border-[#D0BFAF] hover:bg-[#D0BFAF] text-[#4A3228]",
+  rose: "bg-[#F9E2E5] border-[#F5D6D8] hover:bg-[#EDCCD2] text-[#632B30]",
+}
+
+const POPUP_THEME_MAPPING: Record<string, any> = {
+  light: {
+    container: "bg-[#FFFDFB] text-stone-900 border-stone-200/60 dark:border-stone-850",
+    quote: "bg-[#F4EEE6]/50 border-[#E5D8C8]/40 text-stone-500",
+    input: "border-stone-200 bg-[#FFFDFB] focus-visible:ring-amber-500",
+    text: "text-stone-700 dark:text-stone-300",
+    button: "hover:bg-[#F4EEE6] text-[#5C3D2E]",
+    reactionBg: "bg-[#F4EEE6]/40 border-[#E5D8C8]/40",
+    activeEmoji: "bg-[#8B5E3C] border-[#8B5E3C] text-white shadow-[0_0_15px_rgba(139,94,60,0.3)] scale-[1.03]",
+    sendBtn: "bg-[#8B5E3C] hover:bg-[#5C3D2E] text-white shadow-[0_4px_10px_rgba(139,94,60,0.15)]",
+    close: "text-stone-400 hover:text-stone-700 dark:hover:text-stone-200",
+    fallback: "bg-[#F4EEE6] text-[#8B5E3C] dark:bg-stone-800 dark:text-[#EADBC8]",
+    activeBadge: "bg-[#FFFDFB] text-[#8B5E3C] border-amber-200/20",
+    inactiveBadge: "bg-[#F4EEE6] text-stone-500 border-stone-200/40",
+    editBtn: "text-stone-400 hover:text-[#8B5E3C]",
+    deleteBtn: "text-stone-400 hover:text-[#8B5E3C]",
+    threadBorder: "border-stone-200/60",
+    imgBtn: "hover:bg-[#F4EEE6] hover:border-stone-300"
+  },
+  dark: {
+    container: "bg-[#131110] border-stone-800 text-[#e7e5e4] shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
+    quote: "bg-stone-950/40 border-stone-800 text-stone-400",
+    input: "border-stone-800 bg-[#131110] focus-visible:ring-stone-700",
+    text: "text-stone-300",
+    button: "hover:bg-stone-800 text-stone-200",
+    reactionBg: "bg-stone-950/40 border-stone-800",
+    activeEmoji: "bg-[#EADBC8] border-[#EADBC8] text-stone-950 shadow-[0_0_15px_rgba(234,219,200,0.3)]",
+    sendBtn: "bg-stone-800 hover:bg-stone-700 text-stone-100 shadow-[0_4px_10px_rgba(0,0,0,0.3)]",
+    close: "text-[#e7e5e4]/50 hover:text-[#e7e5e4]",
+    fallback: "bg-stone-800 text-[#EADBC8]",
+    activeBadge: "bg-[#131110] text-[#EADBC8] border-stone-850",
+    inactiveBadge: "bg-stone-800 text-stone-400 border-stone-800",
+    editBtn: "text-stone-500 hover:text-[#EADBC8]",
+    deleteBtn: "text-stone-500 hover:text-[#EADBC8]",
+    threadBorder: "border-stone-800/60",
+    imgBtn: "hover:bg-stone-800 hover:border-stone-750"
+  },
+  sepia: {
+    container: "bg-[#F4ECD8] text-[#5C3D2E] border-[#EADBC8] shadow-[0_20px_50px_rgba(92,61,46,0.15)]",
+    quote: "bg-[#EADBC8]/30 border-[#EADBC8]/40 text-[#5C3D2E]/80",
+    input: "border-[#EADBC8] bg-[#F4ECD8] focus-visible:ring-[#8B5E3C]",
+    text: "text-[#5C3D2E]/90",
+    button: "hover:bg-[#EADBC8] text-[#5C3D2E]",
+    reactionBg: "bg-[#EADBC8]/30 border-[#EADBC8]/45",
+    activeEmoji: "bg-[#8B5E3C] border-[#8B5E3C] text-white shadow-[0_0_15px_rgba(139,94,60,0.3)] scale-[1.03]",
+    sendBtn: "bg-[#8B5E3C] hover:bg-[#5C3D2E] text-white shadow-[0_4px_10px_rgba(92,61,46,0.15)]",
+    close: "text-[#5C3D2E]/50 hover:text-[#5C3D2E]",
+    fallback: "bg-[#EADBC8]/40 text-[#5C3D2E]",
+    activeBadge: "bg-[#F4ECD8] text-[#8B5E3C] border-[#DEC4B0]",
+    inactiveBadge: "bg-[#EADBC8]/50 text-[#5C3D2E]/60 border-[#EADBC8]/40",
+    editBtn: "text-[#5C3D2E]/45 hover:text-[#5C3D2E]",
+    deleteBtn: "text-[#5C3D2E]/45 hover:text-[#5C3D2E]",
+    threadBorder: "border-[#DEC4B0]/60",
+    imgBtn: "hover:bg-[#EADBC8] hover:border-[#DEC4B0]"
+  },
+  emerald: {
+    container: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3] shadow-[0_20px_50px_rgba(59,77,49,0.15)]",
+    quote: "bg-[#DDE6D5]/40 border-[#D2DAC3]/40 text-[#3B4D31]/80",
+    input: "border-[#D2DAC3] bg-[#EAEFE3] focus-visible:ring-[#3B4D31]",
+    text: "text-[#3B4D31]/90",
+    button: "hover:bg-[#DDE6D5] text-[#3B4D31]",
+    reactionBg: "bg-[#DDE6D5]/40 border-[#D2DAC3]/45",
+    activeEmoji: "bg-[#3B4D31] border-[#3B4D31] text-white shadow-[0_0_15px_rgba(59,77,49,0.3)] scale-[1.03]",
+    sendBtn: "bg-[#3B4D31] hover:bg-[#2F3D27] text-white shadow-[0_4px_10px_rgba(59,77,49,0.15)]",
+    close: "text-[#3B4D31]/50 hover:text-[#3B4D31]",
+    fallback: "bg-[#DDE6D5] text-[#3B4D31]",
+    activeBadge: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3]/60",
+    inactiveBadge: "bg-[#DDE6D5]/50 text-[#3B4D31]/60 border-[#DDE6D5]/40",
+    editBtn: "text-[#3B4D31]/45 hover:text-[#3B4D31]",
+    deleteBtn: "text-[#3B4D31]/45 hover:text-[#3B4D31]",
+    threadBorder: "border-[#D2DAC3]/70",
+    imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]"
   },
   coffee: {
     container: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0] shadow-[0_20px_50px_rgba(74,50,40,0.15)]",
@@ -330,7 +427,6 @@ export function ChapterReader({
     setHistory(updatedHistory)
   }
 
-  // 🌟 HÀM KHỞI CHẠY SOẠN THẢO ADMIN (ĐÃ KHÔI PHỤC LẠI CHỐNG LỖI STARTEDITING)
   const startEditing = () => {
     setEditTitle(chapter.title)
     const isRawText = chapter.content && chapter.content.length > 0 && !chapter.content[0].trim().startsWith('<')
@@ -671,7 +767,7 @@ export function ChapterReader({
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
 
-  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM)
+  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
   const handleOpenParaComment = async (index: number, rawText: string) => {
     setActiveParaIndex(index)
     setActiveParaText(rawText)
@@ -875,12 +971,10 @@ export function ChapterReader({
 
   return (
     <div className="relative">
-      {/* 🌟 MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div className="fixed inset-0 z-[85]" onClick={() => setContextMenuVisible(false)} onContextMenu={(e) => { e.preventDefault(); setContextMenuVisible(false) }} />
       )}
 
-      {/* 🌟 MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()} className="fixed z-[95] flex flex-col bg-stone-950 text-stone-100 py-1.5 rounded-xl shadow-2xl border border-stone-800 w-52 text-sm font-sans" style={{ top: `${contextMenuPosition.top}px`, left: `${contextMenuPosition.left}px` }}>
           <button type="button" onClick={() => { restoreCursorPosition(); document.execCommand('insertHTML', false, '<span id="MAGIC_MARKER"></span>'); fileInputRef.current?.click(); setContextMenuVisible(false) }} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-stone-900 text-left w-full text-amber-400 font-semibold">
@@ -899,19 +993,14 @@ export function ChapterReader({
       <article
         className={cn(
           "mx-auto w-full transition-all duration-300 relative border shadow-lg p-6 md:p-8 rounded-2xl animate-fade-in",
-          // Chiều rộng nội dung động
           containerWidth === 'xl' && "max-w-xl",
           containerWidth === '2xl' && "max-w-2xl",
           containerWidth === '3xl' && "max-w-3xl",
-          // Áp dụng lớp CSS động của hệ màu mới
           THEME_MAPPING[readerTheme]?.container,
           THEME_MAPPING[readerTheme]?.text
         )}
       >
-        {/* 🌟 THẺ STYLE TỰ ĐỘNG TẢI TRỰC TIẾP CÁC GOOGLE FONTS */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');
-        `}} />
+        <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
 
         {/* Toolbar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
@@ -1005,7 +1094,7 @@ export function ChapterReader({
                     className={cn(
                       "transition-all duration-200 flex items-center justify-center border shrink-0 self-center rounded-full p-1 shadow-sm active:scale-90 w-11 h-9 relative",
                       count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
-                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
+                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3E2E]"
                     )}
                     title={`Xem ${count} bình luận`}
                   >
@@ -1047,10 +1136,10 @@ export function ChapterReader({
             handleStartCommentEdit={handleStartCommentEdit}
             handleSaveCommentEdit={handleSaveCommentEdit}
             handleDeleteComment={handleDeleteComment}
-            setEditingCommentId={setEditingCommentId} // 🌟 BỔ SUNG ĐẦY ĐỦ TRÁNH LỖI TYPE ERROR
-            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+            setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
+            isSignedIn={!!isSignedIn}
             user={user}
-            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+            isAdmin={!!isAdmin}
             POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
             readerTheme={readerTheme}
             replyingToId={chapterReplyingToId}
@@ -1088,10 +1177,10 @@ export function ChapterReader({
           handleStartCommentEdit={handleStartCommentEdit}
           handleSaveCommentEdit={handleSaveCommentEdit}
           handleDeleteComment={handleDeleteComment}
-          setEditingCommentId={setEditingCommentId} // 🌟 BỔ SUNG ĐẦY ĐỦ TRÁNH LỖI TYPE ERROR
-          isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+          setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
+          isSignedIn={!!isSignedIn}
           user={user}
-          isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+          isAdmin={!!isAdmin}
           POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
           readerTheme={readerTheme}
           replyingToId={replyingToId}
