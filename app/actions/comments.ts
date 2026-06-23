@@ -80,7 +80,7 @@ export async function addComment(
         
         if (parentUserId !== userId) {
           await sql`
-            INSERT INTO notifications (recipient_id, sender_name, sender_avatar, type, story_slug, chapter_number, preview_text, target_link, created_at)
+            INSERT INTO notifications (recipient_id, sender_name, sender_avatar, type, story_slug, chapter_number, preview_text, created_at)
             VALUES (${parentUserId}, ${userName}, ${userAvatar}, 'REPLY', ${storySlug}, 0, ${cleanText}, ${`/truyen/${storySlug}`}, NOW())
           `
         }
