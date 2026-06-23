@@ -5,22 +5,35 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useTheme } from 'next-themes'
-import { ChevronLeft, ChevronRight, List, Edit, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, List, Edit, Loader2, Upload, Image as ImageIconLucide, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports từ các file bóc tách con [1.1.2]
+// Imports từ các file bóc tách con
 import { ReaderToolbar } from './reader-toolbar'
 import { AdminEditor } from './admin-editor'
 import { ParagraphComments } from './paragraph-comments'
+import { ChapterComments } from './chapter-comments'
 
-import { updateChapterContent, uploadImage } from '@/app/actions/admin'
-import { getParagraphComments, addParagraphComment, deleteParagraphComment, updateParagraphComment, getChapterParagraphCommentCounts } from '@/app/actions/paragraph-comments'
+import { updateChapterContent, uploadImage, uploadCommentImage } from '@/app/actions/admin'
+import { 
+  getParagraphComments, 
+  addParagraphComment, 
+  deleteParagraphComment, 
+  updateParagraphComment, 
+  getChapterParagraphCommentCounts, 
+  getChapterAllComments // 🌟 ĐÃ BỔ SUNG IMPORT ĐẦY ĐỦ Ở ĐÂY TRÁNH LỖI BIÊN DỊCH [1.1.2]
+} from '@/app/actions/paragraph-comments'
 import { cn } from '@/lib/utils'
 
-// BẢNG ÁNH XẠ PHÔNG CHỮ CHUẨN GOOGLE FONTS
+// HÀM ĐẾM TỪ
+function countWords(html: string) {
+  const cleanText = html.replace(/<\/?[^>]+(>|$)/g, "").trim()
+  return cleanText === "" ? 0 : cleanText.split(/\s+/).length
+}
+
 const FONT_MAPPING: Record<string, string> = {
   serif: "Lora, Georgia, 'Times New Roman', serif",
   quicksand: "'Quicksand', sans-serif",
@@ -30,41 +43,45 @@ const FONT_MAPPING: Record<string, string> = {
   manrope: "'Manrope', sans-serif",
 }
 
-// BẢNG ÁNH XẠ 6 HỆ MÀU GIAO DIỆN ĐỌC SÁCH TOÀN DIỆN
-const THEME_MAPPING: Record<string, { container: string; text: string; badge: string }> = {
+const THEME_MAPPING: Record<string, { container: string; text: string; badge: string; navBtn: string }> = {
   light: {
     container: "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/60 dark:border-stone-850",
     text: "text-stone-900 dark:text-stone-100",
-    badge: "bg-[#8B5E3C] text-white border-white dark:border-stone-900"
+    badge: "bg-[#8B5E3C] text-white border-white dark:border-stone-900",
+    navBtn: "border-stone-200 bg-transparent text-stone-700 hover:bg-[#F4EEE6] hover:border-stone-300 transition-colors"
   },
   dark: {
     container: "bg-[#131110] border-stone-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
     text: "text-[#e7e5e4]",
-    badge: "bg-[#EADBC8] text-stone-950 border-stone-950"
+    badge: "bg-[#EADBC8] text-stone-950 border-stone-950",
+    navBtn: "border-stone-800 bg-transparent text-stone-300 hover:bg-stone-800 hover:border-stone-700 transition-colors"
   },
   sepia: {
     container: "bg-[#F4ECD8] border-[#EADBC8]",
     text: "text-[#5C3D2E]",
-    badge: "bg-[#8B5E3C] text-[#F4ECD8] border-[#F4ECD8]" // Đồng bộ màu vàng hổ phách và chữ kem sữa cực đẹp
+    badge: "bg-[#8B5E3C] text-[#F4ECD8] border-[#F4ECD8]",
+    navBtn: "border-[#EADBC8] bg-transparent text-[#5C3D2E] hover:bg-[#EADBC8]/70 hover:border-[#DEC4B0] transition-colors"
   },
   emerald: {
     container: "bg-[#EAEFE3] border-[#D2DAC3]",
     text: "text-[#3B4D31]",
-    badge: "bg-[#3B4D31] text-[#EAEFE3] border-[#EAEFE3]"
+    badge: "bg-[#3B4D31] text-[#EAEFE3] border-[#EAEFE3]",
+    navBtn: "border-[#D2DAC3] bg-transparent text-[#3B4D31] hover:bg-[#DDE6D5]/70 hover:border-[#C8D3BE] transition-colors"
   },
   coffee: {
     container: "bg-[#F0E6DF] border-[#DECAC0]",
     text: "text-[#4A3228]",
-    badge: "bg-[#4A3228] text-[#F0E6DF] border-[#F0E6DF]"
+    badge: "bg-[#4A3228] text-[#F0E6DF] border-[#F0E6DF]",
+    navBtn: "border-[#DECAC0] bg-transparent text-[#4A3228] hover:bg-[#E0D2C8]/70 hover:border-[#D0BFAF] transition-colors"
   },
   rose: {
     container: "bg-[#FDF0F2] border-[#F5D6D8]",
     text: "text-[#632B30]",
-    badge: "bg-[#632B30] text-[#FDF0F2] border-[#FDF0F2]"
+    badge: "bg-[#632B30] text-[#FDF0F2] border-[#FDF0F2]",
+    navBtn: "border-[#F5D6D8] bg-transparent text-[#632B30] hover:bg-[#F9E2E5]/70 hover:border-[#EDCCD2] transition-colors"
   }
 }
 
-// BẢNG MÀU NÚT SOẠN THẢO KLEIN: ĐẬM ĐÀ HƠN MÀU NỀN THEME ĐÃ CHỌN
 const KLEIN_BTN_THEME: Record<string, string> = {
   light: "bg-[#F4EEE6] border-[#E5D8C8] hover:bg-[#EADBCE] text-[#5C3D2E]",
   dark: "bg-stone-850/80 border-stone-800 hover:bg-stone-800 text-[#efebe9]",
@@ -74,23 +91,7 @@ const KLEIN_BTN_THEME: Record<string, string> = {
   rose: "bg-[#F9E2E5] border-[#F5D6D8] hover:bg-[#EDCCD2] text-[#632B30]",
 }
 
-// BẢNG MÀU POPUP BÌNH LUẬN ĐỒNG BỘ MÀU NỀN THEME (NÂNG CẤP ĐỒNG BỘ THẨM MỸ CAO CẤP)
-const POPUP_THEME_MAPPING: Record<string, { 
-  container: string; 
-  quote: string; 
-  input: string; 
-  text: string; 
-  button: string;
-  reactionBg: string;
-  activeEmoji: string;
-  sendBtn: string;
-  close: string;     // State màu đóng X động
-  fallback: string;  // State màu avatar dự phòng
-  activeBadge: string; // State màu đếm trên nhãn dán được chọn
-  inactiveBadge: string; // State màu đếm trên nhãn dán chưa chọn
-  editBtn: string;  // Màu chữ nút Sửa
-  deleteBtn: string; // Màu chữ nút Xóa
-}> = {
+const POPUP_THEME_MAPPING: Record<string, any> = {
   light: {
     container: "bg-[#FFFDFB] text-stone-900 border-stone-200/60 dark:border-stone-850",
     quote: "bg-[#F4EEE6]/50 border-[#E5D8C8]/40 text-stone-500",
@@ -100,12 +101,14 @@ const POPUP_THEME_MAPPING: Record<string, {
     reactionBg: "bg-[#F4EEE6]/40 border-[#E5D8C8]/40",
     activeEmoji: "bg-[#8B5E3C] border-[#8B5E3C] text-white shadow-[0_0_15px_rgba(139,94,60,0.3)] scale-[1.03]",
     sendBtn: "bg-[#8B5E3C] hover:bg-[#5C3D2E] text-white shadow-[0_4px_10px_rgba(139,94,60,0.15)]",
-    close: "text-[#5C3D2E]/50 hover:text-[#5C3D2E]",
+    close: "text-stone-400 hover:text-stone-700 dark:hover:text-stone-200",
     fallback: "bg-[#F4EEE6] text-[#8B5E3C] dark:bg-stone-800 dark:text-[#EADBC8]",
     activeBadge: "bg-[#FFFDFB] text-[#8B5E3C] border-amber-200/20",
     inactiveBadge: "bg-[#F4EEE6] text-stone-500 border-stone-200/40",
     editBtn: "text-stone-400 hover:text-[#8B5E3C]",
-    deleteBtn: "text-stone-400 hover:text-[#8B5E3C]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Sáng
+    deleteBtn: "text-stone-400 hover:text-[#8B5E3C]",
+    threadBorder: "border-stone-200/60",
+    imgBtn: "hover:bg-[#F4EEE6] hover:border-stone-300"
   },
   dark: {
     container: "bg-[#131110] border-stone-800 text-[#e7e5e4] shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
@@ -121,7 +124,9 @@ const POPUP_THEME_MAPPING: Record<string, {
     activeBadge: "bg-[#131110] text-[#EADBC8] border-stone-850",
     inactiveBadge: "bg-stone-800 text-stone-400 border-stone-800",
     editBtn: "text-stone-500 hover:text-[#EADBC8]",
-    deleteBtn: "text-stone-500 hover:text-[#EADBC8]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Tối
+    deleteBtn: "text-stone-500 hover:text-[#EADBC8]",
+    threadBorder: "border-stone-800/60",
+    imgBtn: "hover:bg-stone-800 hover:border-stone-750"
   },
   sepia: {
     container: "bg-[#F4ECD8] text-[#5C3D2E] border-[#EADBC8] shadow-[0_20px_50px_rgba(92,61,46,0.15)]",
@@ -137,7 +142,9 @@ const POPUP_THEME_MAPPING: Record<string, {
     activeBadge: "bg-[#F4ECD8] text-[#8B5E3C] border-[#DEC4B0]",
     inactiveBadge: "bg-[#EADBC8]/50 text-[#5C3D2E]/60 border-[#EADBC8]/40",
     editBtn: "text-[#5C3D2E]/45 hover:text-[#5C3D2E]",
-    deleteBtn: "text-[#5C3D2E]/45 hover:text-[#5C3D2E]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Sepia
+    deleteBtn: "text-[#5C3D2E]/45 hover:text-[#5C3D2E]",
+    threadBorder: "border-[#DEC4B0]/60",
+    imgBtn: "hover:bg-[#EADBC8] hover:border-[#DEC4B0]"
   },
   emerald: {
     container: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3] shadow-[0_20px_50px_rgba(59,77,49,0.15)]",
@@ -153,7 +160,9 @@ const POPUP_THEME_MAPPING: Record<string, {
     activeBadge: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3]/60",
     inactiveBadge: "bg-[#DDE6D5]/50 text-[#3B4D31]/60 border-[#DDE6D5]/40",
     editBtn: "text-[#3B4D31]/45 hover:text-[#3B4D31]",
-    deleteBtn: "text-[#3B4D31]/45 hover:text-[#3B4D31]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Emerald
+    deleteBtn: "text-[#3B4D31]/45 hover:text-[#3B4D31]",
+    threadBorder: "border-[#D2DAC3]/70",
+    imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]"
   },
   coffee: {
     container: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0] shadow-[0_20px_50px_rgba(74,50,40,0.15)]",
@@ -169,7 +178,9 @@ const POPUP_THEME_MAPPING: Record<string, {
     activeBadge: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0]/60",
     inactiveBadge: "bg-[#E0D2C8]/50 text-[#4A3228]/60 border-[#E0D2C8]/40",
     editBtn: "text-[#4A3228]/45 hover:text-[#4A3228]",
-    deleteBtn: "text-[#4A3228]/45 hover:text-[#4A3228]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Coffee
+    deleteBtn: "text-[#4A3228]/45 hover:text-[#4A3228]",
+    threadBorder: "border-[#DECAC0]/70",
+    imgBtn: "hover:bg-[#E0D2C8] hover:border-[#D0BFAF]"
   },
   rose: {
     container: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8] shadow-[0_20px_50px_rgba(99,43,48,0.15)]",
@@ -185,7 +196,9 @@ const POPUP_THEME_MAPPING: Record<string, {
     activeBadge: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8]/60",
     inactiveBadge: "bg-[#F9E2E5]/50 text-[#632B30]/60 border-[#F9E2E5]/40",
     editBtn: "text-[#632B30]/45 hover:text-[#632B30]",
-    deleteBtn: "text-[#632B30]/45 hover:text-[#632B30]" // 🌟 Đồng bộ khớp Sửa ở hệ màu Rose
+    deleteBtn: "text-[#632B30]/45 hover:text-[#632B30]",
+    threadBorder: "border-[#F5D6D8]/70",
+    imgBtn: "hover:bg-[#F9E2E5] hover:border-[#EDCCD2]"
   }
 }
 
@@ -811,6 +824,7 @@ export function ChapterReader({
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
 
+  // 🌟 KHÔI PHỤC LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
   const handleOpenParaComment = async (index: number, rawText: string) => {
     setActiveParaIndex(index)
     setActiveParaText(rawText)
