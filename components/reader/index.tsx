@@ -697,11 +697,14 @@ export function ChapterReader({
         return (idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId && comm.paragraph_index === -1
       })
       if (existing) {
-        await deleteParagraphComment(existing.id); loadChapterComments(); loadCommentCounts()
+        const res = await deleteParagraphComment(existing.id)
+        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
+        else { loadChapterComments(); loadCommentCounts() }
       } else {
         const dbSenderName = `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`
-        await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
-        loadChapterComments(); loadCommentCounts()
+        const res = await addParagraphComment(story.slug, chapter.number, -1, dbSenderName, '||DISCORD_REACTION||', stickerId)
+        if (!res.success) { setChapterComments(previousComments); alert("Lỗi: " + res.error) }
+        else { loadChapterComments(); loadCommentCounts() }
       }
     } catch (err) { setChapterComments(previousComments) }
   }
@@ -763,7 +766,7 @@ export function ChapterReader({
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
 
-  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM)
+  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
   const handleOpenParaComment = async (index: number, rawText: string) => {
     setActiveParaIndex(index)
     setActiveParaText(rawText)
@@ -920,6 +923,7 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
+  // 🌟 KHỞI TẠO LẠI COMPONENT THANH CHUYỂN HƯỚNG CHƯƠNG (NAV) ĐỂ TRÁNH LỖI NAV IS NOT DEFINED [2]
   const Nav = ({ className }: { className?: string }) => (
     <div className={cn('flex items-center justify-between gap-2', className)}>
       <Button 
@@ -991,19 +995,14 @@ export function ChapterReader({
       <article
         className={cn(
           "mx-auto w-full transition-all duration-300 relative border shadow-lg p-6 md:p-8 rounded-2xl animate-fade-in",
-          // Chiều rộng nội dung động
           containerWidth === 'xl' && "max-w-xl",
           containerWidth === '2xl' && "max-w-2xl",
           containerWidth === '3xl' && "max-w-3xl",
-          // Áp dụng lớp CSS động của hệ màu mới
           THEME_MAPPING[readerTheme]?.container,
           THEME_MAPPING[readerTheme]?.text
         )}
       >
-        {/* 🌟 THẺ STYLE TỰ ĐỘNG TẢI TRỰC TIẾP CÁC GOOGLE FONTS */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');
-        `}} />
+        <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
 
         {/* Toolbar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
