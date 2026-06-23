@@ -3,6 +3,7 @@ import { Lora, Nunito } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { FavoritesProvider } from '@/components/favorites-provider'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ClerkProvider } from '@clerk/nextjs' // <-- Thêm dòng này
 import './globals.css'
 
 const lora = Lora({
@@ -18,9 +19,8 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'Quán Truyện - Đọc truyện chữ bên tách cà phê',
-  description:
-    'Quán Truyện là góc đọc truyện chữ ấm áp: tiểu thuyết, ngôn tình, kiếm hiệp và những lưu ý từ chủ quán.',
+  title: '残星晓月',
+  description: 'Chúc mọi người một ngày vui vẻ.',
   generator: 'v0.app',
 }
 
@@ -30,17 +30,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="vi"
-      className={`${lora.variable} ${nunito.variable} bg-background`}
-      suppressHydrationWarning
-    >
-      <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <FavoritesProvider>{children}</FavoritesProvider>
-        </ThemeProvider>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
-      </body>
-    </html>
+    <ClerkProvider> {/* <-- Bọc thêm thẻ này ở ngoài cùng */}
+      <html
+        lang="vi"
+        className={`${lora.variable} ${nunito.variable} bg-background`}
+        suppressHydrationWarning
+      >
+        <body className="font-sans antialiased">
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <FavoritesProvider>{children}</FavoritesProvider>
+          </ThemeProvider>
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

@@ -1,239 +1,103 @@
-export type Chapter = {
+export interface Chapter {
   number: number
   title: string
-  content: string[]
+  content?: string[]
+  isPlaceholder?: boolean // <-- ĐÃ THÊM DÒNG NÀY ĐỂ NHẬN DIỆN CHƯƠNG TRỐNG TRƠN
 }
 
-export type Story = {
+export interface Story {
   slug: string
   title: string
   author: string
   cover: string
   genres: string[]
-  status: 'Đang ra' | 'Hoàn thành'
+  status: string
   rating: number
   views: number
   description: string
+  link?: string
   tags: string[]
   chapters: Chapter[]
 }
 
+export interface OwnerNote {
+  id: string
+  body: string
+}
+
+// 1. DANH SÁCH THỂ LOẠI CHUẨN CỦA QUÁN (ĐÃ THÊM LẠI ĐỂ SỬA TRIỆT ĐỂ LỖI MAP)
 export const GENRES = [
-  'Ngôn tình',
-  'Kiếm hiệp',
+  'Nam chủ',
+  'Huyền Ảo',
+  'Đam mỹ',
+  'Cổ đại',
+  'Côn trùng',
   'Huyền huyễn',
   'Trinh thám',
   'Đô thị',
-  'Cổ đại',
-  'Khoa học viễn tưởng',
-] as const
+  'Hiện đại',
+  'Dị thế đại lục',
+  'Khoa học viễn tưởng'
+]
 
-function makeChapters(count: number, seedTitles: string[]): Chapter[] {
+// 2. DANH SÁCH TRẠNG THÁI CHUẨN
+export const STATUSES = [
+  'Đang ra',
+  'Hoàn thành'
+]
+
+// 3. Hàm tạo danh sách chương tự động
+export function makeChapters(count: number, customTitles: string[] = []): Chapter[] {
   return Array.from({ length: count }, (_, i) => {
-    const number = i + 1
-    const title = seedTitles[i % seedTitles.length]
+    const num = i + 1
     return {
-      number,
-      title: `Chương ${number}: ${title}`,
-      content: [
-        'Buổi sáng mùa thu, sương còn đọng trên những tán cây bên đường. Hương cà phê từ quán nhỏ đầu hẻm len lỏi qua khung cửa sổ, đánh thức cả con phố vẫn đang ngái ngủ.',
-        'Nhân vật của chúng ta bước đi chậm rãi, lòng ngổn ngang trăm mối. Mỗi bước chân như chạm vào một ký ức cũ, vừa quen vừa lạ, vừa ấm áp lại vừa nhói đau.',
-        'Có những điều người ta chỉ nhận ra khi đã đi qua. Như tách trà nguội dần trên bàn, như câu nói còn dang dở mãi chẳng kịp nói thành lời.',
-        'Và rồi, ở khúc quanh định mệnh ấy, một quyết định được đưa ra. Không ai biết trước con đường phía sau sẽ dẫn về đâu, chỉ biết rằng quay đầu lại đã là không thể.',
-        'Đêm xuống, ngọn đèn vàng hắt bóng lên bức tường loang lổ. Câu chuyện vẫn tiếp diễn, lặng lẽ như dòng sông cứ thế chảy về phía biển khơi xa thẳm.',
-      ],
+      number: num,
+      title: customTitles[i] || `Chương ${num}`,
     }
   })
 }
 
+// 4. DANH SÁCH TRUYỆN: CHỈ GIỮ LẠI DUY NHẤT VÒNG TRÒN ĐỊNH MỆNH
 export const STORIES: Story[] = [
   {
-    slug: 'huong-ca-phe-mua-cu',
-    title: 'Hương Cà Phê Mùa Cũ',
-    author: 'Lâm Vũ',
-    cover: '/covers/huong-ca-phe.png',
-    genres: ['Ngôn tình', 'Đô thị'],
+    slug: 'vong-tron-dinh-menh',
+    title: 'Vòng Tròn Định Mệnh/宿命之环',
+    author: 'Mực Thích Lặn Nước/Ái Tiềm Thủy Đích Ô Tặc/爱潜水的乌贼',
+    cover: '/covers/vong-tron-dinh-menh.png',
+    genres: ['Huyền huyễn', 'Dị thế đại lục'],
     status: 'Đang ra',
     rating: 4.8,
-    views: 128400,
-    description:
-      'Một quán cà phê nhỏ nơi góc phố cũ, nơi hai con người xa lạ tình cờ gặp lại nhau sau mười năm. Liệu hương vị xưa có đủ để hâm nóng một mối tình tưởng đã nguội lạnh?',
-    tags: ['Ngọt ngào', 'Tái ngộ', 'Chữa lành'],
-    chapters: makeChapters(24, [
-      'Tách cà phê đầu tiên',
-      'Người cũ trở về',
-      'Mưa đầu mùa',
-      'Lời chưa kịp nói',
-      'Khúc quanh',
-    ]),
-  },
-  {
-    slug: 'thanh-kiem-vo-danh',
-    title: 'Thanh Kiếm Vô Danh',
-    author: 'Cố Thương',
-    cover: '/covers/thanh-kiem.png',
-    genres: ['Kiếm hiệp', 'Cổ đại'],
-    status: 'Đang ra',
-    rating: 4.6,
-    views: 256300,
-    description:
-      'Giang hồ dậy sóng khi một thanh kiếm không tên xuất hiện. Người mang nó là kẻ vô danh, nhưng từng đường kiếm lại khiến cả võ lâm phải khiếp sợ và kính nể.',
-    tags: ['Hành động', 'Giang hồ', 'Báo thù'],
-    chapters: makeChapters(40, [
-      'Kiếm xuất giang hồ',
-      'Ân oán mười năm',
-      'Đêm trăng huyết',
-      'Trận chiến đỉnh núi',
-      'Lời thề năm xưa',
-    ]),
-  },
-  {
-    slug: 'thanh-pho-khong-ngu',
-    title: 'Thành Phố Không Ngủ',
-    author: 'Diệp Minh',
-    cover: '/covers/thanh-pho.png',
-    genres: ['Trinh thám', 'Đô thị'],
-    status: 'Hoàn thành',
-    rating: 4.9,
-    views: 412000,
-    description:
-      'Một loạt vụ án bí ẩn xảy ra giữa lòng thành phố. Nữ thám tử trẻ phải chạy đua với thời gian để lần theo dấu vết của kẻ sát nhân luôn đi trước cô một bước.',
-    tags: ['Phá án', 'Hồi hộp', 'Plot twist'],
-    chapters: makeChapters(36, [
-      'Vụ án đầu tiên',
-      'Manh mối trong bóng tối',
-      'Kẻ giấu mặt',
-      'Sự thật phơi bày',
-      'Đêm cuối cùng',
-    ]),
-  },
-  {
-    slug: 'tien-lo-mang-mang',
-    title: 'Tiên Lộ Mang Mang',
-    author: 'Vô Phong',
-    cover: '/covers/tien-lo.png',
-    genres: ['Huyền huyễn', 'Cổ đại'],
-    status: 'Đang ra',
-    rating: 4.5,
-    views: 198700,
-    description:
-      'Từ một thiếu niên phàm trần, hắn bước lên con đường tu tiên đầy gian khó. Vượt thiên kiếp, đoạt cơ duyên, chỉ để tìm câu trả lời cho một câu hỏi tưởng chừng đơn giản.',
-    tags: ['Tu tiên', 'Thăng cấp', 'Phiêu lưu'],
-    chapters: makeChapters(50, [
-      'Phàm trần khởi bộ',
-      'Linh căn giác tỉnh',
-      'Tông môn thử thách',
-      'Thiên kiếp giáng lâm',
-      'Cảnh giới mới',
-    ]),
-  },
-  {
-    slug: 'nam-cuoi-cung-cua-trai-dat',
-    title: 'Năm Cuối Cùng Của Trái Đất',
-    author: 'Hà Thanh',
-    cover: '/covers/trai-dat.png',
-    genres: ['Khoa học viễn tưởng'],
-    status: 'Hoàn thành',
-    rating: 4.7,
-    views: 167900,
-    description:
-      'Khi nhân loại chỉ còn ba trăm sáu mươi lăm ngày trước thảm họa, một nhóm nhà khoa học quyết định làm điều không tưởng để cứu lấy nền văn minh cuối cùng.',
-    tags: ['Tận thế', 'Khoa học', 'Hy vọng'],
-    chapters: makeChapters(28, [
-      'Đếm ngược bắt đầu',
-      'Kế hoạch tuyệt vọng',
-      'Con tàu cuối cùng',
-      'Lựa chọn của nhân loại',
-      'Bình minh mới',
-    ]),
-  },
-  {
-    slug: 'gio-qua-tham-lung',
-    title: 'Gió Qua Thềm Lụng',
-    author: 'Tịnh Y',
-    cover: '/covers/gio-qua.png',
-    genres: ['Ngôn tình', 'Cổ đại'],
-    status: 'Đang ra',
-    rating: 4.4,
-    views: 89300,
-    description:
-      'Chốn thâm cung đầy toan tính, một nàng cung nữ thông minh từng bước vươn lên giữa muôn vàn hiểm nguy, mang theo một bí mật có thể thay đổi cả triều đại.',
-    tags: ['Cung đấu', 'Trí tuệ', 'Lãng mạn'],
-    chapters: makeChapters(32, [
-      'Nhập cung',
-      'Sóng ngầm hậu cung',
-      'Ván cờ quyền lực',
-      'Trái tim lạc lối',
-      'Định mệnh xoay vần',
-    ]),
-  },
-  {
-    slug: 'ke-san-bong-dem',
-    title: 'Kẻ Săn Bóng Đêm',
-    author: 'Lý Hàn',
-    cover: '/covers/san-bong-dem.png',
-    genres: ['Huyền huyễn', 'Đô thị'],
-    status: 'Hoàn thành',
-    rating: 4.6,
-    views: 145600,
-    description:
-      'Giữa thành phố hiện đại, những sinh vật bóng đêm vẫn lẩn khuất. Một thợ săn cô độc gánh trên vai sứ mệnh bảo vệ ranh giới giữa hai thế giới.',
-    tags: ['Siêu nhiên', 'Hành động', 'Bí ẩn'],
-    chapters: makeChapters(30, [
-      'Đêm đầu tiên',
-      'Hợp đồng máu',
-      'Kẻ phản bội',
-      'Ranh giới mong manh',
-      'Ánh sáng cuối đường',
-    ]),
-  },
-  {
-    slug: 'lat-cat-thoi-gian',
-    title: 'Lát Cắt Thời Gian',
-    author: 'Mộc Vân',
-    cover: '/covers/lat-cat.png',
-    genres: ['Khoa học viễn tưởng', 'Trinh thám'],
-    status: 'Đang ra',
-    rating: 4.3,
-    views: 76200,
-    description:
-      'Một cỗ máy cho phép nhìn lại quá khứ trong vài giây. Nhưng khi sử dụng nó để phá án, ranh giới giữa sự thật và ảo ảnh dần trở nên mờ nhạt một cách đáng sợ.',
-    tags: ['Du hành thời gian', 'Trí não', 'Căng thẳng'],
-    chapters: makeChapters(20, [
-      'Phát minh nguy hiểm',
-      'Ba giây quá khứ',
-      'Sai lệch đầu tiên',
-      'Vòng lặp',
-      'Điểm gãy',
-    ]),
-  },
+    views: 0,
+     description: `Thế giới Quỷ Bí: Phần Hai.
+
+Năm 1368, cuối tháng Bảy, sắc đỏ thẫm sẽ từ trên trời giáng xuống.
+
+Link Qidian: https://www.qidian.com/book/1036370336/`,
+    tags: ['Huyền huyễn', 'Dị thế đại lục'],
+    chapters: makeChapters(181, ),
+  }
 ]
 
-export const OWNER_NOTES = [
+// 5. Ghi chú từ chủ nhà ở cuối trang chủ
+export const OWNER_NOTES: OwnerNote[] = [
   {
-    title: 'Lịch cập nhật truyện',
-    body: 'Quán cập nhật chương mới vào tối Thứ Ba, Thứ Năm và Chủ Nhật hàng tuần. Mong các bạn thông cảm nếu thỉnh thoảng có chậm trễ nhé.',
-  },
-  {
-    title: 'Về bản quyền',
-    body: 'Tất cả truyện trên Quán Truyện đều là nội dung mẫu để minh họa giao diện. Vui lòng không sao chép khi sử dụng cho mục đích thương mại.',
-  },
-  {
-    title: 'Góp ý và yêu cầu',
-    body: 'Nếu bạn muốn quán đăng thêm thể loại nào, cứ để lại bình luận ở cuối mỗi truyện. Chủ quán đọc hết và rất trân trọng mọi góp ý.',
-  },
-  {
-    title: 'Lời cảm ơn',
-    body: 'Cảm ơn bạn đã đồng hành cùng quán. Mỗi lượt đọc, mỗi bình luận đều là động lực để quán tiếp tục kể những câu chuyện hay.',
-  },
+    id: '1',
+    body: 'Nhà của tớ dùng để chia sẻ tất cả những sở thích của tớ, chủ yếu là truyện niên hạ.'
+  }
 ]
 
-export function getStory(slug: string) {
+// 6. Hàm lấy thông tin 1 truyện bằng slug
+export function getStory(slug: string): Story | undefined {
   return STORIES.find((s) => s.slug === slug)
 }
 
-export function formatViews(n: number) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
-  return String(n)
+// 7. Hàm rút gọn lượt xem (Ví dụ: 128400 -> 128.4K)
+export function formatViews(views: number): string {
+  if (views >= 1000000) {
+    return (views / 1000000).toFixed(1) + 'M'
+  }
+  if (views >= 1000) {
+    return (views / 1000).toFixed(1) + 'K'
+  }
+  return views.toString()
 }

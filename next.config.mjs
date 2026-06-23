@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
+  // Thêm cấu hình này để tăng giới hạn kích thước tải ảnh
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4mb', // Nâng giới hạn tải lên tối đa là 4MB
+    },
   },
-  images: {
-    unoptimized: true,
-  },
-}
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,52 +1,97 @@
 'use client'
 
-import { Heart } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useUser, SignInButton } from '@clerk/nextjs'
+import { isFavorited, toggleFavorite } from '@/app/actions/favorites'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useApp } from '@/components/favorites-provider'
+import { Heart, Loader2 } from 'lucide-react'
 
-export function FavoriteButton({
-  slug,
-  variant = 'default',
-  className,
-}: {
-  slug: string
-  variant?: 'default' | 'icon'
-  className?: string
+// Cấu hình để chấp nhận cả 3 tên biến có thể xảy ra từ trang chủ hoặc trang chi tiết!
+export function FavoriteButton({ 
+  storySlug, 
+  slug, 
+  storyId 
+}: { 
+  storySlug?: string; 
+  slug?: string; 
+  storyId?: string 
 }) {
-  const { isFavorite, toggleFavorite, hydrated } = useApp()
-  const active = hydrated && isFavorite(slug)
+  const { user, isSignedIn } = useUser()
+  
+  // TỰ ĐỘNG NHẬN DIỆN BIẾN CHUẨN ĐỂ GỬI LÊN DATABASE
+  const activeSlug = storySlug || slug || storyId 
 
-  if (variant === 'icon') {
+  const [favorited, setFavorited] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
+
+  // 1. Kiểm tra trạng thái yêu thích từ Vercel Postgres khi mở trang
+  useEffect(() => {
+    async function checkStatus() {
+      if (isSignedIn && user?.id && activeSlug) {
+        const status = await isFavorited(user.id, activeSlug)
+        setFavorited(status)
+      }
+      setIsChecking(false)
+    }
+    checkStatus()
+  }, [isSignedIn, user?.id, activeSlug])
+
+  // 2. Xử lý khi bấm nút Yêu thích
+  async function handleToggle() {
+    if (!isSignedIn || !user?.id || !activeSlug) return
+    setLoading(true)
+    const res = await toggleFavorite(user.id, activeSlug)
+    if (res.success) {
+      setFavorited(res.isFavorited || false)
+    } else {
+      alert("Lỗi lưu yêu thích: " + res.error)
+    }
+    setLoading(false)
+  }
+
+  if (!activeSlug) return null
+
+  if (isChecking) {
     return (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault()
-          toggleFavorite(slug)
-        }}
-        aria-label={active ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
-        className={cn(
-          'flex size-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-background',
-          className,
-        )}
-      >
-        <Heart
-          className={cn('size-4', active && 'fill-destructive text-destructive')}
-        />
-      </button>
+      <Button variant="outline" size="sm" disabled className="gap-1.5 rounded-full h-8 px-3">
+        <Loader2 className="size-3 animate-spin" />
+        <span className="text-xs">Loading...</span>
+      </Button>
     )
   }
 
+  // TRẠNG THÁI: CHƯA ĐĂNG NHẬP (Bắt đăng nhập)
+  if (!isSignedIn) {
+    return (
+      <SignInButton mode="modal">
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-full border-stone-200 hover:bg-stone-100 h-8 px-3">
+          <Heart className="size-3.5 text-stone-500" />
+          <span className="text-xs font-medium text-stone-700">Yêu thích</span>
+        </Button>
+      </SignInButton>
+    )
+  }
+
+  // TRẠNG THÁI: ĐÃ ĐĂNG NHẬP (Khi thích sẽ đổi màu đỏ rực rỡ)
   return (
     <Button
-      type="button"
-      variant={active ? 'default' : 'outline'}
-      onClick={() => toggleFavorite(slug)}
-      className={className}
+      variant={favorited ? "default" : "outline"}
+      size="sm"
+      onClick={handleToggle}
+      disabled={loading}
+      className={`gap-1.5 rounded-full transition-all h-8 px-3 ${
+        favorited 
+          ? "bg-red-500 hover:bg-red-600 text-white border-red-500 shadow-sm" 
+          : "border-stone-200 hover:bg-stone-100"
+      }`}
     >
-      <Heart className={cn('size-4', active && 'fill-current')} />
-      {active ? 'Đã yêu thích' : 'Yêu thích'}
+      {loading ? (
+        <Loader2 className="size-3.5 animate-spin" />
+      ) : (
+        <Heart className={`size-3.5 ${favorited ? "fill-white text-white" : "text-stone-500"}`} />
+      )}
+      <span className="text-xs font-medium">{favorited ? "Đã thích" : "Yêu thích"}</span>
     </Button>
   )
 }
