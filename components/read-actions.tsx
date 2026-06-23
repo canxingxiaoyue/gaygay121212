@@ -26,7 +26,7 @@ export function ReadActions({ slug }: { slug: string }) {
           </Link>
         </Button>
       )}
-      <FavoriteButton slug={slug} className="h-11 px-5" />
+      <FavoriteButton slug={slug} />
     </div>
   )
 }
