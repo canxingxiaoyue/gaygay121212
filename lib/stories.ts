@@ -57,27 +57,6 @@ export function makeChapters(count: number, customTitles: string[] = []): Chapte
   })
 }
 
-// 4. DANH SÁCH TRUYỆN: CHỈ GIỮ LẠI DUY NHẤT VÒNG TRÒN ĐỊNH MỆNH
-export const STORIES: Story[] = [
-  {
-    slug: 'vong-tron-dinh-menh',
-    title: 'Vòng Tròn Định Mệnh/宿命之环',
-    author: 'Mực Thích Lặn Nước/Ái Tiềm Thủy Đích Ô Tặc/爱潜水的乌贼',
-    cover: '/covers/vong-tron-dinh-menh.png',
-    genres: ['Huyền huyễn', 'Dị thế đại lục'],
-    status: 'Đang ra',
-    rating: 4.8,
-    views: 0,
-     description: `Thế giới Quỷ Bí: Phần Hai.
-
-Năm 1368, cuối tháng Bảy, sắc đỏ thẫm sẽ từ trên trời giáng xuống.
-
-Link Qidian: https://www.qidian.com/book/1036370336/`,
-    tags: ['Huyền huyễn', 'Dị thế đại lục'],
-    chapters: makeChapters(181, ),
-  }
-]
-
 // 5. Ghi chú từ chủ nhà ở cuối trang chủ
 export const OWNER_NOTES: OwnerNote[] = [
   {

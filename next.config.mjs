@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Thêm cấu hình này để tăng giới hạn kích thước tải ảnh
+  // 🌟 THÊM ĐOẠN NÀY VÀO ĐỂ CHO PHÉP TẢI FILE TRUYỆN NẶNG TỚI 50MB
   experimental: {
     serverActions: {
-      bodySizeLimit: '4mb', // Nâng giới hạn tải lên tối đa là 4MB
+      bodySizeLimit: '50mb',
     },
   },
 };

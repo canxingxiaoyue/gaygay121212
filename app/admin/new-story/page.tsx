@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SiteHeader } from '@/components/site-header'
 import { cn } from '@/lib/utils'
-import { GENRES } from '@/lib/stories' // Import danh sách thể loại tĩnh mặc định
-import { createNewStory, uploadImage, getMergedStories } from '@/app/actions/admin' // Import thêm hàm lấy danh sách gộp
+import { GENRES } from '@/lib/stories'
+import { createNewStory, uploadImage, getMergedStories } from '@/app/actions/admin'
 
 interface ParsedChapter {
   number: number
@@ -24,7 +24,6 @@ export default function NewStoryPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Các state lưu trữ giá trị form đăng truyện
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [author, setAuthor] = useState('')
@@ -35,26 +34,21 @@ export default function NewStoryPage() {
   const [link, setLink] = useState('')
   const [tags, setTags] = useState('')
 
-  // Các state để xử lý THỂ LOẠI ĐỘNG và TỰ THÊM TAG MỚI
-  const [dynamicGenres, setDynamicGenres] = useState<string[]>(GENRES) // Khởi tạo ban đầu bằng các thể loại tĩnh mặc định
-  const [customGenre, setCustomGenre] = useState('') // Ô nhập thể loại mới
+  const [dynamicGenres, setDynamicGenres] = useState<string[]>(GENRES)
+  const [customGenre, setCustomGenre] = useState('')
 
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 🌟 CÁC STATE MỚI ĐỂ QUẢN LÝ ĐĂNG TRUYỆN BẰNG FILE
   const [uploadMode, setUploadMode] = useState<'blank' | 'file'>('blank')
   const [parsedChapters, setParsedChapters] = useState<ParsedChapter[]>([])
   const [isParsing, setIsParsing] = useState(false)
   const [uploadError, setUploadError] = useState('')
 
-  // 1. TỰ ĐỘNG ĐỒNG BỘ TOÀN BỘ CÁC THỂ LOẠI THỰC TẾ ĐANG CÓ TRÊN DATABASE
   useEffect(() => {
     async function load() {
       const allStories = await getMergedStories()
       const dbGenres = allStories.flatMap((s) => s.genres)
-      
-      // Gộp danh sách tĩnh ban đầu và danh sách động trên database, lọc các giá trị trùng lặp
       const merged = Array.from(new Set([...GENRES, ...dbGenres])).filter(Boolean)
       setDynamicGenres(merged)
     }
@@ -83,11 +77,9 @@ export default function NewStoryPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 dark:bg-red-950/20 mx-auto">
               <ShieldAlert className="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-xl font-serif font-bold text-stone-800 dark:text-stone-100">
-              Truy cập bị từ chối!
-            </h2>
+            <h2 className="text-xl font-serif font-bold text-stone-800 dark:text-stone-100">Truy cập bị từ chối!</h2>
             <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
-              Tài khoản của bạn không có quyền quản trị. Chỉ duy nhất chủ nhà (Admin) mới có quyền đăng truyện mới lên hệ thống.
+              Tài khoản của bạn không có quyền quản trị.
             </p>
             <Button asChild className="bg-amber-800 hover:bg-amber-700 text-white rounded-xl w-full shadow-sm">
               <Link href="/">Quay lại trang chủ</Link>
@@ -98,29 +90,20 @@ export default function NewStoryPage() {
     )
   }
 
-  // Tự gõ thêm thể loại mới
   function handleAddCustomGenre() {
     const val = customGenre.trim()
     if (!val) return
-
-    // 1. Nếu thể loại này chưa có trong danh sách hiển thị, tự động thêm vào
-    if (!dynamicGenres.includes(val)) {
-      setDynamicGenres((prev) => [...prev, val])
-    }
-    // 2. Tự động tích chọn thể loại này cho bộ truyện đang tạo
-    if (!selectedGenres.includes(val)) {
-      setSelectedGenres((prev) => [...prev, val])
-    }
-    setCustomGenre('') // Xóa trắng ô nhập để gõ tiếp tag khác
+    if (!dynamicGenres.includes(val)) setDynamicGenres((prev) => [...prev, val])
+    if (!selectedGenres.includes(val)) setSelectedGenres((prev) => [...prev, val])
+    setCustomGenre('')
   }
 
-  // Tự động tạo slug khi gõ tên truyện (ví dụ: "Huyền Thoại" -> "huyen-thoai")
   function handleTitleChange(val: string) {
     setTitle(val)
     const generatedSlug = val
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Bỏ dấu tiếng Việt
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/[đĐ]/g, 'd')
       .replace(/([^a-z0-9\s-]+)/g, '')
       .replace(/&/g, '-and-')
@@ -129,14 +112,12 @@ export default function NewStoryPage() {
     setSlug(generatedSlug)
   }
 
-  // Chọn/bỏ chọn thể loại truyện
   function toggleGenre(genre: string) {
     setSelectedGenres((prev) =>
       prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     )
   }
 
-  // Tải trực tiếp ảnh bìa từ máy tính lên thư mục public
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -154,140 +135,154 @@ export default function NewStoryPage() {
     setIsUploading(false)
   }
 
-  // 🌟 ĐÃ SỬA: HÀM ĐỌC VÀ BÓC TÁCH FILE TRUYỆN CHỐNG LỖI NUỐT TIÊU ĐỀ & CHỐNG DÍNH CHỮ
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 🌟 HÀM TÁCH RIÊNG ĐỂ XỬ LÝ HTML (Dùng chung cho cả file .html và kết quả giải mã của .docx)
+  const processHtmlContent = (htmlString: string) => {
+    try {
+      const normalizedContent = htmlString.replace(/<br\s*\/?>/gi, '</p><p>')
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(normalizedContent, 'text/html')
+      
+      const chapters: ParsedChapter[] = []
+      let chapterCounter = 1
+      let currentChapter: ParsedChapter | null = null
+
+      const elements = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, p'))
+
+      elements.forEach((node) => {
+        const el = node as HTMLElement
+        const tagName = el.tagName.toLowerCase()
+        const text = el.textContent?.trim() || ''
+
+        const isHeading = ['h1', 'h2', 'h3', 'h4', 'h5'].includes(tagName) ||
+                          (['p', 'div'].includes(tagName) && (
+                            text.startsWith('[AllKlein]') || 
+                            text.startsWith('[Chúa Tể') || 
+                            /^Chương\s+\d+/i.test(text)
+                          ) && text.length < 100)
+
+        if (isHeading) {
+          if (currentChapter) chapters.push(currentChapter)
+
+          let finalTitle = text
+          let extraContent = ''
+          if (text.length > 100) {
+            const lines = text.split('\n')
+            finalTitle = lines[0].trim()
+            extraContent = lines.slice(1).map(l => l.trim() !== '' ? `<p>${l.trim()}</p>` : '').filter(Boolean).join('\n')
+          }
+
+          currentChapter = {
+            number: chapterCounter++,
+            title: finalTitle || `Chương ${chapterCounter}`,
+            content: extraContent ? extraContent + '\n' : ''
+          }
+        } else if (tagName === 'p') {
+          if (currentChapter && el.innerHTML.trim() !== '') {
+            currentChapter.content += `<p>${el.innerHTML.trim()}</p>\n`
+          }
+        }
+      })
+
+      if (currentChapter) chapters.push(currentChapter)
+      setParsedChapters(chapters)
+    } catch (err: any) {
+      setUploadError('Lỗi phân tích nội dung HTML: ' + err.message)
+    } finally {
+      setIsParsing(false)
+    }
+  }
+
+  // 🌟 HÀM TIẾP NHẬN TẤT CẢ CÁC ĐỊNH DẠNG FILE (.TXT, .HTML, .DOCX)
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     setUploadError('')
     setIsParsing(true)
-    const reader = new FileReader()
 
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string
-        if (!content) throw new Error('File trống không chứa dữ liệu')
-
-        const chapters: ParsedChapter[] = []
-
-        if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
-          // XỬ LÝ FILE HTML
-          // 🌟 GIẢI PHÁP 1: Tự động biến đổi tất cả các thẻ xuống dòng <br> thành </p><p> để tách dòng,
-          // giúp các dòng text không bị dính liền và bóc tách chuẩn xác thành từng đoạn văn độc lập
-          const normalizedContent = content.replace(/<br\s*\/?>/gi, '</p><p>')
-
-          const parser = new DOMParser()
-          const doc = parser.parseFromString(normalizedContent, 'text/html')
-          let chapterCounter = 1
-          let currentChapter: ParsedChapter | null = null
-
-          // 🌟 GIẢI PHÁP 2: Quét phẳng toàn bộ tiêu đề h1-h5 và thẻ đoạn văn p bọc ngoài
-          const elements = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, p'))
-
-          elements.forEach((node) => {
-            const el = node as HTMLElement
-            const tagName = el.tagName.toLowerCase()
-            const text = el.textContent?.trim() || ''
-
-            // Nhận diện tiêu đề: h1-h5 hoặc thẻ p/div bắt đầu bằng các từ khóa đặc biệt (Giới hạn độ dài < 100)
-            const isHeading = ['h1', 'h2', 'h3', 'h4', 'h5'].includes(tagName) ||
-                              (['p', 'div'].includes(tagName) && (
-                                text.startsWith('[AllKlein]') || 
-                                text.startsWith('[Chúa Tể') || 
-                                /^Chương\s+\d+/i.test(text)
-                              ) && text.length < 100)
-
-            if (isHeading) {
-              if (currentChapter) {
-                chapters.push(currentChapter)
-              }
-
-              let finalTitle = text
-              let extraContent = ''
-
-              // 🌟 GIẢI PHÁP 3: PHÒNG VỆ NÂNG CAO - Nếu tiêu đề bị quá dài (do lỗi lồng thẻ trong HTML gốc),
-              // Chỉ lấy dòng đầu tiên làm Tên chương, phần văn bản bị nuốt phía sau sẽ tự động chuyển thành Nội dung chương!
-              if (text.length > 100) {
-                const lines = text.split('\n')
-                finalTitle = lines[0].trim()
-                extraContent = lines.slice(1).map(l => l.trim() !== '' ? `<p>${l.trim()}</p>` : '').filter(Boolean).join('\n')
-              }
-
-              currentChapter = {
-                number: chapterCounter++,
-                title: finalTitle || `Chương ${chapterCounter}`,
-                content: extraContent ? extraContent + '\n' : ''
-              }
-            } else if (tagName === 'p') {
-              if (currentChapter && el.innerHTML.trim() !== '') {
-                currentChapter.content += `<p>${el.innerHTML.trim()}</p>\n`
-              }
-            }
-          })
-
-          // Đẩy nốt chương cuối cùng
-          if (currentChapter) {
-            chapters.push(currentChapter)
+    try {
+      if (file.name.endsWith('.docx')) {
+        // 🌟 NẾU LÀ FILE WORD (.DOCX): Nhờ thư viện Mammoth giải mã thành HTML rồi đưa vào xử lý
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+          try {
+            const arrayBuffer = event.target?.result as ArrayBuffer
+            const mammoth = await import('mammoth') // Import động siêu nhẹ
+            const result = await mammoth.convertToHtml({ arrayBuffer })
+            processHtmlContent(result.value) // Tái sử dụng bộ xử lý HTML thông minh
+          } catch (err: any) {
+            setUploadError('Lỗi đọc file Word: ' + err.message)
+            setIsParsing(false)
           }
-          setParsedChapters(chapters)
-        } else {
-          // XỬ LÝ FILE TXT (Dựa trên bắt dòng đầu chương như [AllKlein], [Chúa Tể...], hoặc Chương...)
-          const lines = content.split('\n')
-          let chapterCounter = 1
-          let currentChapter: ParsedChapter | null = null
-
-          lines.forEach((line) => {
-            const trimmed = line.trim()
-            if (!trimmed) return
-
-            const isHeading = (trimmed.startsWith('[AllKlein]') || 
-                              trimmed.startsWith('[Chúa Tể') || 
-                              /^Chương\s+\d+/i.test(trimmed)) && trimmed.length < 100
-
-            if (isHeading) {
-              if (currentChapter) {
-                chapters.push(currentChapter)
-              }
-              currentChapter = {
-                number: chapterCounter++,
-                title: trimmed || `Chương ${chapterCounter}`,
-                content: ''
-              }
-            } else {
-              if (currentChapter) {
-                currentChapter.content += `<p>${trimmed}</p>\n`
-              }
-            }
-          })
-
-          if (currentChapter) {
-            chapters.push(currentChapter)
-          }
-          setParsedChapters(chapters)
         }
-      } catch (err: any) {
-        setUploadError('Lỗi phân tích file: ' + err.message)
-      } finally {
+        reader.onerror = () => { setUploadError('Không thể đọc file'); setIsParsing(false) }
+        reader.readAsArrayBuffer(file) // Đọc dưới dạng mã nhị phân
+
+      } else if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+        // 🌟 NẾU LÀ FILE HTML
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const content = event.target?.result as string
+          if (!content) { setUploadError('File trống'); setIsParsing(false); return }
+          processHtmlContent(content)
+        }
+        reader.onerror = () => { setUploadError('Không thể đọc file'); setIsParsing(false) }
+        reader.readAsText(file)
+
+      } else if (file.name.endsWith('.txt')) {
+        // 🌟 NẾU LÀ FILE TXT
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          try {
+            const content = event.target?.result as string
+            if (!content) throw new Error('File trống')
+            
+            const lines = content.split('\n')
+            let chapterCounter = 1
+            let currentChapter: ParsedChapter | null = null
+            const chapters: ParsedChapter[] = []
+
+            lines.forEach((line) => {
+              const trimmed = line.trim()
+              if (!trimmed) return
+
+              const isHeading = (trimmed.startsWith('[AllKlein]') || 
+                                trimmed.startsWith('[Chúa Tể') || 
+                                /^Chương\s+\d+/i.test(trimmed)) && trimmed.length < 100
+
+              if (isHeading) {
+                if (currentChapter) chapters.push(currentChapter)
+                currentChapter = { number: chapterCounter++, title: trimmed || `Chương ${chapterCounter}`, content: '' }
+              } else {
+                if (currentChapter) currentChapter.content += `<p>${trimmed}</p>\n`
+              }
+            })
+            if (currentChapter) chapters.push(currentChapter)
+            setParsedChapters(chapters)
+          } catch (err: any) {
+            setUploadError('Lỗi phân tích file: ' + err.message)
+          } finally {
+            setIsParsing(false)
+          }
+        }
+        reader.onerror = () => { setUploadError('Không thể đọc file'); setIsParsing(false) }
+        reader.readAsText(file)
+      } else {
+        setUploadError('Định dạng file không được hỗ trợ. Vui lòng chọn .txt, .html hoặc .docx')
         setIsParsing(false)
       }
-    }
-
-    reader.onerror = () => {
-      setUploadError('Không thể đọc file này')
+    } catch (err: any) {
+      setUploadError('Lỗi hệ thống: ' + err.message)
       setIsParsing(false)
     }
-
-    reader.readAsText(file)
   }
 
-  // Submit gửi lưu truyện lên Postgres
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim() || !slug.trim()) return
 
     setIsSubmitting(true)
 
-    // Gửi gộp cả metadata của truyện và mảng chương đã parse (nếu có)
     const res = await createNewStory({
       title,
       slug,
@@ -298,12 +293,12 @@ export default function NewStoryPage() {
       link,
       tags: tags || selectedGenres.join(', '),
       chapter_count: uploadMode === 'file' ? parsedChapters.length : Number(chapterCount),
-      chapters: uploadMode === 'file' ? parsedChapters : [] // 🌟 THAM SỐ MỚI: Truyền mảng chương được bóc tách từ file lên database
+      chapters: uploadMode === 'file' ? parsedChapters : []
     })
 
     if (res.success) {
       alert("Đăng truyện mới thành công!")
-      router.push(`/truyen/${slug}`) // Chuyển hướng ngay về trang chi tiết truyện vừa tạo!
+      router.push(`/truyen/${slug}`)
     } else {
       alert("Lỗi khi tạo truyện: " + res.error)
     }
@@ -383,11 +378,11 @@ export default function NewStoryPage() {
               <Input 
                 value={customGenre}
                 onChange={(e) => setCustomGenre(e.target.value)}
-                placeholder="Gõ thể loại mới (Ví dụ: Máu cún, Gương vỡ lại lành...)"
+                placeholder="Gõ thể loại mới (Ví dụ: Máu cún...)"
                 className="h-8 text-xs rounded-full border-stone-200 dark:border-stone-800 focus-visible:ring-amber-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    e.preventDefault() // Chặn hành động gửi form của thẻ Input
+                    e.preventDefault() 
                     handleAddCustomGenre()
                   }
                 }}
@@ -398,7 +393,7 @@ export default function NewStoryPage() {
                 onClick={handleAddCustomGenre}
                 className="h-8 text-xs rounded-full bg-amber-800 hover:bg-amber-700 text-white shrink-0"
               >
-                Thêm thể loại mới
+                Thêm
               </Button>
             </div>
           </div>
@@ -427,7 +422,7 @@ export default function NewStoryPage() {
                   uploadMode === 'file' ? "bg-amber-800 hover:bg-amber-700 text-white border-transparent" : "border-stone-200 dark:border-stone-800"
                 )}
               >
-                Đăng chương bằng File (.txt, .html)
+                Đăng chương bằng File (.txt, .html, .docx)
               </Button>
             </div>
           </div>
@@ -437,14 +432,14 @@ export default function NewStoryPage() {
             <div className="animate-fade-in">
               <label className="text-sm font-semibold text-stone-600 dark:text-stone-400">Số chương ban đầu:</label>
               <Input type="number" min={0} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} className="mt-1 w-32 border-stone-200 dark:border-stone-800" />
-              <p className="text-xs text-stone-400 mt-1">Lưu ý: Hệ thống sẽ tự động khởi tạo danh sách gồm bấy nhiêu chương trắng.</p>
             </div>
           ) : (
             <div className="space-y-3 border border-stone-200/60 dark:border-stone-800 rounded-2xl p-4 bg-stone-50/50 dark:bg-stone-900/10 animate-fade-in">
               <label className="text-xs font-bold text-stone-500 uppercase tracking-wide">Tải file truyện chứa chương:</label>
+              {/* 🌟 ĐÃ CẬP NHẬT: Mở rộng hỗ trợ đuôi .docx ở thẻ Input */}
               <input
                 type="file"
-                accept=".txt, .html, .htm"
+                accept=".txt, .html, .htm, .docx" 
                 onChange={handleFileChange}
                 className="text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 dark:file:bg-stone-800 file:text-stone-800 dark:file:text-stone-300 hover:file:bg-stone-200 cursor-pointer w-full"
               />
@@ -453,7 +448,6 @@ export default function NewStoryPage() {
               {!isParsing && parsedChapters.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-green-600 font-bold">✓ Đã nhận diện thành công {parsedChapters.length} chương từ file!</p>
-                  {/* Danh sách các chương mẫu render nhỏ để Admin preview trước */}
                   <div className="max-h-36 overflow-y-auto border border-stone-200 dark:border-stone-800 p-2.5 rounded-xl bg-white dark:bg-stone-900 space-y-1">
                     {parsedChapters.slice(0, 5).map((ch, idx) => (
                       <div key={idx} className="text-[11px] text-stone-500 dark:text-stone-400 flex justify-between pr-2">
@@ -487,7 +481,7 @@ export default function NewStoryPage() {
             <Button asChild variant="ghost" disabled={isSubmitting}>
               <Link href="/">Hủy</Link>
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-amber-800 hover:bg-amber-700 text-white">
+            <Button type="submit" disabled={isSubmitting || isParsing} className="bg-amber-800 hover:bg-amber-700 text-white">
               {isSubmitting ? <Loader2 className="size-4 animate-spin mr-1.5" /> : <Plus className="size-4 mr-1.5" />}
               Tạo truyện mới
             </Button>

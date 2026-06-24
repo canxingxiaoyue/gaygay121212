@@ -6,7 +6,7 @@ import { Eye, BookOpen, ChevronRight, Home } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { ReadActions } from '@/components/read-actions'
 import { StoryRating } from '@/components/story-rating'
-import { STORIES, formatViews } from '@/lib/stories'
+import { formatViews } from '@/lib/stories'
 import { CommentSection } from '@/components/comment-section'
 import { AddChapterButton } from '@/components/add-chapter-button' 
 import { incrementViews, getStoryViews } from '@/app/actions/views'
@@ -15,8 +15,11 @@ import { AdminStoryControls } from '@/components/admin-story-controls'
 import { ChapterVolumeList } from '@/components/chapter-volume-list' // Import Component phân quyển gập mở mới
 import { auth } from '@clerk/nextjs/server' 
 
-export function generateStaticParams() {
-  return STORIES.map((s) => ({ slug: s.slug }))
+// 🌟 ĐÃ SỬA: Lấy danh sách truyện từ Database để tạo đường dẫn tự động
+export async function generateStaticParams() {
+  const stories = await getMergedStories()
+  if (!stories || stories.length === 0) return []
+  return stories.map((s) => ({ slug: s.slug }))
 }
 
 export default async function StoryDetailPage({

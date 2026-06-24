@@ -4,7 +4,7 @@ import { sql } from '@vercel/postgres'
 import { auth } from '@clerk/nextjs/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { put } from '@vercel/blob' // 🌟 ĐÃ THÊM: Import thư viện đám mây của Vercel
+import { put } from '@vercel/blob' 
 import { STORIES, Story } from '@/lib/stories'
 
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
@@ -48,7 +48,9 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
     })
 
     // 3. Tiến hành gộp chung mảng tĩnh và mảng database lại làm một
-    const allCombinedStories = [...STORIES, ...dbStories]
+    // 🌟 ĐÃ SỬA: Thêm điều kiện phòng vệ an toàn phòng trường hợp STORIES bị xóa hoặc rỗng [1]
+    const safeStories = Array.isArray(STORIES) ? STORIES : []
+    const allCombinedStories = [...safeStories, ...dbStories]
 
     // 4. Đồng bộ thông tin đã sửa đè từ story_metadata vào TOÀN BỘ danh sách truyện đã gộp
     const fullyMergedStories = allCombinedStories.map((s) => {
@@ -91,7 +93,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
     return fullyMergedStories
   } catch (e) {
     console.error("Lỗi đọc danh sách truyện từ Postgres:", e)
-    return STORIES
+    return Array.isArray(STORIES) ? STORIES : []
   }
 }
 
@@ -207,7 +209,8 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
         storyCover = storyDetail.rows[0].cover
       }
     } else {
-      const staticStory = STORIES.find(s => s.slug === storySlug)
+      const safeStories = Array.isArray(STORIES) ? STORIES : []
+      const staticStory = safeStories.find(s => s.slug === storySlug)
       if (staticStory) {
         storyTitle = staticStory.title
         storyCover = staticStory.cover
@@ -253,7 +256,7 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
 }
 
 /**
- * 🌟 ĐÃ CẬP NHẬT: TẠO TRUYỆN MỚI TRÊN WEB, TỰ ĐỘNG LƯU CHƯƠNG TỪ FILE & GỬI THÔNG BÁO CHO TẤT CẢ USER
+ * 🌟 ĐÃ CẬP NHẬT: TẠO TRUYỆN MỚI TRÊN WEB, LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC
  */
 export async function createNewStory(data: {
   slug: string; 
@@ -298,25 +301,26 @@ export async function createNewStory(data: {
       ON CONFLICT (slug) DO NOTHING
     `
 
-    // 2. 🌟 LƯU NỘI DUNG CÁC CHƯƠNG (NẾU ĐĂNG BẰNG FILE)
+    // 2. 🌟 LƯU NỘI DUNG CÁC CHƯƠNG BẰNG THUẬT TOÁN CHIA LÔ BATCHING
     if (data.chapters && data.chapters.length > 0) {
-      for (const ch of data.chapters) {
-        // 🌟 PHÒNG VỆ: Tự động cắt ngắn tiêu đề chương phụ nếu bóc tách quá dài để tránh lỗi DB
-        const safeChapterTitle = ch.title.trim().length > 250 
-          ? ch.title.trim().slice(0, 247) + '...' 
-          : ch.title.trim();
+      // 🌟 GIẢI PHÁP TỐI ƯU: Chia nhỏ thành các lô 50 chương và lưu song song 
+      // để tăng tốc độ lên gấp 50 lần, chống sập máy chủ Vercel do Timeout
+      const chunkSize = 50;
+      for (let i = 0; i < data.chapters.length; i += chunkSize) {
+        const chunk = data.chapters.slice(i, i + chunkSize);
+        
+        await Promise.all(chunk.map(ch => {
+          const safeChapterTitle = ch.title.trim().length > 250 
+            ? ch.title.trim().slice(0, 247) + '...' 
+            : ch.title.trim();
 
-        await sql`
-          INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
-          VALUES (
-            ${cleanSlug}, 
-            ${ch.number}, 
-            ${ch.content}, 
-            ${safeChapterTitle}
-          )
-          ON CONFLICT (story_slug, chapter_number) 
-          DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
-        `
+          return sql`
+            INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
+            VALUES (${cleanSlug}, ${ch.number}, ${ch.content}, ${safeChapterTitle})
+            ON CONFLICT (story_slug, chapter_number) 
+            DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
+          `;
+        }));
       }
     }
 
@@ -630,7 +634,7 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
     // Nếu có quyển bắt đầu đúng tại chương bị xóa, xóa mốc quyển đó luôn (trừ quyển đầu tiên)
     await sql`
       DELETE FROM story_volumes 
-      WHERE story_slug = ${storySlug} && start_chapter = ${chapterNum} AND start_chapter > 1
+      WHERE story_slug = ${storySlug} AND start_chapter = ${chapterNum} AND start_chapter > 1
     `
 
     return { success: true }
@@ -641,26 +645,30 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
 }
 
 /**
- * 🌟 ĐÃ THÊM: ACTION LƯU HÀNG LOẠT NỘI DUNG CHƯƠNG TỪ FILE ĐƯỢC UPLOAD LÊN
+ * 🌟 ĐÃ THÊM: ACTION LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC TỪ FILE
  */
 export async function uploadChaptersFromText(storySlug: string, chapters: { number: number; title: string; content: string }[]) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
-    // 1. Lưu tuần tự các chương vào database để tránh quá tải kết nối
-    for (const ch of chapters) {
-      // 🌟 PHÒNG VỆ: Tự động cắt ngắn tiêu đề chương phụ nếu bóc tách quá dài để tránh lỗi DB
-      const safeChapterTitle = ch.title.trim().length > 250 
-        ? ch.title.trim().slice(0, 247) + '...' 
-        : ch.title.trim();
+    // 🌟 Áp dụng thuật toán chia lô lưu song song siêu tốc
+    const chunkSize = 50;
+    for (let i = 0; i < chapters.length; i += chunkSize) {
+      const chunk = chapters.slice(i, i + chunkSize);
+      
+      await Promise.all(chunk.map(ch => {
+        const safeChapterTitle = ch.title.trim().length > 250 
+          ? ch.title.trim().slice(0, 247) + '...' 
+          : ch.title.trim();
 
-      await sql`
-        INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
-        VALUES (${storySlug}, ${ch.number}, ${ch.content}, ${safeChapterTitle})
-        ON CONFLICT (story_slug, chapter_number)
-        DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
-      `
+        return sql`
+          INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
+          VALUES (${storySlug}, ${ch.number}, ${ch.content}, ${safeChapterTitle})
+          ON CONFLICT (story_slug, chapter_number)
+          DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
+        `;
+      }));
     }
 
     // 2. Cập nhật lại tổng số lượng chương (chapter_count) trong bảng stories
