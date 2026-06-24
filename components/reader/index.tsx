@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports từ các file bóc tách con
+// Imports từ các tệp bóc tách con
 import { ReaderToolbar } from './reader-toolbar'
 import { AdminEditor } from './admin-editor'
 import { ParagraphComments } from './paragraph-comments'
@@ -34,7 +34,7 @@ function countWords(html: string) {
   return cleanText === "" ? 0 : cleanText.split(/\s+/).length
 }
 
-// 🌟 KHÔI PHỤC HẰNG SỐ ĐỊNH NGHĨA FONT CHỮ BỊ THIẾU [2]
+// BẢNG MÀU ĐỌC TRUYỆN CHUẨN
 const FONT_MAPPING: Record<string, string> = {
   serif: "Lora, Georgia, 'Times New Roman', serif",
   quicksand: "'Quicksand', sans-serif",
@@ -44,7 +44,6 @@ const FONT_MAPPING: Record<string, string> = {
   manrope: "'Manrope', sans-serif",
 }
 
-// BẢNG MÀU ĐỌC TRUYỆN CHUẨN
 const THEME_MAPPING: Record<string, { container: string; text: string; badge: string; navBtn: string }> = {
   light: {
     container: "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/60 dark:border-stone-850",
@@ -759,7 +758,7 @@ export function ChapterReader({
     } catch (err) {
       alert("Lỗi tải tệp tin lên hệ thống.")
     } finally {
-      if (isChapterArea) setIsUploadingChapterCommentImg(false); else setIsUploadingChapterCommentImg(false)
+      if (isChapterArea) setIsUploadingChapterCommentImg(false); else setIsUploadingCommentImg(false)
       if (isChapterArea && chapterCommentFileInputRef.current) chapterCommentFileInputRef.current.value = ""
       else if (commentFileInputRef.current) commentFileInputRef.current.value = ""
     }
@@ -921,6 +920,7 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
+  // 🌟 KHỞI TẠO LẠI COMPONENT THANH CHUYỂN HƯỚNG CHƯƠNG (NAV) ĐỂ TRÁNH LỖI NAV IS NOT DEFINED [2]
   const Nav = ({ className }: { className?: string }) => (
     <div className={cn('flex items-center justify-between gap-1.5 sm:gap-2 w-full', className)}>
       <Button 
@@ -946,7 +946,7 @@ export function ChapterReader({
               className={cn(
                 "cursor-pointer transition-colors duration-150 text-xs sm:text-sm",
                 readerTheme === 'light' && "focus:!bg-[#F4EEE6] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#F4EEE6] data-[state=checked]:!text-[#5C3D2E]",
-                readerTheme === 'dark' && "focus:!bg-stone-850 focus:!text-stone-100 data-[state=checked]:!bg-stone-800 dark:data-[state=checked]:!bg-stone-800 data-[state=checked]:!text-stone-100",
+                readerTheme === 'dark' && "focus:!bg-stone-850/80 focus:!text-stone-100 data-[state=checked]:!bg-stone-800 dark:data-[state=checked]:!bg-stone-800 data-[state=checked]:!text-stone-100",
                 readerTheme === 'sepia' && "focus:!bg-[#EADBC8] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#EADBC8] data-[state=checked]:!text-[#5C3D2E]",
                 readerTheme === 'emerald' && "focus:!bg-[#DDE6D5] focus:!text-[#3B4D31] data-[state=checked]:!bg-[#DDE6D5] data-[state=checked]:!text-[#3B4D31]",
                 readerTheme === 'coffee' && "focus:!bg-[#E0D2C8] focus:!text-[#4A3228] data-[state=checked]:!bg-[#E0D2C8] data-[state=checked]:!text-[#4A3228]",
@@ -995,208 +995,213 @@ export function ChapterReader({
         </div>
       )}
 
-      <article
-        className={cn(
-          "mx-auto w-full transition-all duration-300 relative border shadow-lg p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl animate-fade-in",
-          containerWidth === 'xl' && "max-w-xl",
-          containerWidth === '2xl' && "max-w-2xl",
-          containerWidth === '3xl' && "max-w-3xl",
-          THEME_MAPPING[readerTheme]?.container,
-          THEME_MAPPING[readerTheme]?.text
-        )}
-      >
-        <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
+      {/* 🌟 THIẾT LẬP LỚP BỌC FLEX ĐỂ ÉP KHUNG LUÔN CÂN GIỮA TUYỆT ĐỐI TRÊN MỌI THIẾT BỊ [1, 1.1.2] */}
+      <div className="relative w-full flex flex-col items-center justify-center">
+        <article
+          className={cn(
+            "mx-auto w-full transition-all duration-300 relative border shadow-lg p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl animate-fade-in",
+            containerWidth === 'xl' && "max-w-xl",
+            containerWidth === '2xl' && "max-w-2xl",
+            containerWidth === '3xl' && "max-w-3xl",
+            THEME_MAPPING[readerTheme]?.container,
+            THEME_MAPPING[readerTheme]?.text
+          )}
+        >
+          <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
 
-        {/* Toolbar */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/truyen/${story.slug}`}><List className="size-4" /> Mục lục</Link>
-            </Button>
-            {isAdmin && !isEditing && (
-              <Button onClick={startEditing} variant="outline" size="sm" className="text-amber-800 dark:text-amber-400 gap-1.5 border-amber-800/30">
-                <Edit className="size-4" /> Sửa chương này
+          {/* Toolbar */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/truyen/${story.slug}`}><List className="size-4" /> Mục lục</Link>
               </Button>
-            )}
+              {isAdmin && !isEditing && (
+                <Button onClick={startEditing} variant="outline" size="sm" className="text-amber-800 dark:text-amber-400 gap-1.5 border-amber-800/30">
+                  <Edit className="size-4" /> Sửa chương này
+                </Button>
+              )}
+            </div>
+
+            <ReaderToolbar
+              settingsOpen={settingsOpen}
+              setSettingsOpen={setSettingsOpen}
+              isSpeaking={isSpeaking}
+              handleTTS={handleTTS}
+              readerTheme={readerTheme}
+              setReaderTheme={changeReaderTheme}
+              fontSize={fontSize}
+              setFontSize={(val) => { if (typeof val === 'function') { changeFontSize(val(fontSize)) } else { changeFontSize(val) } }}
+              fontFamily={fontFamily}
+              setFontFamily={changeFontFamily}
+              lineHeight={lineHeight}
+              setLineHeight={changeLineHeight}
+              containerWidth={containerWidth}
+              setContainerWidth={changeContainerWidth}
+            />
           </div>
 
-          <ReaderToolbar
-            settingsOpen={settingsOpen}
-            setSettingsOpen={setSettingsOpen}
-            isSpeaking={isSpeaking}
-            handleTTS={handleTTS}
-            readerTheme={readerTheme}
-            setReaderTheme={changeReaderTheme}
-            fontSize={fontSize}
-            setFontSize={(val) => { if (typeof val === 'function') { changeFontSize(val(fontSize)) } else { changeFontSize(val) } }}
-            fontFamily={fontFamily}
-            setFontFamily={changeFontFamily}
-            lineHeight={lineHeight}
-            setLineHeight={changeLineHeight}
-            containerWidth={containerWidth}
-            setContainerWidth={changeContainerWidth}
-          />
-        </div>
+          <header className="mb-6 text-center">
+            <Link href={`/truyen/${story.slug}`} className="text-sm font-semibold text-primary hover:underline">{story.title}</Link>
+            <h1 className="mt-2 font-serif text-2xl font-bold md:text-3xl">{chapter.title}</h1>
+          </header>
 
-        <header className="mb-6 text-center">
-          <Link href={`/truyen/${story.slug}`} className="text-sm font-semibold text-primary hover:underline">{story.title}</Link>
-          <h1 className="mt-2 font-serif text-2xl font-bold md:text-3xl">{chapter.title}</h1>
-        </header>
+          <Nav className="mb-8" />
 
-        <Nav className="mb-8" />
+          {isEditing ? (
+            <AdminEditor
+              isZenEditing={isZenEditing}
+              setIsZenEditing={setIsZenEditing}
+              editTitle={editTitle}
+              setEditTitle={setEditTitle}
+              isSaving={isSaving}
+              isUploading={isUploading}
+              saveStatus={saveStatus}
+              liveWordCount={liveWordCount}
+              fontSize={fontSize}
+              history={history}
+              historyOpen={historyOpen}
+              setHistoryOpen={setHistoryOpen}
+              editorRef={editorRef}
+              fileInputRef={fileInputRef}
+              handleImageUpload={handleImageUpload}
+              executeCommand={executeCommand}
+              handleRestoreVersion={handleRestoreVersion}
+              handleSave={handleSave}
+              setIsEditing={setIsEditing}
+              POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
+              readerTheme={readerTheme}
+              handleContextMenu={handleContextMenu}
+              handleSelection={handleSelection}
+              handleInput={handleEditorInput}
+            />
+          ) : (
+            <div
+              id="reader-body"
+              className={cn(
+                "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty",
+                fontFamily === 'serif' ? 'font-serif' : '',
+                lineHeight === 'normal' && "leading-normal gap-4 [&_p]:mb-4 [&_img]:my-4",
+                lineHeight === 'relaxed' && "leading-relaxed gap-6 [&_p]:mb-6 [&_img]:my-6",
+                lineHeight === 'loose' && "leading-loose gap-8 [&_p]:mb-8 [&_img]:my-8"
+              )}
+              style={{ fontSize, fontFamily: FONT_MAPPING[fontFamily] || "inherit" }}
+            >
+              {parsedParagraphs.map((p, i) => {
+                const isHtml = p.trim().startsWith('<') || p.includes('<' + '/') || p.includes('<img')
+                const rawText = p.replace(new RegExp('</?[^>]+(>|$)', 'g'), '').trim()
+                const count = paraCommentCounts[i] || 0
 
-        {isEditing ? (
-          <AdminEditor
-            isZenEditing={isZenEditing}
-            setIsZenEditing={setIsZenEditing}
-            editTitle={editTitle}
-            setEditTitle={setEditTitle}
-            isSaving={isSaving}
-            isUploading={isUploading}
-            saveStatus={saveStatus}
-            liveWordCount={liveWordCount}
-            fontSize={fontSize}
-            history={history}
-            historyOpen={historyOpen}
-            setHistoryOpen={setHistoryOpen}
-            editorRef={editorRef}
-            fileInputRef={fileInputRef}
-            handleImageUpload={handleImageUpload}
-            executeCommand={executeCommand}
-            handleRestoreVersion={handleRestoreVersion}
-            handleSave={handleSave}
-            setIsEditing={setIsEditing}
-            POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
-            readerTheme={readerTheme}
-            handleContextMenu={handleContextMenu}
-            handleSelection={handleSelection}
-            handleInput={handleEditorInput}
-          />
-        ) : (
-          <div
-            id="reader-body"
-            className={cn(
-              "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty",
-              fontFamily === 'serif' ? 'font-serif' : '',
-              lineHeight === 'normal' && "leading-normal gap-4 [&_p]:mb-4 [&_img]:my-4",
-              lineHeight === 'relaxed' && "leading-relaxed gap-6 [&_p]:mb-6 [&_img]:my-6",
-              lineHeight === 'loose' && "leading-loose gap-8 [&_p]:mb-8 [&_img]:my-8"
-            )}
-            style={{ fontSize, fontFamily: FONT_MAPPING[fontFamily] || "inherit" }}
-          >
-            {parsedParagraphs.map((p, i) => {
-              const isHtml = p.trim().startsWith('<') || p.includes('<' + '/') || p.includes('<img')
-              const rawText = p.replace(new RegExp('</?[^>]+(>|$)', 'g'), '').trim()
-              const count = paraCommentCounts[i] || 0
-
-              return (
-                <div key={i} className="relative group/para flex items-start gap-3 py-1">
-                  <div className="flex-1 animate-fade-in">
-                    {isHtml ? <div dangerouslySetInnerHTML={{ __html: p }} className="text-pretty" /> : <p className="text-pretty">{p}</p>}
+                return (
+                  // 🌟 THIẾT LẬP BỐ CỤC ĐOẠN pr-11 ĐỂ NÚT BÌNH LUẬN ABSOLUTE KHÔNG ĐÈ CHỮ, DÀN CHỮ ĐỀU ĐỘC LẬP [1.1.2]
+                  <div key={i} className="relative group/para py-1 pr-11 md:pr-14 w-full">
+                    <div className="animate-fade-in w-full text-left">
+                      {isHtml ? <div dangerouslySetInnerHTML={{ __html: p }} className="text-pretty" /> : <p className="text-pretty">{p}</p>}
+                    </div>
+                    {/* 🌟 ĐƯA NÚT BÌNH LUẬN SANG VỊ TRÍ TUYỆT ĐỐI ABSOLUTE ĐỂ GIẢI PHÓNG ĐỘ KHÍT DÒNG CHỮ CÂN GIỮA [1.1.2] */}
+                    <button
+                      onClick={() => handleOpenParaComment(i, rawText)}
+                      className={cn(
+                        "transition-all duration-200 flex items-center justify-center border shrink-0 rounded-full p-1 shadow-sm active:scale-90 w-10 h-8 absolute right-0 top-1/2 -translate-y-1/2 select-none",
+                        count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
+                        KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
+                      )}
+                      title={`Xem ${count} bình luận`}
+                    >
+                      <img src="/klein.png" alt="Bình luận" className="w-7 h-5 object-contain dark:brightness-125 dark:drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]" />
+                      {count > 0 && (
+                        <span className={cn("absolute -top-1.5 -right-1.5 text-[8px] font-bold h-4 w-4 rounded-full flex items-center justify-center border shadow-sm animate-fade-in scale-90 select-none", THEME_MAPPING[readerTheme]?.badge || "bg-[#8B5E3C] text-white")}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleOpenParaComment(i, rawText)}
-                    className={cn(
-                      "transition-all duration-200 flex items-center justify-center border shrink-0 self-center rounded-full p-1 shadow-sm active:scale-90 w-11 h-9 relative",
-                      count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
-                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
-                    )}
-                    title={`Xem ${count} bình luận`}
-                  >
-                    <img src="/klein.png" alt="Bình luận" className="w-8 h-6 object-contain dark:brightness-125 dark:drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]" />
-                    {count > 0 && (
-                      <span className={cn("absolute -top-1.5 -right-1.5 text-[9px] font-bold h-4.5 min-w-4.5 px-1 rounded-full flex items-center justify-center border shadow-sm animate-fade-in scale-90 select-none", THEME_MAPPING[readerTheme]?.badge || "bg-[#8B5E3C] text-white")}>
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )}
 
-        <Nav className="mb-8" />
+          <Nav className="mb-8" />
 
-        {!isEditing && (
-          <ChapterComments
-            chapterComments={chapterComments}
-            isLoading={isLoadingChapterComments}
-            isSending={isSending}
-            isUploadingCommentImg={isUploadingChapterCommentImg}
-            commentText={chapterCommentText}
-            setCommentText={setChapterCommentText}
-            commentImgUrl={chapterCommentImgUrl}
-            setCommentImgUrl={setChapterCommentImgUrl}
-            commentFileInputRef={chapterCommentFileInputRef}
-            handleCommentImageUpload={handleChapterCommentImageUpload}
-            handleStickerClick={handleChapterStickerClick}
-            handleSendChapterComment={handleSendChapterComment}
-            userReactions={chapterUserReactions}
+          {!isEditing && (
+            <ChapterComments
+              chapterComments={chapterComments}
+              isLoading={isLoadingChapterComments}
+              isSending={isSending}
+              isUploadingCommentImg={isUploadingChapterCommentImg}
+              commentText={chapterCommentText}
+              setCommentText={setChapterCommentText}
+              commentImgUrl={chapterCommentImgUrl}
+              setCommentImgUrl={setChapterCommentImgUrl}
+              commentFileInputRef={chapterCommentFileInputRef}
+              handleCommentImageUpload={handleChapterCommentImageUpload}
+              handleStickerClick={handleChapterStickerClick}
+              handleSendChapterComment={handleSendChapterComment}
+              userReactions={chapterUserReactions}
+              sortedStickers={sortedStickers}
+              parsedParagraphs={parsedParagraphs}
+              editingCommentId={editingCommentId}
+              editingCommentText={editingCommentText}
+              setEditingCommentText={setEditingCommentText}
+              handleStartCommentEdit={handleStartCommentEdit}
+              handleSaveCommentEdit={handleSaveCommentEdit}
+              handleDeleteComment={handleDeleteComment}
+              setEditingCommentId={setEditingCommentId}
+              isSignedIn={!!isSignedIn}
+              user={user}
+              isAdmin={!!isAdmin}
+              POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
+              readerTheme={readerTheme}
+              replyingToId={chapterReplyingToId}
+              setReplyingToId={setChapterReplyingToId}
+              replyText={chapterReplyText}
+              setReplyText={setChapterReplyText}
+              handleSendReply={handleSendChapterReply}
+              expandedCommentIds={chapterExpandedCommentIds}
+              toggleExpanded={toggleChapterExpanded}
+            />
+          )}
+
+          <ParagraphComments
+            paraCommentOpen={paraCommentOpen}
+            setParaCommentOpen={setParaCommentOpen}
+            activeParaText={activeParaText}
             sortedStickers={sortedStickers}
-            parsedParagraphs={parsedParagraphs}
+            paraComments={paraComments}
+            userReactions={userReactions}
+            textComments={textComments}
+            isLoadingComments={isLoadingComments}
+            isSending={isSending}
+            isUploadingCommentImg={isUploadingCommentImg}
+            commentText={commentText}
+            setCommentText={setCommentText}
+            commentImgUrl={commentImgUrl}
+            setCommentImgUrl={setCommentImgUrl}
+            commentFileInputRef={commentFileInputRef}
+            handleCommentImageUpload={handleCommentImageUpload}
+            handleStickerClick={handleStickerClick}
+            handleSendParaComment={handleSendParaComment}
             editingCommentId={editingCommentId}
             editingCommentText={editingCommentText}
             setEditingCommentText={setEditingCommentText}
             handleStartCommentEdit={handleStartCommentEdit}
             handleSaveCommentEdit={handleSaveCommentEdit}
             handleDeleteComment={handleDeleteComment}
-            setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
-            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+            setEditingCommentId={setEditingCommentId}
+            isSignedIn={!!isSignedIn}
             user={user}
-            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
+            isAdmin={!!isAdmin}
             POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
             readerTheme={readerTheme}
-            replyingToId={chapterReplyingToId}
-            setReplyingToId={setChapterReplyingToId}
-            replyText={chapterReplyText}
-            setReplyText={setChapterReplyText}
-            handleSendReply={handleSendChapterReply}
-            expandedCommentIds={chapterExpandedCommentIds}
-            toggleExpanded={toggleChapterExpanded}
+            replyingToId={replyingToId}
+            setReplyingToId={setReplyingToId}
+            replyText={replyText}
+            setReplyText={setReplyText}
+            handleSendReply={handleSendReply}
+            expandedCommentIds={expandedCommentIds}
+            toggleExpanded={toggleExpanded}
           />
-        )}
-
-        <ParagraphComments
-          paraCommentOpen={paraCommentOpen}
-          setParaCommentOpen={setParaCommentOpen}
-          activeParaText={activeParaText}
-          sortedStickers={sortedStickers}
-          paraComments={paraComments}
-          userReactions={userReactions}
-          textComments={textComments}
-          isLoadingComments={isLoadingComments}
-          isSending={isSending}
-          isUploadingCommentImg={isUploadingCommentImg}
-          commentText={commentText}
-          setCommentText={setCommentText}
-          commentImgUrl={commentImgUrl}
-          setCommentImgUrl={setCommentImgUrl}
-          commentFileInputRef={commentFileInputRef}
-          handleCommentImageUpload={handleCommentImageUpload}
-          handleStickerClick={handleStickerClick}
-          handleSendParaComment={handleSendParaComment}
-          editingCommentId={editingCommentId}
-          editingCommentText={editingCommentText}
-          setEditingCommentText={setEditingCommentText}
-          handleStartCommentEdit={handleStartCommentEdit}
-          handleSaveCommentEdit={handleSaveCommentEdit}
-          handleDeleteComment={handleDeleteComment}
-          setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
-          isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
-          user={user}
-          isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
-          POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
-          readerTheme={readerTheme}
-          replyingToId={replyingToId}
-          setReplyingToId={setReplyingToId}
-          replyText={replyText}
-          setReplyText={setReplyText}
-          handleSendReply={handleSendReply}
-          expandedCommentIds={expandedCommentIds}
-          toggleExpanded={toggleExpanded}
-        />
-      </article>
+        </article>
+      </div>
     </div>
   )
 }
