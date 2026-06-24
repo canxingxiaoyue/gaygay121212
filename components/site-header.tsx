@@ -51,7 +51,7 @@ export function SiteHeader() {
         {/* LOGO: GIỮ NGUYÊN ĐẦY ĐỦ TTHT VỚI KÝ TỰ CỔ ĐIỂN CỦA BẠN (CỠ CHỮ THU NHỎ TỶ LỆ TRÊN DI ĐỘNG) [1.1.2] */}
         <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity select-none min-w-0">
           <span className="font-serif text-[15px] sm:text-lg lg:text-xl font-bold tracking-tight whitespace-nowrap">
-            ⋆｡˚☾Tàn Tinh Hiểu Nguyệt ☽˚｡⋆
+            ⋆｡˚☾Tàn Tinh Hiểu Nguyệt.✦ ݁˖
           </span>
         </Link>
 

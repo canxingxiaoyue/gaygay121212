@@ -143,7 +143,7 @@ export function ParagraphComments({
               className="block text-center text-[11px] text-[#b9abc9] italic tracking-widest"
               style={{ textShadow: "0 0 8px rgba(220,220,255,0.4)" }}
             >
-              ⋆｡˚☾ Dấu chân dưới trăng ☽˚｡⋆
+              ⋆｡˚☾ Dấu chân dưới trăng .✦ ݁˖
             </span>
             <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-40 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
               {sortedStickers.map((sticker) => {
