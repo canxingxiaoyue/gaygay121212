@@ -32,10 +32,10 @@ export default async function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-[#5C3D2E] hover:bg-[#4A2E22] text-white rounded-xl shadow-md transition-all hover:scale-[1.02] border-none">
-                  <Link href="/truyen">
-                    <BookOpen className="size-4 mr-2" />
-                    Bắt đầu đọc
-                  </Link>
+                 <Link href="/tim-kiem">
+  <BookOpen className="size-4 mr-2" />
+  Bắt đầu đọc
+</Link>
                 </Button>
                 
                 {/* 🌟 CẬP NHẬT: Nút truyện hoàn thành giờ đây sẽ bay thẳng đến trang tìm kiếm và bật sẵn bộ lọc */}
