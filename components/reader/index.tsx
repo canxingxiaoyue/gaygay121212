@@ -1078,7 +1078,7 @@ export function ChapterReader({
             <div
               id="reader-body"
               className={cn(
-                "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty",
+                "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty break-words", // 🌟 ĐÃ SỬA: Bổ sung break-words ngăn tràn chữ khỏi viền đọc truyện
                 fontFamily === 'serif' ? 'font-serif' : '',
                 lineHeight === 'normal' && "leading-normal gap-4 [&_p]:mb-4 [&_img]:my-4",
                 lineHeight === 'relaxed' && "leading-relaxed gap-6 [&_p]:mb-6 [&_img]:my-6",
@@ -1088,14 +1088,14 @@ export function ChapterReader({
             >
               {parsedParagraphs.map((p, i) => {
                 const isHtml = p.trim().startsWith('<') || p.includes('<' + '/') || p.includes('<img')
-                const rawText = p.replace(new RegExp('</?[^>]+(>|$)', 'g'), '').trim()
+                const rawText = p.replace(new RegExp('</?[^>]+(>|$)/g'), "").trim()
                 const count = paraCommentCounts[i] || 0
 
                 return (
                   // 🌟 THIẾT LẬP BỐ CỤC ĐOẠN pr-11 ĐỂ NÚT BÌNH LUẬN ABSOLUTE KHÔNG ĐÈ CHỮ, DÀN CHỮ ĐỀU ĐỘC LẬP [1.1.2]
                   <div key={i} className="relative group/para py-1 pr-11 md:pr-14 w-full">
                     <div className="animate-fade-in w-full text-left">
-                      {isHtml ? <div dangerouslySetInnerHTML={{ __html: p }} className="text-pretty" /> : <p className="text-pretty">{p}</p>}
+                      {isHtml ? <div dangerouslySetInnerHTML={{ __html: p }} className="text-pretty break-words" /> : <p className="text-pretty break-words">{p}</p>}
                     </div>
                     {/* 🌟 ĐƯA NÚT BÌNH LUẬN SANG VỊ TRÍ TUYỆT ĐỐI ABSOLUTE ĐỂ GIẢI PHÓNG ĐỘ KHÍT DÒNG CHỮ CÂN GIỮA [1.1.2] */}
                     <button
@@ -1103,7 +1103,7 @@ export function ChapterReader({
                       className={cn(
                         "transition-all duration-200 flex items-center justify-center border shrink-0 rounded-full p-1 shadow-sm active:scale-90 w-10 h-8 absolute right-0 top-1/2 -translate-y-1/2 select-none",
                         count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
-                        KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
+                        KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] hover:bg-[#EADBCE] text-[#5C3D2E]"
                       )}
                       title={`Xem ${count} bình luận`}
                     >
