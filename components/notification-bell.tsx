@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, CheckCheck, Trash2, X, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
@@ -35,7 +35,7 @@ export function NotificationBell() {
     }
   }
 
-  // 🌟 1. THUẬT TOÁN PHÂN NHÓM THÔNG BÁO THEO THÁNG/NĂM ĐỂ HIỂN THỊ DẠNG ACCORDION [1]
+  // THUẬT TOÁN PHÂN NHÓM THÔNG BÁO THEO THÁNG/NĂM ĐỂ HIỂN THỊ DẠNG ACCORDION
   const groupedNotifications = useMemo(() => {
     const groups: Record<string, any[]> = {}
     
@@ -43,7 +43,7 @@ export function NotificationBell() {
       const date = new Date(notif.created_at)
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
-      const key = `${year}-${month}` // Định dạng khóa "2026-06" để xử lý Database [1]
+      const key = `${year}-${month}`
       
       if (!groups[key]) groups[key] = []
       groups[key].push(notif)
@@ -57,20 +57,19 @@ export function NotificationBell() {
     return Object.keys(groupedNotifications).sort((a, b) => b.localeCompare(a))
   }, [groupedNotifications])
 
-  // 🌟 2. XỬ LÝ XÓA ĐƠN LẺ MỘT THÔNG BÁO [1]
+  // XỬ LÝ XÓA ĐƠN LẺ MỘT THÔNG BÁO
   const handleDeleteSingle = async (e: React.MouseEvent, id: number) => {
     e.preventDefault()
     e.stopPropagation()
     if (isProcessing) return
 
     setIsPending(true)
-    // Cập nhật UI ngay lập tức trong 0ms (Optimistic Update) [1.1.2]
     setNotifications(prev => prev.filter(n => n.id !== id))
     
     try {
       const res = await deleteNotification(id)
       if (!res.success) {
-        await fetchNotifs() // Rollback nếu lỗi
+        await fetchNotifs()
         alert("Không thể xóa thông báo: " + res.error)
       }
     } catch (err) {
@@ -80,7 +79,7 @@ export function NotificationBell() {
     }
   }
 
-  // 🌟 3. XỬ LÝ XÓA TOÀN BỘ THÔNG BÁO CỦA MỘT THÁNG [1]
+  // XỬ LÝ XÓA TOÀN BỘ THÔNG BÁO CỦA MỘT THÁNG
   const handleDeleteMonth = async (e: React.MouseEvent, monthKey: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -92,7 +91,6 @@ export function NotificationBell() {
     if (isProcessing) return
 
     setIsPending(true)
-    // Cập nhật UI ngay lập tức trong 0ms [1.1.2]
     setNotifications(prev => prev.filter(n => {
       const d = new Date(n.created_at)
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -102,7 +100,7 @@ export function NotificationBell() {
     try {
       const res = await deleteNotificationsByMonth(monthKey)
       if (!res.success) {
-        await fetchNotifs() // Rollback nếu lỗi
+        await fetchNotifs()
         alert("Lỗi khi xóa thông báo theo tháng: " + res.error)
       }
     } catch (err) {
@@ -113,7 +111,8 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative">
+    // 🌟 ĐÃ THÊM LỚP HIỂN THỊ ƯU TIÊN z-[100] CHO CONTAINER CHUÔNG BÁO [1.1.2]
+    <div className="relative z-[100]">
       {/* Nút Chuông */}
       <button 
         onClick={handleOpen}
@@ -131,7 +130,8 @@ export function NotificationBell() {
 
       {/* Bảng Dropdown Thông báo */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-92 sm:w-100 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+        // 🌟 ĐÃ NÂNG LỚP PHỦ LÊN z-[110] ĐỂ NỔI BẬT LÊN TRÊN CÙNG HOÀN TOÀN [1.1.2]
+        <div className="absolute right-0 mt-2 w-92 sm:w-100 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl z-[110] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="flex justify-between items-center p-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/50">
             <h3 className="font-serif font-bold text-sm text-stone-800 dark:text-stone-200">Thông báo mới</h3>
             <CheckCheck className="size-4 text-stone-400" />
@@ -149,13 +149,12 @@ export function NotificationBell() {
                 
                 return (
                   <div key={monthKey} className="space-y-1 bg-stone-50/20 dark:bg-stone-900/10">
-                    {/* TIÊU ĐỀ GOM NHÓM THEO THÁNG VÀ NÚT XÓA ĐỒNG LOẠT THÁNG [1] */}
+                    {/* TIÊU ĐỀ GOM NHÓM THEO THÁNG VÀ NÚT XÓA ĐỒNG LOẠT THÁNG */}
                     <div className="flex justify-between items-center px-4 py-2 bg-stone-100/60 dark:bg-stone-950/40 border-y border-stone-100 dark:border-stone-850 text-stone-500 dark:text-stone-400 text-[11px] font-bold tracking-wider uppercase select-none">
                       <span className="flex items-center gap-1.5 font-serif text-[11.5px]">
-                        <Calendar className="size-3.5 text-amber-800 dark:text-amber-500" />
+                        <Calendar className="size-3.5 text-amber-800 dark:text-amber-400" />
                         Tháng {month} / {year} ({list.length})
                       </span>
-                      {/* Nút xóa đồng loạt thông báo của tháng [1] */}
                       <button 
                         onClick={(e) => handleDeleteMonth(e, monthKey)}
                         className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors uppercase text-[9px] font-bold bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded-full"
@@ -198,7 +197,7 @@ export function NotificationBell() {
                                   {notif.type === 'REPLY' && ' đã phản hồi bình luận của bạn trong '}
                                   {notif.type === 'NEW_COMMENT' && ' đã để lại lời bình luận trong '}
                                   {notif.type === 'new_chapter' && ' vừa cập nhật thêm chương mới: '}
-                                  {notif.type === 'new_story' && ' - Truyện mới ra lò: '}
+                                  {notif.type === 'new_story' && ' - Tác phẩm mới vừa ra mắt độc giả: '}
                                   <span className="font-semibold text-amber-800 dark:text-amber-500">Chương {notif.chapter_number}</span>.
                                 </p>
                                 {notif.preview_text && (
@@ -212,7 +211,7 @@ export function NotificationBell() {
                               </div>
                             </Link>
 
-                            {/* NÚT XÓA RIÊNG LẺ THÔNG BÁO (Xuất hiện mượt mà khi Hover) [1] */}
+                            {/* NÚT XÓA RIÊNG LẺ THÔNG BÁO */}
                             <button
                               onClick={(e) => handleDeleteSingle(e, notif.id)}
                               className="absolute top-3 right-3 text-stone-400 hover:text-red-500 transition-all duration-200 p-1 hover:bg-stone-200/50 dark:hover:bg-stone-800 rounded-full opacity-0 group-hover:opacity-100"
