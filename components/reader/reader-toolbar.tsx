@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react' // 🌟 BỔ SUNG THÊM HOOK ĐỂ BẮT SỰ KIỆN CLICK OUTSIDE [1]
 import { Heart, Headphones } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -56,9 +57,39 @@ export function ReaderToolbar({
   const activeClass = "bg-gradient-to-br from-amber-500/10 to-amber-600/10 border-amber-500 text-amber-800 dark:text-amber-400 font-bold shadow-[0_0_15px_rgba(245,158,11,0.15)] scale-[1.02]"
   const inactiveClass = "border-stone-200 dark:border-stone-850 hover:border-amber-500/50 text-stone-600 dark:text-stone-400"
 
+  // 🌟 KHỞI TẠO REF ĐỂ THEO DÕI VÙNG CLICK CỦA TOOLBAR [1]
+  const toolbarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!settingsOpen) return
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement
+      
+      // 🌟 THUẬT TOÁN LOẠI TRỪ THÔNG MINH: Bỏ qua nếu bấm vào Radix Portal (khung chọn Font chữ) [1.1.2]
+      if (
+        target.closest('[data-radix-portal]') || 
+        target.closest('[data-radix-select-viewport]')
+      ) {
+        return
+      }
+
+      // Nếu bấm ra ngoài hoàn toàn vùng cài đặt, tiến hành tự động đóng [1]
+      if (toolbarRef.current && !toolbarRef.current.contains(target)) {
+        setSettingsOpen(false)
+      }
+    }
+
+    // Lắng nghe sự kiện click chuột trên toàn màn hình
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [settingsOpen, setSettingsOpen])
+
   return (
-    // 🌟 ĐÃ HẠ LỚP HIỂN THỊ CỦA NÚT TRÁI TIM XUỐNG z-10 ĐỂ KHÔNG TRANH CHẤP VỚI HEADER TRÊN CÙNG [1.1.2]
-    <div className="relative z-10">
+    // Đã gắn thêm ref={toolbarRef} và lớp z-10 an toàn [1, 1.1.2]
+    <div ref={toolbarRef} className="relative z-10">
       <Button
         type="button"
         variant="ghost"
@@ -78,7 +109,27 @@ export function ReaderToolbar({
           onClick={(e) => e.stopPropagation()}
           className="absolute right-0 top-11 z-[90] w-72 rounded-2xl border border-amber-500/20 dark:border-stone-850 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-4 shadow-[0_20px_50px_rgba(139,94,60,0.18)] space-y-4 text-sm font-sans text-stone-800 dark:text-stone-200 animate-in fade-in zoom-in-95 duration-200"
         >
-      
+          {/* TTS */}
+          <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-800">
+            <div className="flex items-center justify-between">
+              <span className="font-bold flex items-center gap-1.5 text-stone-700 dark:text-stone-300">
+                <Headphones className="size-4 text-amber-700 dark:text-amber-400 animate-pulse" />
+                Đọc bằng giọng nói (TTS)
+              </span>
+              <Button
+                size="sm"
+                variant={isSpeaking ? "default" : "outline"}
+                onClick={handleTTS}
+                className={cn(
+                  "h-8 text-xs rounded-full px-3 transition-all",
+                  isSpeaking && "bg-amber-800 hover:bg-amber-900 text-white border-amber-800 shadow-[0_0_10px_rgba(139,94,60,0.2)]"
+                )}
+              >
+                {isSpeaking ? "Tạm dừng" : "Đọc truyện"}
+              </Button>
+            </div>
+          </div>
+
           {/* THEME */}
           <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-850">
             <span className="font-bold text-stone-700 dark:text-stone-300 block">🎨 Giao diện đọc</span>
