@@ -1010,7 +1010,8 @@ export function ChapterReader({
           <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
 
           {/* Toolbar */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+          {/* 🌟 ĐÃ SỬA: Thêm "sticky top-0 sm:top-4 z-40" ghim cố định Toolbar khi lướt truyện xuống */}
+          <div className="sticky top-0 sm:top-4 z-40 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm">
                 <Link href={`/truyen/${story.slug}`}><List className="size-4" /> Mục lục</Link>
@@ -1088,7 +1089,7 @@ export function ChapterReader({
             >
               {parsedParagraphs.map((p, i) => {
                 const isHtml = p.trim().startsWith('<') || p.includes('<' + '/') || p.includes('<img')
-               const rawText = p.replace(/<\/?[^>]+(>|$)/g, "").trim()
+                const rawText = p.replace(/<\/?[^>]+(>|$)/g, "").trim()
                 const count = paraCommentCounts[i] || 0
 
                 return (
