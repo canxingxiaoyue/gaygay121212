@@ -4,6 +4,7 @@ import { sql } from '@vercel/postgres'
 import { auth } from '@clerk/nextjs/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { put } from '@vercel/blob' // 🌟 ĐÃ THÊM: Import thư viện đám mây của Vercel
 import { STORIES, Story } from '@/lib/stories'
 
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
@@ -356,7 +357,7 @@ export async function createNewStory(data: {
 }
 
 /**
- * ACTION LƯU FILE ẢNH TỪ MÁY TÍNH VÀO THƯ MỤC PUBLIC DÀNH CHO ADMIN
+ * 🌟 ĐÃ CẬP NHẬT: TỰ ĐỘNG LƯU FILE ẢNH LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
  */
 export async function uploadImage(formData: FormData) {
   const { userId } = await auth()
@@ -366,6 +367,15 @@ export async function uploadImage(formData: FormData) {
     const file = formData.get('file') as File
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
+    // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(`story-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
+        access: 'public',
+      })
+      return { success: true, url: blob.url }
+    }
+
+    // 🌟 FALLBACK 2: Nếu chưa cấu hình Token (Chạy offline ở localhost dưới máy của bạn)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
@@ -385,7 +395,7 @@ export async function uploadImage(formData: FormData) {
 }
 
 /**
- * 🌟 ACTION TẢI ẢNH ĐÍNH KÈM BÌNH LUẬN CHO ĐỘC GIẢ (KHÔNG CHECK ADMIN)
+ * 🌟 ĐÃ CẬP NHẬT: TỰ ĐỘNG LƯU FILE ẢNH CMT LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
  */
 export async function uploadCommentImage(formData: FormData) {
   // Chỉ yêu cầu đăng nhập, không yêu cầu là Admin
@@ -396,6 +406,15 @@ export async function uploadCommentImage(formData: FormData) {
     const file = formData.get('file') as File
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
+    // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(`comment-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
+        access: 'public',
+      })
+      return { success: true, url: blob.url }
+    }
+
+    // 🌟 FALLBACK 2: Nếu chưa cấu hình Token (Chạy offline ở localhost dưới máy của bạn)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
@@ -611,7 +630,7 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
     // Nếu có quyển bắt đầu đúng tại chương bị xóa, xóa mốc quyển đó luôn (trừ quyển đầu tiên)
     await sql`
       DELETE FROM story_volumes 
-      WHERE story_slug = ${storySlug} AND start_chapter = ${chapterNum} AND start_chapter > 1
+      WHERE story_slug = ${storySlug} && start_chapter = ${chapterNum} AND start_chapter > 1
     `
 
     return { success: true }
