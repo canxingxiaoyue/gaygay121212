@@ -73,7 +73,7 @@ export default async function HomePage() {
                 </div>
 
                 {/* 3. Khung trắng bo góc chứa bức tranh chính ở giữa */}
-              <div className="relative w-[90%] h-[85%] bg-white dark:bg-stone-900 rounded-2xl shadow-inner overflow-hidden flex items-center justify-center z-10">
+              <div className="relative w-[90%] h-[85%] bg-white rounded-2xl shadow-inner overflow-hidden flex items-center justify-center z-10">
   <Image
     src="/kemchanh.png"
     alt="Artist: Kem chanh màu xanh"
