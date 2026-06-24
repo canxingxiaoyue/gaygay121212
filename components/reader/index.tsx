@@ -1088,7 +1088,7 @@ export function ChapterReader({
             >
               {parsedParagraphs.map((p, i) => {
                 const isHtml = p.trim().startsWith('<') || p.includes('<' + '/') || p.includes('<img')
-                const rawText = p.replace(new RegExp('</?[^>]+(>|$)/g'), "").trim()
+               const rawText = p.replace(/<\/?[^>]+(>|$)/g, "").trim()
                 const count = paraCommentCounts[i] || 0
 
                 return (
