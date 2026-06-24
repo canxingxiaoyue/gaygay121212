@@ -44,7 +44,8 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
+    // 🌟 ĐÃ NÂNG LỚP HIỂN THỊ LÊN z-[150] ĐỂ ĐẢM BẢO KHÔNG BỊ PHẦN TỬ KHÁC ĐÈ LÊN [1.1.2]
+    <header className="sticky top-0 z-[150] border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
         <Link href="/" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity select-none">
           <span className="font-serif text-xl font-bold tracking-tight">

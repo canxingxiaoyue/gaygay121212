@@ -57,17 +57,8 @@ export function ReaderToolbar({
   const inactiveClass = "border-stone-200 dark:border-stone-850 hover:border-amber-500/50 text-stone-600 dark:text-stone-400"
 
   return (
-    <div className="relative">
-      
-      {/* 🌟 MÀNG TÀNG HÌNH ĐÓNG BẢNG TRÁI TIM KHI CLICK RA NGOÀI (CHỐNG LỖI PORTAL CLICK BỞI RADIX SELECT) [1] */}
-      {settingsOpen && (
-        <div 
-          className="fixed inset-0 z-[80] cursor-default bg-transparent" 
-          onClick={() => setSettingsOpen(false)}
-        />
-      )}
-
-      {/* NÚT TRÁI TIM KÍCH HOẠT (ĐÃ THÊM LỚP z-[85] ĐỂ NẰM TRÊN MÀNG TÀNG HÌNH) [1] */}
+    // 🌟 ĐÃ HẠ LỚP HIỂN THỊ CỦA NÚT TRÁI TIM XUỐNG z-10 ĐỂ KHÔNG TRANH CHẤP VỚI HEADER TRÊN CÙNG [1.1.2]
+    <div className="relative z-10">
       <Button
         type="button"
         variant="ghost"
@@ -76,39 +67,18 @@ export function ReaderToolbar({
           e.stopPropagation()
           setSettingsOpen(!settingsOpen)
         }}
-        className="size-9 rounded-full text-[#5C3D2E] dark:text-[#EADBC8] hover:bg-secondary transition-all active:scale-95 relative z-[85]"
+        className="size-9 rounded-full text-[#5C3D2E] dark:text-[#EADBC8] hover:bg-secondary transition-all active:scale-95"
         title="Tùy chỉnh giao diện đọc"
       >
         <Heart className="size-5 fill-[#5C3D2E] dark:fill-[#EADBC8] text-[#5C3D2E] dark:text-[#EADBC8]" />
       </Button>
 
-      {/* BẢNG CÀI ĐẶT CHÍNH (ĐỂ LỚP z-[90] ĐỂ NGĂN CLICK BÊN TRONG BẢNG GÂY ĐÓNG TỰ ĐỘNG) [1] */}
       {settingsOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
           className="absolute right-0 top-11 z-[90] w-72 rounded-2xl border border-amber-500/20 dark:border-stone-850 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-4 shadow-[0_20px_50px_rgba(139,94,60,0.18)] space-y-4 text-sm font-sans text-stone-800 dark:text-stone-200 animate-in fade-in zoom-in-95 duration-200"
         >
-          {/* TTS */}
-          <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-800">
-            <div className="flex items-center justify-between">
-              <span className="font-bold flex items-center gap-1.5 text-stone-700 dark:text-stone-300">
-                <Headphones className="size-4 text-amber-700 dark:text-amber-400 animate-pulse" />
-                Đọc bằng giọng nói (TTS)
-              </span>
-              <Button
-                size="sm"
-                variant={isSpeaking ? "default" : "outline"}
-                onClick={handleTTS}
-                className={cn(
-                  "h-8 text-xs rounded-full px-3 transition-all",
-                  isSpeaking && "bg-amber-800 hover:bg-amber-900 text-white border-amber-800 shadow-[0_0_10px_rgba(139,94,60,0.2)]"
-                )}
-              >
-                {isSpeaking ? "Tạm dừng" : "Đọc truyện"}
-              </Button>
-            </div>
-          </div>
-
+      
           {/* THEME */}
           <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-850">
             <span className="font-bold text-stone-700 dark:text-stone-300 block">🎨 Giao diện đọc</span>
@@ -126,7 +96,7 @@ export function ReaderToolbar({
             </div>
           </div>
 
-          {/* FONTS / SIZES (ĐƯỢC ĐỊNH VỊ Ở z-[100] TRÊN CÙNG ĐỂ CHỌN MƯỢT MÀ) [1] */}
+          {/* FONTS / SIZES */}
           <div className="space-y-3.5">
             <span className="font-bold text-stone-700 dark:text-stone-300 block">🔠 Tùy chỉnh chữ</span>
             
