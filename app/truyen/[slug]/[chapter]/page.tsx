@@ -10,11 +10,11 @@ import { ChapterReader } from '@/components/reader'
 import { getMergedStories } from '@/app/actions/admin' // Import hàm gộp truyện từ DB
 import { incrementViews } from '@/app/actions/views'
 
-// 🌟 Ép trang này luôn ở chế độ Dynamic để đọc dữ liệu PostgreSQL mới nhất, 
+// Ép trang này luôn ở chế độ Dynamic để đọc dữ liệu PostgreSQL mới nhất, 
 // tránh tuyệt đối lỗi cache/404 khi admin đăng truyện/chương mới bằng file.
 export const dynamic = 'force-dynamic'
 
-// 🌟 ĐA SỬA: Lấy từ Database để tạo đường dẫn tự động cho cả các chương truyện mới đăng
+// ĐÃ SỬA: Lấy dữ liệu từ Database để tạo đường dẫn tự động cho các chương
 export async function generateStaticParams() {
   const stories = await getMergedStories()
   if (!stories || stories.length === 0) return []
@@ -39,12 +39,39 @@ export default async function ChapterPage({
   // 2. Tự động tìm kiếm gộp từ cả stories.ts và database (truyền false để nạp cả truyện ẩn)
   const allStories = await getMergedStories(false)
   const story = allStories.find((s) => s.slug === slug)
-  
-  const chapterNum = Number(chapter)
-  const found = story?.chapters.find((c) => c.number === chapterNum)
-  if (!story || !found) notFound()
+  if (!story) notFound()
 
-  // 3. 🌟 BỨC TƯỜNG BẢO MẬT: Chặn đọc chương nếu truyện đã bị tạm ẩn
+  // 3. 🌟 ĐÃ THÊM: Đọc toàn bộ danh sách tiêu đề chương thực tế đã lưu từ Database để đồng bộ vào dropdown select
+  let dbChapters: { chapter_number: number; title: string }[] = []
+  try {
+    const dbChaptersResult = await sql`
+      SELECT chapter_number, title FROM chapter_contents 
+      WHERE story_slug = ${slug}
+    `
+    dbChapters = dbChaptersResult.rows as any[]
+  } catch (error) {
+    console.error("Lỗi đọc dữ liệu chương từ Postgres:", error)
+  }
+
+  // 4. Đồng bộ tiêu đề chương thực tế từ DB vào danh sách gốc
+  const mergedChapters = story.chapters.map((ch) => {
+    const dbMatch = dbChapters.find((dbc) => dbc.chapter_number === ch.number)
+    return {
+      ...ch,
+      title: dbMatch?.title && dbMatch.title.trim() !== "" ? dbMatch.title : ch.title
+    }
+  })
+
+  const storyWithMergedChapters = {
+    ...story,
+    chapters: mergedChapters
+  }
+
+  const chapterNum = Number(chapter)
+  const found = mergedChapters.find((c) => c.number === chapterNum)
+  if (!found) notFound()
+
+  // 5. BỨC TƯỜNG BẢO MẬT: Chặn đọc chương nếu truyện đã bị tạm ẩn
   const isPublic = (story as any).is_public !== false
   if (!isPublic && !isAdmin) {
     return (
@@ -62,16 +89,16 @@ export default async function ChapterPage({
     )
   }
 
-  // 4. Tăng lượt xem thực tế (CHỈ KHI ĐÃ LỌT QUA ĐƯỢC BỨC TƯỜNG BẢO MẬT MỚI TÍNH VIEW)
+  // 6. Tăng lượt xem thực tế (CHỈ KHI ĐÃ LỌT QUA ĐƯỢC BỨC TƯỜNG BẢO MẬT MỚI TÍNH VIEW)
   await incrementViews(slug)
 
   let dbResult: any = null // <-- KHAI BÁO RỘNG BIẾN DB_RESULT Ở ĐÂY ĐỂ TRÁNH LỖI BLOCK-SCOPE
   let paragraphArray: string[] = []
   let chapterTitle = found.title // Mặc định dùng tên chương cũ
-  let isHtmlContent = false // 🌟 ĐÃ THÊM: Biến xác định đây là nội dung HTML từ database
+  let isHtmlContent = false // Biến xác định đây là nội dung HTML từ database
 
   try {
-    // 5. ƯU TIÊN ĐỌC TỪ DATABASE TRƯỚC (CÓ CẢ CONTENT VÀ TITLE)
+    // 7. ƯU TIÊN ĐỌC NỘI DUNG CHƯƠNG TỪ DATABASE TRƯỚC (CÓ CẢ CONTENT VÀ TITLE)
     dbResult = await sql`
       SELECT content, title FROM chapter_contents 
       WHERE story_slug = ${slug} AND chapter_number = ${chapterNum}
@@ -91,7 +118,7 @@ export default async function ChapterPage({
       paragraphArray = [dbContent]
       isHtmlContent = true
     } else {
-      // 6. FALLBACK: ĐỌC TỪ FILE .TXT NHƯ CŨ
+      // 8. FALLBACK: ĐỌC TỪ FILE .TXT NHƯ CŨ
       let filePath = path.join(process.cwd(), 'public', 'chapters', slug, `vong-tron-${chapterNum}.txt`)
       if (!fs.existsSync(filePath)) {
         filePath = path.join(process.cwd(), 'public', 'chapters', slug, `${chapterNum}.txt`)
@@ -113,7 +140,7 @@ export default async function ChapterPage({
     paragraphArray = ['Đã xảy ra lỗi trong quá trình đọc nội dung chương truyện.']
   }
 
-  // 7. KIỂM TRA MỐC TÀNG HÌNH: Đã kiểm tra an toàn biến dbResult tồn tại trước khi đọc rows
+  // 9. KIỂM TRA MỐC TÀNG HÌNH: Đã kiểm tra an toàn biến dbResult tồn tại trước khi đọc rows
   const isPlaceholder = (!dbResult || !dbResult.rows.length) && !fs.existsSync(path.join(process.cwd(), 'public', 'chapters', slug, `vong-tron-${chapterNum}.txt`)) && !fs.existsSync(path.join(process.cwd(), 'public', 'chapters', slug, `${chapterNum}.txt`))
 
   // Nạp tiêu đề mới, nội dung và mốc isPlaceholder vào object chapter
@@ -129,8 +156,8 @@ export default async function ChapterPage({
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1 px-4 py-8">
-        {/* Truyền thêm prop isAdmin lấy trực tiếp từ Server xuống */}
-        <ChapterReader story={story} chapter={chapterWithContent as any} isAdmin={!!isAdmin} />
+        {/* Truyền thêm prop isAdmin lấy trực tiếp từ Server xuống và object truyện đã gộp tiêu đề */}
+        <ChapterReader story={storyWithMergedChapters as any} chapter={chapterWithContent as any} isAdmin={!!isAdmin} />
       </main>
       <SiteFooter />
     </div>

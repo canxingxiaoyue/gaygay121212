@@ -920,7 +920,7 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
-  // 🌟 KHỞI TẠO LẠI COMPONENT THANH CHUYỂN HƯỚNG CHƯƠNG (NAV) ĐỂ TRÁNH LỖI NAV IS NOT DEFINED [2]
+  // Component thanh chuyển hướng chương
   const Nav = ({ className }: { className?: string }) => (
     <div className={cn('flex items-center justify-between gap-1.5 sm:gap-2 w-full', className)}>
       <Button 
@@ -944,16 +944,17 @@ export function ChapterReader({
               key={c.number} 
               value={String(c.number)}
               className={cn(
-                "cursor-pointer transition-colors duration-150 text-xs sm:text-sm",
+                "cursor-pointer transition-colors duration-150 text-xs sm:text-sm truncate max-w-[200px] md:max-w-[250px]", // 🌟 ĐÃ SỬA: Đã thêm truncate để tránh vỡ tùy chọn
                 readerTheme === 'light' && "focus:!bg-[#F4EEE6] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#F4EEE6] data-[state=checked]:!text-[#5C3D2E]",
                 readerTheme === 'dark' && "focus:!bg-stone-850/80 focus:!text-stone-100 data-[state=checked]:!bg-stone-800 dark:data-[state=checked]:!bg-stone-800 data-[state=checked]:!text-stone-100",
                 readerTheme === 'sepia' && "focus:!bg-[#EADBC8] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#EADBC8] data-[state=checked]:!text-[#5C3D2E]",
-                readerTheme === 'emerald' && "focus:!bg-[#DDE6D5] focus:!text-[#3B4D31] data-[state=checked]:!bg-[#DDE6D5] data-[state=checked]:!text-[#3B4D31]",
+                readerTheme === 'emerald' && "focus:!bg-[#DDE6D5] border-[#C8D3BE] hover:bg-[#C8D3BE] text-[#3B4D31]",
                 readerTheme === 'coffee' && "focus:!bg-[#E0D2C8] focus:!text-[#4A3228] data-[state=checked]:!bg-[#E0D2C8] data-[state=checked]:!text-[#4A3228]",
                 readerTheme === 'rose' && "focus:!bg-[#F9E2E5] focus:!text-[#632B30] data-[state=checked]:!bg-[#F9E2E5] data-[state=checked]:!text-[#632B30]"
               )}
             >
-              Chương {c.number}
+              {/* 🌟 ĐÃ SỬA: Tự động đồng bộ hiển thị tiêu đề phụ lấy động từ database */}
+              {c.title || `Chương ${c.number}`} 
             </SelectItem>
           ))}
         </SelectContent>
@@ -974,12 +975,12 @@ export function ChapterReader({
 
   return (
     <div className="relative">
-      {/* 🌟 MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
+      {/* MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div className="fixed inset-0 z-[85]" onClick={() => setContextMenuVisible(false)} onContextMenu={(e) => { e.preventDefault(); setContextMenuVisible(false) }} />
       )}
 
-      {/* 🌟 MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
+      {/* MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()} className="fixed z-[95] flex flex-col bg-stone-950 text-stone-100 py-1.5 rounded-xl shadow-2xl border border-stone-800 w-52 text-sm font-sans" style={{ top: `${contextMenuPosition.top}px`, left: `${contextMenuPosition.left}px` }}>
           <button type="button" onClick={() => { restoreCursorPosition(); document.execCommand('insertHTML', false, '<span id="MAGIC_MARKER"></span>'); fileInputRef.current?.click(); setContextMenuVisible(false) }} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-stone-900 text-left w-full text-amber-400 font-semibold">
@@ -995,7 +996,7 @@ export function ChapterReader({
         </div>
       )}
 
-      {/* 🌟 THIẾT LẬP LỚP BỌC FLEX ĐỂ ÉP KHUNG LUÔN CÂN GIỮA TUYỆT ĐỐI TRÊN MỌI THIẾT BỊ [1, 1.1.2] */}
+      {/* THIẾT LẬP LỚP BỌC FLEX ĐỂ ÉP KHUNG LUÔN CÂN GIỮA TUYỆT ĐỐI TRÊN MỌI THIẾT BỊ */}
       <div className="relative w-full flex flex-col items-center justify-center">
         <article
           className={cn(
@@ -1009,9 +1010,8 @@ export function ChapterReader({
         >
           <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
 
-          {/* Toolbar */}
-          {/* 🌟 ĐÃ SỬA: Thêm "sticky top-0 sm:top-4 z-40" ghim cố định Toolbar khi lướt truyện xuống */}
-          <div className="sticky top-0 sm:top-4 z-40 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+          {/* Toolbar - Trả về dạng thường không ghim để màn hình thông thoáng */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm">
                 <Link href={`/truyen/${story.slug}`}><List className="size-4" /> Mục lục</Link>
@@ -1023,22 +1023,33 @@ export function ChapterReader({
               )}
             </div>
 
-            <ReaderToolbar
-              settingsOpen={settingsOpen}
-              setSettingsOpen={setSettingsOpen}
-              isSpeaking={isSpeaking}
-              handleTTS={handleTTS}
-              readerTheme={readerTheme}
-              setReaderTheme={changeReaderTheme}
-              fontSize={fontSize}
-              setFontSize={(val) => { if (typeof val === 'function') { changeFontSize(val(fontSize)) } else { changeFontSize(val) } }}
-              fontFamily={fontFamily}
-              setFontFamily={changeFontFamily}
-              lineHeight={lineHeight}
-              setLineHeight={changeLineHeight}
-              containerWidth={containerWidth}
-              setContainerWidth={changeContainerWidth}
-            />
+            {/* 🌟 ĐÃ CẬP NHẬT: Ẩn nút kích hoạt của ReaderToolbar trên thanh trên cùng để tránh trùng lặp,
+                chỉ giữ lại panel cài đặt sẽ được mở trực tiếp thông qua nút trái tim nổi ở dưới */}
+            <div id="hidden-toolbar-container" className="absolute right-0 top-0 w-0 h-0">
+              {/* 🌟 SỬA ĐỔI QUAN TRỌNG: Chỉ ẩn nút bấm kích hoạt (display: none !important) của Toolbar gốc, 
+                  hoàn toàn giữ nguyên các Dropdown và vòng tròn màu của Giao diện đọc */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                #hidden-toolbar-container > div > button {
+                  display: none !important;
+                }
+              `}} />
+              <ReaderToolbar
+                settingsOpen={settingsOpen}
+                setSettingsOpen={setSettingsOpen}
+                isSpeaking={isSpeaking}
+                handleTTS={handleTTS}
+                readerTheme={readerTheme}
+                setReaderTheme={changeReaderTheme}
+                fontSize={fontSize}
+                setFontSize={(val) => { if (typeof val === 'function') { changeFontSize(val(fontSize)) } else { changeFontSize(val) } }}
+                fontFamily={fontFamily}
+                setFontFamily={changeFontFamily}
+                lineHeight={lineHeight}
+                setLineHeight={changeLineHeight}
+                containerWidth={containerWidth}
+                setContainerWidth={changeContainerWidth}
+              />
+            </div>
           </div>
 
           <header className="mb-6 text-center">
@@ -1079,7 +1090,7 @@ export function ChapterReader({
             <div
               id="reader-body"
               className={cn(
-                "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty break-words", // 🌟 ĐÃ SỬA: Bổ sung break-words ngăn tràn chữ khỏi viền đọc truyện
+                "flex flex-col [&_img]:max-w-full [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-md [&_p]:mb-1 text-pretty break-words", // Bổ sung break-words ngăn tràn chữ khỏi viền đọc truyện
                 fontFamily === 'serif' ? 'font-serif' : '',
                 lineHeight === 'normal' && "leading-normal gap-4 [&_p]:mb-4 [&_img]:my-4",
                 lineHeight === 'relaxed' && "leading-relaxed gap-6 [&_p]:mb-6 [&_img]:my-6",
@@ -1093,12 +1104,12 @@ export function ChapterReader({
                 const count = paraCommentCounts[i] || 0
 
                 return (
-                  // 🌟 THIẾT LẬP BỐ CỤC ĐOẠN pr-11 ĐỂ NÚT BÌNH LUẬN ABSOLUTE KHÔNG ĐÈ CHỮ, DÀN CHỮ ĐỀU ĐỘC LẬP [1.1.2]
+                  // THIẾP LẬP BỐ CỤC ĐOẠN pr-11 ĐỂ NÚT BÌNH LUẬN ABSOLUTE KHÔNG ĐÈ CHỮ, DÀN CHỮ ĐỀU ĐỘC LẬP
                   <div key={i} className="relative group/para py-1 pr-11 md:pr-14 w-full">
                     <div className="animate-fade-in w-full text-left">
                       {isHtml ? <div dangerouslySetInnerHTML={{ __html: p }} className="text-pretty break-words" /> : <p className="text-pretty break-words">{p}</p>}
                     </div>
-                    {/* 🌟 ĐƯA NÚT BÌNH LUẬN SANG VỊ TRÍ TUYỆT ĐỐI ABSOLUTE ĐỂ GIẢI PHÓNG ĐỘ KHÍT DÒNG CHỮ CÂN GIỮA [1.1.2] */}
+                    {/* ĐƯA NÚT BÌNH LUẬN SANG VỊ TRÍ TUYỆT ĐỐI ABSOLUTE ĐỂ GIẢI PHÓNG ĐỘ KHÍT DÒNG CHỮ CÂN GIỮA */}
                     <button
                       onClick={() => handleOpenParaComment(i, rawText)}
                       className={cn(
@@ -1121,8 +1132,11 @@ export function ChapterReader({
             </div>
           )}
 
+          {/* ĐÃ XÓA: Bỏ hoàn toàn phần render FavoriteButton ở đây để giao diện gọn gàng theo yêu cầu */}
+
           <Nav className="mb-8" />
 
+          {/* Comment sections giữ nguyên */}
           {!isEditing && (
             <ChapterComments
               chapterComments={chapterComments}
@@ -1201,6 +1215,17 @@ export function ChapterReader({
             expandedCommentIds={expandedCommentIds}
             toggleExpanded={toggleExpanded}
           />
+
+          {/* 🌟 NÚT TRÁI TIM NỔI - BẤM VÀO ĐỂ MỞ/ĐÓNG BẢNG TÙY CHỈNH GIAO DIỆN ĐỌC TRUYỆN */}
+          <button 
+            onClick={() => setSettingsOpen(!settingsOpen)} // 🌟 Nhấp vào trái tim nổi để đóng/mở Cài đặt giao diện đọc truyện
+            className="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 z-[80] p-3.5 rounded-full bg-[#F4EEE6] dark:bg-stone-900 border border-[#E5D8C8] dark:border-stone-850 shadow-xl text-[#8B5E3C] dark:text-[#efebe9] hover:scale-105 active:scale-95 transition-all duration-200"
+            title="Tùy chỉnh giao diện đọc"
+          >
+            <svg className="size-5 fill-[#8B5E3C] dark:fill-[#efebe9]" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </button>
         </article>
       </div>
     </div>
