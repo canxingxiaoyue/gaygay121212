@@ -109,27 +109,7 @@ export function ReaderToolbar({
           onClick={(e) => e.stopPropagation()}
           className="absolute right-0 top-11 z-[90] w-72 rounded-2xl border border-amber-500/20 dark:border-stone-850 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-4 shadow-[0_20px_50px_rgba(139,94,60,0.18)] space-y-4 text-sm font-sans text-stone-800 dark:text-stone-200 animate-in fade-in zoom-in-95 duration-200"
         >
-          {/* TTS */}
-          <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-800">
-            <div className="flex items-center justify-between">
-              <span className="font-bold flex items-center gap-1.5 text-stone-700 dark:text-stone-300">
-                <Headphones className="size-4 text-amber-700 dark:text-amber-400 animate-pulse" />
-                Đọc bằng giọng nói (TTS)
-              </span>
-              <Button
-                size="sm"
-                variant={isSpeaking ? "default" : "outline"}
-                onClick={handleTTS}
-                className={cn(
-                  "h-8 text-xs rounded-full px-3 transition-all",
-                  isSpeaking && "bg-amber-800 hover:bg-amber-900 text-white border-amber-800 shadow-[0_0_10px_rgba(139,94,60,0.2)]"
-                )}
-              >
-                {isSpeaking ? "Tạm dừng" : "Đọc truyện"}
-              </Button>
-            </div>
-          </div>
-
+      
           {/* THEME */}
           <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-850">
             <span className="font-bold text-stone-700 dark:text-stone-300 block">🎨 Giao diện đọc</span>
