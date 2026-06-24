@@ -40,7 +40,7 @@ export default async function HomePage() {
                 
                 {/* 🌟 CẬP NHẬT: Nút truyện hoàn thành giờ đây sẽ bay thẳng đến trang tìm kiếm và bật sẵn bộ lọc */}
                 <Button asChild size="lg" variant="outline" className="bg-[#FBF9F6] dark:bg-stone-900 border border-[#E5D8C8] dark:border-stone-800 text-[#5C3D2E] dark:text-stone-200 hover:bg-[#F4EEE6] dark:hover:bg-stone-800 rounded-xl transition-all hover:scale-[1.02]">
-                  <Link href="/tim-kiem?status=completed">Truyện đã hoàn thành</Link>
+                  <Link href="/truyen">Tủ truyện</Link>
                 </Button>
               </div>
             </div>
