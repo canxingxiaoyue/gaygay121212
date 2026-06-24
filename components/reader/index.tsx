@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports từ các file bóc tách con
+// Imports từ các tệp bóc tách con
 import { ReaderToolbar } from './reader-toolbar'
 import { AdminEditor } from './admin-editor'
 import { ParagraphComments } from './paragraph-comments'
@@ -34,16 +34,7 @@ function countWords(html: string) {
   return cleanText === "" ? 0 : cleanText.split(/\s+/).length
 }
 
-const FONT_MAPPING: Record<string, string> = {
-  serif: "Lora, Georgia, 'Times New Roman', serif",
-  quicksand: "'Quicksand', sans-serif",
-  nunito: "'Nunito', sans-serif",
-  lexend: "'Lexend', sans-serif",
-  comfortaa: "'Comfortaa', sans-serif",
-  manrope: "'Manrope', sans-serif",
-}
-
-// 🌟 BẢNG MÀU ĐỌC TRUYỆN CHUẨN: CHỈ CHỨA 4 THUỘC TÍNH ĐÚNG KIỂU DỮ LIỆU [1]
+// BẢNG MÀU ĐỌC TRUYỆN CHUẨN
 const THEME_MAPPING: Record<string, { container: string; text: string; badge: string; navBtn: string }> = {
   light: {
     container: "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/60 dark:border-stone-850",
@@ -767,7 +758,7 @@ export function ChapterReader({
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
 
-  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM) [2]
+  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM)
   const handleOpenParaComment = async (index: number, rawText: string) => {
     setActiveParaIndex(index)
     setActiveParaText(rawText)
@@ -857,8 +848,7 @@ export function ChapterReader({
       if (res.success) { 
         setEditingCommentId(null)
         const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
-        setParaComments(list)
-        loadChapterComments()
+        setParaComments(list); loadChapterComments()
       }
       else alert("Lỗi: " + res.error)
     } finally { setIsSending(false) }
@@ -871,11 +861,8 @@ export function ChapterReader({
       const res = await deleteParagraphComment(id)
       if (res.success) { 
         const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
-        setParaComments(list)
-        loadCommentCounts()
-        loadChapterComments()
+        setParaComments(list); loadCommentCounts(); loadChapterComments()
       }
-      else alert("Lỗi: " + res.error)
     } finally { setIsSending(false) }
   }
 
@@ -924,29 +911,33 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
+  // 🌟 KHỞI TẠO LẠI COMPONENT THANH CHUYỂN HƯỚNG CHƯƠNG (NAV) ĐỂ TRÁNH LỖI NAV IS NOT DEFINED [2]
   const Nav = ({ className }: { className?: string }) => (
-    <div className={cn('flex items-center justify-between gap-2', className)}>
+    <div className={cn('flex items-center justify-between gap-1.5 sm:gap-2 w-full', className)}>
       <Button 
         variant="outline" 
         disabled={!hasPrev} 
         onClick={() => hasPrev && goTo(chapter.number - 1)}
-        className={cn("h-10 px-4 transition-all duration-200 font-semibold", THEME_MAPPING[readerTheme]?.navBtn)}
+        className={cn("h-10 px-2.5 sm:px-4 transition-all duration-200 font-semibold text-xs sm:text-sm shrink-0", THEME_MAPPING[readerTheme]?.navBtn)}
       >
-        <ChevronLeft className="size-4 mr-1 shrink-0" /> Chương trước
+        <ChevronLeft className="size-4 sm:mr-1 shrink-0" />
+        <span className="hidden sm:inline">Chương trước</span>
+        <span className="sm:hidden">Trước</span>
       </Button>
+      
       <Select value={String(chapter.number)} onValueChange={(v) => goTo(Number(v))}>
-        <SelectTrigger className={cn("w-[150px] h-10 font-semibold transition-all duration-200 focus:ring-0", THEME_MAPPING[readerTheme]?.navBtn)}>
+        <SelectTrigger className={cn("flex-1 max-w-[120px] sm:max-w-[150px] h-10 font-semibold text-xs sm:text-sm transition-all duration-200 focus:ring-0", THEME_MAPPING[readerTheme]?.navBtn)}>
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className={cn("max-h-72 border", THEME_MAPPING[readerTheme]?.container)}>
+        <SelectContent className={cn("max-h-72 border z-[200]", THEME_MAPPING[readerTheme]?.container)}>
           {story.chapters.map((c) => (
             <SelectItem 
               key={c.number} 
               value={String(c.number)}
               className={cn(
-                "cursor-pointer transition-colors duration-150",
+                "cursor-pointer transition-colors duration-150 text-xs sm:text-sm",
                 readerTheme === 'light' && "focus:!bg-[#F4EEE6] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#F4EEE6] data-[state=checked]:!text-[#5C3D2E]",
-                readerTheme === 'dark' && "focus:!bg-stone-850/80 focus:!text-stone-100 data-[state=checked]:!bg-stone-800 dark:data-[state=checked]:!bg-stone-800 data-[state=checked]:!text-stone-100",
+                readerTheme === 'dark' && "focus:!bg-stone-850 focus:!text-stone-100 data-[state=checked]:!bg-stone-800 dark:data-[state=checked]:!bg-stone-800 data-[state=checked]:!text-stone-100",
                 readerTheme === 'sepia' && "focus:!bg-[#EADBC8] focus:!text-[#5C3D2E] data-[state=checked]:!bg-[#EADBC8] data-[state=checked]:!text-[#5C3D2E]",
                 readerTheme === 'emerald' && "focus:!bg-[#DDE6D5] focus:!text-[#3B4D31] data-[state=checked]:!bg-[#DDE6D5] data-[state=checked]:!text-[#3B4D31]",
                 readerTheme === 'coffee' && "focus:!bg-[#E0D2C8] focus:!text-[#4A3228] data-[state=checked]:!bg-[#E0D2C8] data-[state=checked]:!text-[#4A3228]",
@@ -958,23 +949,28 @@ export function ChapterReader({
           ))}
         </SelectContent>
       </Select>
+
       <Button 
         variant="outline" 
         disabled={!hasNext} 
         onClick={() => hasNext && goTo(chapter.number + 1)}
-        className={cn("h-10 px-4 transition-all duration-200 font-semibold", THEME_MAPPING[readerTheme]?.navBtn)}
+        className={cn("h-10 px-2.5 sm:px-4 transition-all duration-200 font-semibold text-xs sm:text-sm shrink-0", THEME_MAPPING[readerTheme]?.navBtn)}
       >
-        Chương sau <ChevronRight className="size-4 ml-1 shrink-0" />
+        <span className="hidden sm:inline">Chương sau</span>
+        <span className="sm:hidden">Sau</span>
+        <ChevronRight className="size-4 sm:ml-1 shrink-0" />
       </Button>
     </div>
   )
 
   return (
     <div className="relative">
+      {/* 🌟 MÀNG TÀNG HÌNH MENU CHUỘT PHẢI ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div className="fixed inset-0 z-[85]" onClick={() => setContextMenuVisible(false)} onContextMenu={(e) => { e.preventDefault(); setContextMenuVisible(false) }} />
       )}
 
+      {/* 🌟 MENU CHUỘT PHẢI CỦA TRÌNH SOẠN THẢO ĐÃ KHÔI PHỤC */}
       {contextMenuVisible && (
         <div onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()} className="fixed z-[95] flex flex-col bg-stone-950 text-stone-100 py-1.5 rounded-xl shadow-2xl border border-stone-800 w-52 text-sm font-sans" style={{ top: `${contextMenuPosition.top}px`, left: `${contextMenuPosition.left}px` }}>
           <button type="button" onClick={() => { restoreCursorPosition(); document.execCommand('insertHTML', false, '<span id="MAGIC_MARKER"></span>'); fileInputRef.current?.click(); setContextMenuVisible(false) }} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-stone-900 text-left w-full text-amber-400 font-semibold">
@@ -992,7 +988,7 @@ export function ChapterReader({
 
       <article
         className={cn(
-          "mx-auto w-full transition-all duration-300 relative border shadow-lg p-6 md:p-8 rounded-2xl animate-fade-in",
+          "mx-auto w-full transition-all duration-300 relative border shadow-lg p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl animate-fade-in",
           containerWidth === 'xl' && "max-w-xl",
           containerWidth === '2xl' && "max-w-2xl",
           containerWidth === '3xl' && "max-w-3xl",
@@ -1094,7 +1090,7 @@ export function ChapterReader({
                     className={cn(
                       "transition-all duration-200 flex items-center justify-center border shrink-0 self-center rounded-full p-1 shadow-sm active:scale-90 w-11 h-9 relative",
                       count > 0 ? "opacity-95 hover:opacity-100" : "opacity-0 group-hover/para:opacity-100",
-                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3E2E]"
+                      KLEIN_BTN_THEME[readerTheme] || "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E]"
                     )}
                     title={`Xem ${count} bình luận`}
                   >
@@ -1111,7 +1107,7 @@ export function ChapterReader({
           </div>
         )}
 
-        <Nav className="mt-10" />
+        <Nav className="mb-8" />
 
         {!isEditing && (
           <ChapterComments
@@ -1137,9 +1133,9 @@ export function ChapterReader({
             handleSaveCommentEdit={handleSaveCommentEdit}
             handleDeleteComment={handleDeleteComment}
             setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
-            isSignedIn={!!isSignedIn}
+            isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
             user={user}
-            isAdmin={!!isAdmin}
+            isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
             POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
             readerTheme={readerTheme}
             replyingToId={chapterReplyingToId}
@@ -1178,9 +1174,9 @@ export function ChapterReader({
           handleSaveCommentEdit={handleSaveCommentEdit}
           handleDeleteComment={handleDeleteComment}
           setEditingCommentId={setEditingCommentId} // 🌟 ĐÃ TRUYỀN ĐỦ ĐỂ TRÁNH LỖI TYPE ERROR
-          isSignedIn={!!isSignedIn}
+          isSignedIn={!!isSignedIn} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
           user={user}
-          isAdmin={!!isAdmin}
+          isAdmin={!!isAdmin} // 🌟 ÉP KIỂU ĐỂ TRÁNH LỖI TYPE ERROR TRÊN VERCEL [1]
           POPUP_THEME_MAPPING={POPUP_THEME_MAPPING}
           readerTheme={readerTheme}
           replyingToId={replyingToId}
