@@ -14,7 +14,7 @@ import { incrementViews } from '@/app/actions/views'
 // tránh tuyệt đối lỗi cache/404 khi admin đăng truyện/chương mới bằng file.
 export const dynamic = 'force-dynamic'
 
-// 🌟 ĐÃ SỬA: Lấy dữ liệu từ Database để tạo đường dẫn tự động cho các chương
+// 🌟 ĐA SỬA: Lấy từ Database để tạo đường dẫn tự động cho cả các chương truyện mới đăng
 export async function generateStaticParams() {
   const stories = await getMergedStories()
   if (!stories || stories.length === 0) return []

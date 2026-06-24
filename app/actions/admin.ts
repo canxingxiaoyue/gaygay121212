@@ -5,7 +5,8 @@ import { auth } from '@clerk/nextjs/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { put } from '@vercel/blob' 
-import { STORIES, Story } from '@/lib/stories'
+import { Story } from '@/lib/stories' // 🌟 Đã xóa STORIES
+const STORIES: Story[] = [] // 🌟 Tự khai báo mảng rỗng để không bị lỗi Webpack biên dịch
 
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
 
