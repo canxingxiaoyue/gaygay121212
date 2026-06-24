@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpen, Coffee, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpen, Coffee, Sparkles, Star, Moon } from 'lucide-react' // 🌟 Đã thêm Star và Moon
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { StoryCard } from '@/components/story-card'
 import { getMergedStories } from '@/app/actions/admin' // <-- Đã đổi import gọi hàm gộp truyện
 
 export default async function HomePage() { 
-  // 🌟 Lấy danh sách truyện đã gộp từ Database và CHỈ hiển thị truyện đang công khai (true)
+  // Lấy danh sách truyện đã gộp từ Database và CHỈ hiển thị truyện đang công khai (true)
   const allStories = await getMergedStories(true) 
 
   const featured = allStories.slice(0, 4)
@@ -32,26 +32,62 @@ export default async function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-[#5C3D2E] hover:bg-[#4A2E22] text-white rounded-xl shadow-md transition-all hover:scale-[1.02] border-none">
-                 <Link href="/tim-kiem">
-  <BookOpen className="size-4 mr-2" />
-  Bắt đầu đọc
-</Link>
+                  <Link href="/tim-kiem">
+                    <BookOpen className="size-4 mr-2" />
+                    Bắt đầu đọc
+                  </Link>
                 </Button>
                 
-                {/* 🌟 CẬP NHẬT: Nút truyện hoàn thành giờ đây sẽ bay thẳng đến trang tìm kiếm và bật sẵn bộ lọc */}
+                {/* Nút truyện hoàn thành */}
                 <Button asChild size="lg" variant="outline" className="bg-[#FBF9F6] dark:bg-stone-900 border border-[#E5D8C8] dark:border-stone-800 text-[#5C3D2E] dark:text-stone-200 hover:bg-[#F4EEE6] dark:hover:bg-stone-800 rounded-xl transition-all hover:scale-[1.02]">
                   <Link href="/truyen">Tủ truyện</Link>
                 </Button>
               </div>
             </div>
-            <div className="relative aspect-video overflow-hidden rounded-2xl border border-border shadow-lg">
-              <Image
-                src="/bau-troi.jpg"
-                alt="Bầu trời hoàng hôn rực rỡ"
-                fill
-                priority
-                className="object-cover"
-              />
+
+            {/* Cột bên phải: 🌟 KHUNG ẢNH TRANG TRÍ PHONG CÁCH HOÀNG HÔN LUNG LINH */}
+            <div className="flex flex-col gap-2">
+              
+              {/* Khung tranh nền Gradient bầu trời chuyển màu thơ mộng */}
+              <div className="relative aspect-video rounded-3xl border border-stone-200/40 dark:border-stone-800 shadow-xl overflow-hidden bg-gradient-to-b from-[#7c86b2] via-[#b6bccd] to-[#fceea7] p-6 flex items-center justify-center select-none">
+                
+                {/* 1. Đường viền đứt nét viền quanh khung (Dashed outline) */}
+                <div className="absolute inset-3 rounded-[1.25rem] border-2 border-dashed border-white/30 pointer-events-none" />
+
+                {/* 2. CÁC ICON TRANG TRÍ DỄ THƯƠNG Ở KHUNG NGOÀI */}
+                {/* Ngôi sao vàng lớn trên bên trái */}
+                <div className="absolute top-5 left-5 -rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] animate-bounce" style={{ animationDuration: '3s' }}>
+                  <Star className="size-6 text-[#fcefa8] fill-[#fcefa8]" />
+                </div>
+                {/* Ngôi sao vàng lớn trên bên phải */}
+                <div className="absolute top-5 right-5 rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] animate-bounce" style={{ animationDuration: '4s' }}>
+                  <Star className="size-6 text-[#fcefa8] fill-[#fcefa8]" />
+                </div>
+                {/* Trăng khuyết vàng dưới bên trái */}
+                <div className="absolute bottom-5 left-5 -rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                  <Moon className="size-7 text-[#fcefa8] fill-[#fcefa8]" />
+                </div>
+                {/* Ngôi sao nhỏ lấp lánh dưới bên phải */}
+                <div className="absolute bottom-5 right-5 rotate-45 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                  <Sparkles className="size-5 text-[#fcefa8] fill-[#fcefa8]" />
+                </div>
+
+                {/* 3. Khung trắng bo góc chứa bức tranh chính ở giữa */}
+              <div className="relative w-[90%] h-[85%] bg-white dark:bg-stone-900 rounded-2xl shadow-inner overflow-hidden flex items-center justify-center z-10">
+  <Image
+    src="/kemchanh.png"
+    alt="Artist: Kem chanh (màu xanh)"
+    fill
+    priority
+    className="object-contain" // 🌟 ĐÃ SỬA: Chuyển về object-contain để ảnh không bao giờ bị cắt xén [1]
+  />
+</div>
+              </div>
+
+              {/* Chú thích phía dưới */}
+              <p className="text-center text-sm font-sans text-stone-500 dark:text-stone-400 italic">
+                Artist: Kem chanh màu xanh
+              </p>
             </div>
           </div>
         </section>
