@@ -65,10 +65,6 @@ export function FavoriteButton({
   if (!isSignedIn) {
     return (
       <SignInButton mode="modal">
-        <Button variant="outline" size="sm" className="gap-1.5 rounded-full border-stone-200 hover:bg-stone-100 h-8 px-3">
-          <Heart className="size-3.5 text-stone-500" />
-          <span className="text-xs font-medium text-stone-700">Yêu thích</span>
-        </Button>
       </SignInButton>
     )
   }
