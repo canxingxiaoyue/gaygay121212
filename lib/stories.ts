@@ -46,7 +46,11 @@ export const STATUSES = [
   'Hoàn thành'
 ]
 
-// 3. Hàm tạo danh sách chương tự động
+// 🌟 3. ĐÃ THÊM: Khai báo mảng rỗng STORIES ở đây dợ nhé!
+// Giúp sửa dứt điểm lỗi "Module has no exported member 'STORIES'" khi Deploy Vercel [1]
+export const STORIES: Story[] = []
+
+// 4. Hàm tạo danh sách chương tự động
 export function makeChapters(count: number, customTitles: string[] = []): Chapter[] {
   return Array.from({ length: count }, (_, i) => {
     const num = i + 1
@@ -61,7 +65,7 @@ export function makeChapters(count: number, customTitles: string[] = []): Chapte
 export const OWNER_NOTES: OwnerNote[] = [
   {
     id: '1',
-    body: 'Nhà của tớ dùng để chia sẻ tất cả những sở thích của tớ, chủ yếu là truyện niên hạ.'
+    body: 'Chúc các bạn ăn cơm vui vẻ.'
   }
 ]
 

@@ -23,7 +23,7 @@ export default async function SearchPage() {
 
         <header className="mb-8">
           <h1 className="font-serif text-3xl font-bold text-stone-800 dark:text-stone-100 md:text-4xl">
-            Tìm kiếm truyện tại quán
+            Tìm kiếm truyện
           </h1>
           <p className="mt-1 text-sm text-stone-500">
             Tìm kiếm, tra cứu và lọc tất cả các bộ truyện tại Tàn Tinh Hiểu Nguyệt.
