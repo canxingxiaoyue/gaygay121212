@@ -368,7 +368,7 @@ export async function uploadImage(formData: FormData) {
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
     // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
       const blob = await put(`story-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
         access: 'public',
       })
@@ -407,7 +407,7 @@ export async function uploadCommentImage(formData: FormData) {
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
     // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
       const blob = await put(`comment-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
         access: 'public',
       })
