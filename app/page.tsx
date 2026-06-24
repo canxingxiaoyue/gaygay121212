@@ -76,7 +76,7 @@ export default async function HomePage() {
               <div className="relative w-[90%] h-[85%] bg-white dark:bg-stone-900 rounded-2xl shadow-inner overflow-hidden flex items-center justify-center z-10">
   <Image
     src="/kemchanh.png"
-    alt="Artist: Kem chanh (màu xanh)"
+    alt="Artist: Kem chanh màu xanh"
     fill
     priority
     className="object-contain" // 🌟 ĐÃ SỬA: Chuyển về object-contain để ảnh không bao giờ bị cắt xén [1]
