@@ -252,10 +252,19 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
 }
 
 /**
- * ACTION: TẠO TRUYỆN MỚI TRÊN WEB & GỬI THÔNG BÁO CHO TẤT CẢ USER
+ * 🌟 ĐÃ CẬP NHẬT: TẠO TRUYỆN MỚI TRÊN WEB, TỰ ĐỘNG LƯU CHƯƠNG TỪ FILE & GỬI THÔNG BÁO CHO TẤT CẢ USER
  */
 export async function createNewStory(data: {
-  slug: string; title: string; author: string; cover: string; genres: string; description: string; link: string; tags: string; chapter_count: number
+  slug: string; 
+  title: string; 
+  author: string; 
+  cover: string; 
+  genres: string; 
+  description: string; 
+  link: string; 
+  tags: string; 
+  chapter_count: number;
+  chapters?: { number: number; title: string; content: string }[] // Nhận thêm mảng chương bóc tách từ file
 }) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -263,24 +272,54 @@ export async function createNewStory(data: {
   if (!data.title || !data.slug) return { success: false, error: 'Tên truyện và Slug đường dẫn là bắt buộc!' }
 
   try {
+    const cleanSlug = data.slug.trim().toLowerCase();
+
+    // 🌟 PHÒNG VỆ: Cắt bớt danh sách thể loại và tags nếu nó vượt quá 250 ký tự để tránh crash DB VARCHAR(255)
+    const safeGenres = data.genres.trim().length > 250 ? data.genres.trim().slice(0, 250) : data.genres.trim();
+    const safeTags = data.tags.trim().length > 250 ? data.tags.trim().slice(0, 250) : data.tags.trim();
+
+    // 1. Lưu metadata của truyện mới vào bảng stories
     await sql`
       INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public)
       VALUES (
-        ${data.slug.trim().toLowerCase()}, 
+        ${cleanSlug}, 
         ${data.title.trim()}, 
         ${data.author.trim()}, 
         ${data.cover.trim()}, 
-        ${data.genres.trim()}, 
+        ${safeGenres}, 
         'Đang ra', 5.0, 0, 
         ${data.description.trim()}, 
         ${data.link.trim()}, 
-        ${data.tags.trim()}, 
+        ${safeTags}, 
         ${data.chapter_count},
         true -- Mặc định khi tạo truyện mới sẽ ở chế độ công khai
       )
       ON CONFLICT (slug) DO NOTHING
     `
 
+    // 2. 🌟 LƯU NỘI DUNG CÁC CHƯƠNG (NẾU ĐĂNG BẰNG FILE)
+    if (data.chapters && data.chapters.length > 0) {
+      for (const ch of data.chapters) {
+        // 🌟 PHÒNG VỆ: Tự động cắt ngắn tiêu đề chương phụ nếu bóc tách quá dài để tránh lỗi DB
+        const safeChapterTitle = ch.title.trim().length > 250 
+          ? ch.title.trim().slice(0, 247) + '...' 
+          : ch.title.trim();
+
+        await sql`
+          INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
+          VALUES (
+            ${cleanSlug}, 
+            ${ch.number}, 
+            ${ch.content}, 
+            ${safeChapterTitle}
+          )
+          ON CONFLICT (story_slug, chapter_number) 
+          DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
+        `
+      }
+    }
+
+    // 3. Tự động lấy danh sách User nhận thông báo
     let userIds: string[] = []
     try {
       const usersRes = await sql`SELECT id FROM users`
@@ -290,6 +329,7 @@ export async function createNewStory(data: {
       userIds = activeUsersRes.rows.map(r => r.recipient_id)
     }
 
+    // 4. Gửi thông báo truyện mới cho độc giả
     if (userIds.length > 0) {
       for (const uid of userIds) {
         await sql`
@@ -298,9 +338,9 @@ export async function createNewStory(data: {
             ${uid}, 
             ${data.title.trim()}, 
             ${data.cover.trim()}, 
-            ${data.slug.trim().toLowerCase()}, 
+            ${cleanSlug}, 
             'new_story', 
-            ${`/truyen/${data.slug.trim().toLowerCase()}`}, 
+            ${`/truyen/${cleanSlug}`}, 
             false, 
             NOW()
           )
@@ -374,7 +414,6 @@ export async function uploadCommentImage(formData: FormData) {
     return { success: false, error: error.message }
   }
 }
-
 
 /**
  * ACTION LƯU HOẶC SỬA NỘI DUNG CHƯƠNG TRUYỆN
@@ -578,6 +617,44 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
     return { success: true }
   } catch (error: any) {
     console.error("Lỗi xóa chương:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * 🌟 ĐÃ THÊM: ACTION LƯU HÀNG LOẠT NỘI DUNG CHƯƠNG TỪ FILE ĐƯỢC UPLOAD LÊN
+ */
+export async function uploadChaptersFromText(storySlug: string, chapters: { number: number; title: string; content: string }[]) {
+  const { userId } = await auth()
+  if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
+
+  try {
+    // 1. Lưu tuần tự các chương vào database để tránh quá tải kết nối
+    for (const ch of chapters) {
+      // 🌟 PHÒNG VỆ: Tự động cắt ngắn tiêu đề chương phụ nếu bóc tách quá dài để tránh lỗi DB
+      const safeChapterTitle = ch.title.trim().length > 250 
+        ? ch.title.trim().slice(0, 247) + '...' 
+        : ch.title.trim();
+
+      await sql`
+        INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
+        VALUES (${storySlug}, ${ch.number}, ${ch.content}, ${safeChapterTitle})
+        ON CONFLICT (story_slug, chapter_number)
+        DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
+      `
+    }
+
+    // 2. Cập nhật lại tổng số lượng chương (chapter_count) trong bảng stories
+    const nextChapterCount = chapters.length
+    await sql`
+      UPDATE stories 
+      SET chapter_count = ${nextChapterCount} 
+      WHERE slug = ${storySlug}
+    `
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Lỗi khi upload danh sách chương:", error)
     return { success: false, error: error.message }
   }
 }

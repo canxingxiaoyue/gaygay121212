@@ -11,6 +11,10 @@ import { STORIES } from '@/lib/stories' // Giữ lại STORIES cho generateStati
 import { getMergedStories } from '@/app/actions/admin' // Import hàm gộp truyện từ DB
 import { incrementViews } from '@/app/actions/views'
 
+// 🌟 ĐÃ THÊM: Ép trang này luôn ở chế độ Dynamic để đọc dữ liệu PostgreSQL mới nhất, 
+// tránh tuyệt đối lỗi cache/404 khi admin đăng truyện/chương mới bằng file.
+export const dynamic = 'force-dynamic'
+
 export function generateStaticParams() {
   return STORIES.flatMap((s) =>
     s.chapters.map((c) => ({ slug: s.slug, chapter: String(c.number) })),
@@ -61,6 +65,7 @@ export default async function ChapterPage({
   let dbResult: any = null // <-- KHAI BÁO RỘNG BIẾN DB_RESULT Ở ĐÂY ĐỂ TRÁNH LỖI BLOCK-SCOPE
   let paragraphArray: string[] = []
   let chapterTitle = found.title // Mặc định dùng tên chương cũ
+  let isHtmlContent = false // 🌟 ĐÃ THÊM: Biến xác định đây là nội dung HTML từ database
 
   try {
     // 5. ƯU TIÊN ĐỌC TỪ DATABASE TRƯỚC (CÓ CẢ CONTENT VÀ TITLE)
@@ -74,10 +79,14 @@ export default async function ChapterPage({
       const dbContent = dbResult.rows[0].content
       const dbTitle = dbResult.rows[0].title
       
-      if (dbTitle) chapterTitle = dbTitle // Nếu database có lưu tiêu đề đã sửa, dùng tiêu đề đó
+      // 🌟 ĐÃ CẬP NHẬT: Sử dụng tiêu đề bóc tách được từ file làm tiêu đề hiển thị
+      if (dbTitle) {
+        chapterTitle = dbTitle 
+      }
       
-      // Chuyển nội dung HTML thành một phần tử duy nhất trong mảng để Reader render gọn gàng
+      // 🌟 ĐÃ CẬP NHẬT: Lấy trực tiếp chuỗi HTML làm nội dung chính
       paragraphArray = [dbContent]
+      isHtmlContent = true
     } else {
       // 6. FALLBACK: ĐỌC TỪ FILE .TXT NHƯ CŨ
       let filePath = path.join(process.cwd(), 'public', 'chapters', slug, `vong-tron-${chapterNum}.txt`)
@@ -110,6 +119,7 @@ export default async function ChapterPage({
     title: chapterTitle,
     content: paragraphArray,
     isPlaceholder: isPlaceholder,
+    isHtml: isHtmlContent, // 🌟 ĐÃ THÊM: Truyền cờ báo hiệu cho ChapterReader biết đây là HTML thuần để render trực tiếp
   }
 
   return (

@@ -3,14 +3,12 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Coffee, ChevronRight, Home } from 'lucide-react'
 
-// DANH SÁCH 6 ĐIỀU LƯU Ý CHUẨN XÁC TỪ ẢNH CHỤP MÀN HÌNH CỦA BẠN
+// DANH SÁCH 4 ĐIỀU LƯU Ý CHUẨN XÁC TỪ ẢNH CHỤP MÀN HÌNH CỦA BẠN
 const NOTES = [
   { id: 1, body: 'Nhà của tớ dùng để chia sẻ tất cả những sở thích của tớ, chủ yếu là truyện niên hạ.' },
   { id: 2, body: 'Tớ không đọc sinh tử văn, ABO (AO), tra công tiện thụ, còn lại cái gì cũng húp.' },
-  { id: 3, body: 'Bạn đến ghé chơi có thể tham quan, nhưng không được reup.' },
-  { id: 4, body: 'Không được phép đăng lại, sử dụng nội dung trong blog của tớ với mục đích lợi nhuận.' },
-  { id: 5, body: 'Những tác phẩm fanwork về cp tớ sẽ đặt pass, pass là tên của cp đó không dấu không cách không viết hoa. Ví dụ: Lăng Ngọc thì pass sẽ là langngoc.' },
-  { id: 6, body: 'Sử dụng ngôn từ lịch sự, tôn trọng chủ nhà cũng như các khách đến thăm khác.' }
+  { id: 3, body: 'Không được phép đăng lại, sử dụng nội dung trong blog của tớ với mục đích lợi nhuận.' },
+  { id: 4, body: 'Sử dụng ngôn từ lịch sự, tôn trọng chủ nhà cũng như các khách đến thăm khác.' }
 ]
 
 export default function OwnerNotesPage() {
