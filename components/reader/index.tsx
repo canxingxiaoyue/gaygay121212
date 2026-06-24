@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports từ các tệp bóc tách con
+// Imports từ các file bóc tách con
 import { ReaderToolbar } from './reader-toolbar'
 import { AdminEditor } from './admin-editor'
 import { ParagraphComments } from './paragraph-comments'
@@ -32,6 +32,16 @@ import { cn } from '@/lib/utils'
 function countWords(html: string) {
   const cleanText = html.replace(/<\/?[^>]+(>|$)/g, "").trim()
   return cleanText === "" ? 0 : cleanText.split(/\s+/).length
+}
+
+// 🌟 KHÔI PHỤC HẰNG SỐ ĐỊNH NGHĨA FONT CHỮ BỊ THIẾU [2]
+const FONT_MAPPING: Record<string, string> = {
+  serif: "Lora, Georgia, 'Times New Roman', serif",
+  quicksand: "'Quicksand', sans-serif",
+  nunito: "'Nunito', sans-serif",
+  lexend: "'Lexend', sans-serif",
+  comfortaa: "'Comfortaa', sans-serif",
+  manrope: "'Manrope', sans-serif",
 }
 
 // BẢNG MÀU ĐỌC TRUYỆN CHUẨN
@@ -749,7 +759,7 @@ export function ChapterReader({
     } catch (err) {
       alert("Lỗi tải tệp tin lên hệ thống.")
     } finally {
-      if (isChapterArea) setIsUploadingChapterCommentImg(false); else setIsUploadingCommentImg(false)
+      if (isChapterArea) setIsUploadingChapterCommentImg(false); else setIsUploadingChapterCommentImg(false)
       if (isChapterArea && chapterCommentFileInputRef.current) chapterCommentFileInputRef.current.value = ""
       else if (commentFileInputRef.current) commentFileInputRef.current.value = ""
     }
@@ -911,7 +921,6 @@ export function ChapterReader({
     return chapter.content
   }, [chapter.content])
 
-  // 🌟 KHỞI TẠO LẠI COMPONENT THANH CHUYỂN HƯỚNG CHƯƠNG (NAV) ĐỂ TRÁNH LỖI NAV IS NOT DEFINED [2]
   const Nav = ({ className }: { className?: string }) => (
     <div className={cn('flex items-center justify-between gap-1.5 sm:gap-2 w-full', className)}>
       <Button 
