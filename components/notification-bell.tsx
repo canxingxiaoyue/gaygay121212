@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react' // 🌟 ĐÃ BỔ SUNG IMPORT UY TÍN useMemo LÊN ĐẦU FILE [2]
 import { Bell, CheckCheck, Trash2, X, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
@@ -35,7 +35,7 @@ export function NotificationBell() {
     }
   }
 
-  // THUẬT TOÁN PHÂN NHÓM THÔNG BÁO THEO THÁNG/NĂM ĐỂ HIỂN THỊ DẠNG ACCORDION
+  // THUẬT TOÁN PHÂN NHÓM THÔNG BÁO THEO THÁNG/NĂM ĐỂ HIỂN THỊ DẠNG ACCORDION [1]
   const groupedNotifications = useMemo(() => {
     const groups: Record<string, any[]> = {}
     
@@ -57,7 +57,7 @@ export function NotificationBell() {
     return Object.keys(groupedNotifications).sort((a, b) => b.localeCompare(a))
   }, [groupedNotifications])
 
-  // XỬ LÝ XÓA ĐƠN LẺ MỘT THÔNG BÁO
+  // XỬ LÝ XÓA ĐƠN LẺ MỘT THÔNG BÁO [1]
   const handleDeleteSingle = async (e: React.MouseEvent, id: number) => {
     e.preventDefault()
     e.stopPropagation()
@@ -79,7 +79,7 @@ export function NotificationBell() {
     }
   }
 
-  // XỬ LÝ XÓA TOÀN BỘ THÔNG BÁO CỦA MỘT THÁNG
+  // XỬ LÝ XÓA TOÀN BỘ THÔNG BÁO CỦA MỘT THÁNG [1]
   const handleDeleteMonth = async (e: React.MouseEvent, monthKey: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -131,7 +131,7 @@ export function NotificationBell() {
       {/* Bảng Dropdown Thông báo */}
       {isOpen && (
         // 🌟 ĐÃ NÂNG LỚP PHỦ LÊN z-[110] ĐỂ NỔI BẬT LÊN TRÊN CÙNG HOÀN TOÀN [1.1.2]
-        <div className="absolute right-0 mt-2 w-92 sm:w-100 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl z-[110] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="absolute right-0 mt-2 w-92 sm:w-100 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-850 rounded-2xl shadow-xl z-[110] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="flex justify-between items-center p-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/50">
             <h3 className="font-serif font-bold text-sm text-stone-800 dark:text-stone-200">Thông báo mới</h3>
             <CheckCheck className="size-4 text-stone-400" />
