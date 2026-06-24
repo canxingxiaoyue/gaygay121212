@@ -188,18 +188,20 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
             {/* DANH SÁCH CHƯƠNG BÊN TRONG (CÓ HOVER XÓA) */}
             {isOpen && (
               <div className="p-5 border-t border-[#E5D8C8]/40 dark:border-stone-800/60 bg-[#FBF9F6]/40 dark:bg-transparent">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {/* ĐÃ SỬA: Chia thành 2 cột cho đt và 4 cột cho PC */}
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   {group.chapters.map((ch) => (
                     <div key={ch.number} className="relative group w-full">
                       {/* Thẻ liên kết chương truyện */}
                       <Link
                         href={`/truyen/${storySlug}/${ch.number}`}
                         className={cn(
-                          "flex items-center justify-center rounded-xl border border-[#E5D8C8]/60 dark:border-stone-800 bg-[#FFFDFB] dark:bg-stone-900 px-3 py-3 transition-all hover:border-[#8B5E3C] hover:text-[#8B5E3C] hover:bg-[#F4EEE6]/60 dark:hover:bg-stone-800/40 hover:shadow-sm w-full text-center",
+                          "flex items-center justify-center rounded-xl border border-[#E5D8C8]/60 dark:border-stone-800 bg-[#FFFDFB] dark:bg-stone-900 px-3 py-3 transition-all hover:border-[#8B5E3C] hover:text-[#8B5E3C] hover:bg-[#F4EEE6]/60 dark:hover:bg-stone-800/40 hover:shadow-sm w-full text-center overflow-hidden",
                           isAdmin && "pr-9 text-left" // Nếu là Admin thì lùi lề phải vào 1 chút để nhường chỗ cho nút xóa xuất hiện
                         )}
                       >
-                        <span className="text-[13px] font-bold uppercase tracking-wide text-[#5C3D2E]/80 dark:text-stone-300 line-clamp-1 text-center w-full">
+                        {/* ĐÃ SỬA: Thêm truncate để text quá dài sẽ thành dấu ba chấm */}
+                        <span className="text-[13px] font-bold uppercase tracking-wide text-[#5C3D2E]/80 dark:text-stone-300 line-clamp-1 truncate text-center w-full">
                           {ch.title}
                         </span>
                       </Link>
