@@ -170,7 +170,7 @@ export function ParagraphComments({
                     onClick={() => handleStickerClick(sticker.id)}
                     className={cn(
                       "flex flex-col items-center justify-between p-1.5 border transition-all duration-200 hover:scale-105 rounded-xl w-14 h-16 relative select-none",
-                      isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeEmoji : "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/40 dark:border-stone-800"
+                      isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeEmoji : "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/40 dark:border-stone-850"
                     )}
                     title={sticker.label}
                   >
@@ -230,9 +230,9 @@ export function ParagraphComments({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-stone-800 dark:text-stone-200">{rawName}</span>
                           
-                          {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT [MỚI] */}
+                          {/* 🌟 ĐÃ SỬA: Xóa từ khóa animate-pulse để nhãn Admin hiển thị tĩnh lặng, tinh tế [MỚI] */}
                           {isCommenterAdmin && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-90 origin-left select-none">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-90 origin-left select-none">
                               ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
                             </span>
                           )}
@@ -342,9 +342,9 @@ export function ParagraphComments({
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                           <span className="font-bold text-stone-800 dark:text-stone-300">{rRawName}</span>
                                           
-                                          {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT TRÊN PHẢN HỒI CON [MỚI] */}
+                                          {/* 🌟 ĐÃ SỬA: Xóa từ khóa animate-pulse để nhãn Admin hiển thị tĩnh lặng, tinh tế trên phản hồi con [MỚI] */}
                                           {isReplyCommenterAdmin && (
-                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-[0.85] origin-left select-none">
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-[0.85] origin-left select-none">
                                               ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
                                             </span>
                                           )}
