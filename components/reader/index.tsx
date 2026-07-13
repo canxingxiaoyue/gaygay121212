@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports hằng số và các tệp bóc tách con [MỚI]
+// Imports hằng số và các tệp bóc tách con
 import { FONT_MAPPING, THEME_MAPPING, KLEIN_BTN_THEME, POPUP_THEME_MAPPING, KLEIN_STICKERS } from './reader-constants'
 import { ReaderNav } from './reader-nav'
 import { ReaderToolbar } from './reader-toolbar'
@@ -173,7 +173,7 @@ export function ChapterReader({
     setMounted(true) // 🌟 Gán mounted thành true khi Client đã nạp xong hoàn toàn
   }, [setTheme])
 
-  // 🌟 ĐỒNG BỘ GIỮA THEME HỆ THỐNG (HEADER) VÀ GIAO DIỆN ĐỌC TRUYỆN (TOOLBAR) [MỚI]
+  // 🌟 ĐỒNG BỘ GIỮA THEME HỆ THỐNG (HEADER) VÀ GIAO DIỆN ĐỌC TRUYỆN (TOOLBAR)
   useEffect(() => {
     if (!mounted) return
     if (theme === 'dark') {
@@ -332,6 +332,11 @@ export function ChapterReader({
     synth.speak(utterance)
     setIsSpeaking(true)
   }
+
+  function goTo(n: number) {
+    router.push(`/truyen/${story.slug}/${n}`)
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     const editor = editorRef.current
@@ -841,7 +846,7 @@ export function ChapterReader({
             THEME_MAPPING={THEME_MAPPING}
             hasPrev={hasPrev}
             hasNext={hasNext}
-            className="mb-8 sm:mb-10" // 🌟 Thêm căn lề dưới ở đây [MỚI]
+            className="mb-8 sm:mb-10" // 🌟 Thêm căn lề dưới giãn rộng thoáng đãng [MỚI]
           />
 
           {isEditing ? (
@@ -928,7 +933,7 @@ export function ChapterReader({
             THEME_MAPPING={THEME_MAPPING}
             hasPrev={hasPrev}
             hasNext={hasNext}
-            className="mt-10 sm:mt-12 mb-8" // 🌟 Thêm căn lề trên và dưới ở đây [MỚI]
+            className="mt-10 sm:mt-12 mb-8" // 🌟 Thêm lề trên và dưới giãn rộng chân trang đọc truyện [MỚI]
           />
 
           {/* Comment sections giữ nguyên */}

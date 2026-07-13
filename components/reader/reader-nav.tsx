@@ -15,7 +15,7 @@ interface ReaderNavProps {
   THEME_MAPPING: Record<string, any>
   hasPrev: boolean
   hasNext: boolean
-  className?: string // 🌟 Thêm prop className nhận dạng căn lề ngoài [MỚI]
+  className?: string
 }
 
 export function ReaderNav({
@@ -26,7 +26,7 @@ export function ReaderNav({
   THEME_MAPPING,
   hasPrev,
   hasNext,
-  className, // 🌟 Nhận prop className [MỚI]
+  className,
 }: ReaderNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -55,7 +55,7 @@ export function ReaderNav({
   const currentChapter = story.chapters.find((c) => c.number === currentChapterNumber)
 
   return (
-    <div className={cn("flex items-center justify-between gap-1.5 sm:gap-2 w-full select-none relative z-45", className)}> {/* 🌟 ĐỒNG BỘ ĐỘNG CLASSNAME Ở ĐÂY [MỚI] */}
+    <div className={cn("flex items-center justify-between gap-1.5 sm:gap-2 w-full select-none relative z-40", className)}>
       {/* Nút chương trước */}
       <Button
         variant="outline"
@@ -144,7 +144,7 @@ export function ReaderNav({
       <Button
         variant="outline"
         disabled={!hasNext}
-        onClick={() => hasNext && goTo(currentChapterNumber + 1)}
+        onClick={() => hasNext && goTo(currentChapterNumber + 1)} // 🌟 ĐÃ SỬA CHUẨN XÁC BIẾN [MỚI]
         className={cn(
           'h-10 px-2.5 sm:px-4 transition-all duration-200 font-semibold text-xs sm:text-sm shrink-0 rounded-full',
           THEME_MAPPING[readerTheme]?.navBtn
