@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { SignInButton } from '@clerk/nextjs' // 🌟 Đã thêm dòng này
+import { SignInButton } from '@clerk/nextjs'
 import { Loader2, X, Image as ImageIcon, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -110,15 +110,26 @@ export function ParagraphComments({
     paraCommentOpen && (
       <div
         onClick={() => setParaCommentOpen(false)}
-        className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9999]" // 🌟 Nâng hẳn lên z-[9999] để không bị Header đè lên
       >
+        {/* Lớp nền mờ click-away */}
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-xs duration-200" />
+
         <div
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "relative w-full max-w-lg rounded-[2.5rem] p-6 shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border",
+            "relative w-full max-w-lg rounded-3xl p-6 shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000]",
             POPUP_THEME_MAPPING[readerTheme]?.container
           )}
         >
+          {/* Nhúng font chữ tròn trịa cho nhãn Admin lấp lánh */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap');
+            .font-cute-comfortaa {
+              font-family: 'Comfortaa', sans-serif !important;
+            }
+          `}} />
+
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
             <div className="flex items-center gap-2">
@@ -146,7 +157,7 @@ export function ParagraphComments({
             >
               ⋆｡˚☾ Dấu chân dưới trăng .✦ ݁˖
             </span>
-            <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-40 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
+           <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-28 sm:max-h-32 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
               {sortedStickers.map((sticker) => {
                 const count = paraComments.filter(c => c.reaction === sticker.id).length
                 const isSelected = userReactions.includes(sticker.id)
@@ -178,7 +189,7 @@ export function ParagraphComments({
           </div>
 
           {/* Danh sách bình luận lồng nhau */}
-          <div className="flex-1 overflow-y-auto space-y-3.5 py-2 pr-1 min-h-[150px]">
+          <div className="flex-1 overflow-y-auto space-y-3.5 py-2 pr-1 min-h-[80px]">
             {isLoadingComments ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Loader2 className="size-5 animate-spin text-[#8B5E3C] dark:text-[#EADBC8]" />
@@ -197,6 +208,9 @@ export function ParagraphComments({
                 const textPart = contentParts[0]
                 const imgPart = contentParts[1]
 
+                // Kiểm tra xem người viết bình luận này có phải Admin không
+                const isCommenterAdmin = commentUserId && commentUserId === process.env.NEXT_PUBLIC_ADMIN_ID
+
                 // 🌟 LẤY CÁC PHẢN HỒI CỦA BÌNH LUẬN NÀY
                 const replies = getReplies(comm.id)
                 const isExpanded = expandedCommentIds.includes(comm.id)
@@ -213,8 +227,16 @@ export function ParagraphComments({
                     
                     <div className="flex-1 space-y-1 text-left">
                       <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-stone-800 dark:text-stone-200">{rawName}</span>
+                          
+                          {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT [MỚI] */}
+                          {isCommenterAdmin && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-90 origin-left select-none">
+                              ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
+                            </span>
+                          )}
+
                           {comm.reaction && (
                             (() => {
                               const sticker = sortedStickers.find(s => s.id === comm.reaction)
@@ -303,6 +325,9 @@ export function ParagraphComments({
                                 // Lọc bỏ mã ||PARENT_ID|| để lấy văn bản thuần hiển thị
                                 const rTextPart = (reply.content || '').split(' ||PARENT_ID||:')[0]
 
+                                // Kiểm tra xem người viết phản hồi này có phải Admin không
+                                const isReplyCommenterAdmin = rCommentUserId && rCommentUserId === process.env.NEXT_PUBLIC_ADMIN_ID
+
                                 return (
                                   <div key={reply.id} className="flex gap-2 items-start animate-fade-in">
                                     {rDisplayAvatar ? (
@@ -314,7 +339,16 @@ export function ParagraphComments({
                                     )}
                                     <div className="flex-1 space-y-0.5">
                                       <div className="flex justify-between items-center">
-                                        <span className="font-bold text-stone-800 dark:text-stone-300">{rRawName}</span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <span className="font-bold text-stone-800 dark:text-stone-300">{rRawName}</span>
+                                          
+                                          {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT TRÊN PHẢN HỒI CON [MỚI] */}
+                                          {isReplyCommenterAdmin && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-[0.85] origin-left select-none">
+                                              ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
+                                            </span>
+                                          )}
+                                        </div>
                                         <span className="text-[8px] text-stone-400">{new Date(reply.created_at).toLocaleDateString('vi-VN')}</span>
                                       </div>
                                       
@@ -439,7 +473,7 @@ export function ParagraphComments({
                 <Input 
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Meo meo meo..."
+                  placeholder="Gửi bình luận hoặc cảm nhận..."
                   className={cn("h-10 rounded-full focus-visible:outline-none focus-visible:ring-1 px-4 text-xs flex-1 border", POPUP_THEME_MAPPING[readerTheme]?.input)}
                   disabled={isSending}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendParaComment()}

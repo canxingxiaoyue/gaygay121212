@@ -114,6 +114,14 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
 
   return (
     <div className="mt-8 space-y-6 border-t border-stone-200 dark:border-stone-800/60 pt-8">
+      {/* Nhúng font chữ tròn trịa cho nhãn Admin lấp lánh ở trang bình luận gốc [MỚI] */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap');
+        .font-cute-comfortaa {
+          font-family: 'Comfortaa', sans-serif !important;
+        }
+      `}} />
+
       <h3 className="text-xl font-bold font-serif text-stone-800 dark:text-stone-100">
         Đánh giá ({parentComments.length})
       </h3>
@@ -150,7 +158,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           disabled={!isSignedIn || isLoading}
-          className="min-h-[100px] resize-none border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1E1410] text-stone-800 dark:text-stone-100 focus-visible:ring-amber-500"
+          className="min-h-[100px] resize-none border-stone-200 dark:border-stone-850 bg-white dark:bg-[#1E1410] text-stone-800 dark:text-stone-100 focus-visible:ring-amber-500"
         />
         <div className="flex justify-end">
           <Show when="signed-in">
@@ -172,124 +180,150 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
 
       {/* DANH SÁCH ĐÁNH GIÁ VÀ PHẢN HỒI */}
       <div className="space-y-6 mt-6">
-        {parentComments.map((comment) => (
-          <div key={comment.id} className="space-y-3">
-            {/* Đánh giá gốc (Cha) */}
-            <div className="flex gap-4 bg-white dark:bg-[#2C1F1A] p-5 rounded-xl shadow-sm border border-stone-100 dark:border-stone-800/40 relative group">
-              <Avatar className="size-10 border border-stone-200 dark:border-stone-800">
-                <AvatarImage src={comment.user_avatar} />
-                <AvatarFallback>{comment.user_name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 pr-8">
-                  <p className="font-bold text-sm text-stone-800 dark:text-stone-200">{comment.user_name}</p>
-                  <div className="flex gap-0.5 ml-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`size-3.5 ${i < (comment.rating || 5) ? "fill-amber-400 text-amber-400" : "text-stone-300 dark:text-stone-700"}`} />
-                    ))}
-                  </div>
-                  <span className="text-xs text-stone-400 dark:text-stone-500 ml-auto">
-                    {new Date(comment.created_at).toLocaleString('vi-VN')}
-                  </span>
-                </div>
-                <p className="text-stone-700 dark:text-stone-300 mt-2 whitespace-pre-wrap leading-relaxed text-sm">
-                  {renderContent(comment.content)}
-                </p>
+        {parentComments.map((comment) => {
+          // Kiểm tra xem người bình luận gốc này có phải Admin không [MỚI]
+          const isCommentAuthorAdmin = comment.user_id && comment.user_id === process.env.NEXT_PUBLIC_ADMIN_ID
 
-                {/* NÚT PHẢN HỒI (REPLY) TRÊN BÌNH LUẬN CHA */}
-                {isSignedIn && (
+          return (
+            <div key={comment.id} className="space-y-3">
+              {/* Đánh giá gốc (Cha) */}
+              <div className="flex gap-4 bg-white dark:bg-[#2C1F1A] p-5 rounded-xl shadow-sm border border-stone-100 dark:border-stone-800/40 relative group">
+                <Avatar className="size-10 border border-stone-200 dark:border-stone-800">
+                  <AvatarImage src={comment.user_avatar} />
+                  <AvatarFallback>{comment.user_name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 pr-8 flex-wrap">
+                    <p className="font-bold text-sm text-stone-800 dark:text-stone-200">{comment.user_name}</p>
+                    
+                    {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT TRÊN BÌNH LUẬN GỐC [MỚI] */}
+                    {isCommentAuthorAdmin && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-90 origin-left select-none">
+                        ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
+                      </span>
+                    )}
+
+                    <div className="flex gap-0.5 ml-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`size-3.5 ${i < (comment.rating || 5) ? "fill-amber-400 text-amber-400" : "text-stone-300 dark:text-stone-700"}`} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-stone-400 dark:text-stone-500 ml-auto">
+                      {new Date(comment.created_at).toLocaleString('vi-VN')}
+                    </span>
+                  </div>
+                  <p className="text-stone-700 dark:text-stone-300 mt-2 whitespace-pre-wrap leading-relaxed text-sm">
+                    {renderContent(comment.content)}
+                  </p>
+
+                  {/* NÚT PHẢN HỒI (REPLY) TRÊN BÌNH LUẬN CHA */}
+                  {isSignedIn && (
+                    <button 
+                      onClick={() => {
+                        setReplyToId(comment.id)
+                        setReplyContent(`@${comment.user_name} `)
+                      }}
+                      className="mt-3 flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-400 font-semibold transition-colors"
+                    >
+                      <MessageSquare className="size-3.5" />
+                      Phản hồi
+                    </button>
+                  )}
+                </div>
+
+                {/* 🌟 PHÂN QUYỀN MỞ KHÓA NÚT XÓA: Admin HOẶC chính chủ bình luận đều xóa được [1] */}
+                {(isAdmin || user?.id === comment.user_id) && (
                   <button 
-                    onClick={() => {
-                      setReplyToId(comment.id)
-                      setReplyContent(`@${comment.user_name} `)
-                    }}
-                    className="mt-3 flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-400 font-semibold transition-colors"
+                    type="button"
+                    onClick={() => handleDelete(comment.id)}
+                    className="absolute top-4 right-4 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
+                    title="Xóa đánh giá"
                   >
-                    <MessageSquare className="size-3.5" />
-                    Phản hồi
+                    <Trash2 className="size-4" />
                   </button>
                 )}
               </div>
 
-              {/* 🌟 PHÂN QUYỀN MỞ KHÓA NÚT XÓA: Admin HOẶC chính chủ bình luận đều xóa được [1] */}
-              {(isAdmin || user?.id === comment.user_id) && (
-                <button 
-                  type="button"
-                  onClick={() => handleDelete(comment.id)}
-                  className="absolute top-4 right-4 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
-                  title="Xóa đánh giá"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              )}
-            </div>
+              {/* DANH SÁCH CÁC PHẢN HỒI CON (Thụt lề sang phải và có đường kẻ dọc nối) */}
+              <div className="ml-12 space-y-3 border-l-2 border-stone-200 dark:border-stone-850 pl-4">
+                {getReplies(comment.id).map((reply) => {
+                  // Kiểm tra xem người phản hồi này có phải Admin không [MỚI]
+                  const isReplyAuthorAdmin = reply.user_id && reply.user_id === process.env.NEXT_PUBLIC_ADMIN_ID
 
-            {/* DANH SÁCH CÁC PHẢN HỒI CON (Thụt lề sang phải và có đường kẻ dọc nối) */}
-            <div className="ml-12 space-y-3 border-l-2 border-stone-200 dark:border-stone-800 pl-4">
-              {getReplies(comment.id).map((reply) => (
-                <div key={reply.id} className="flex gap-3 bg-stone-50/50 dark:bg-[#1F1512] p-4 rounded-xl border border-stone-100/50 dark:border-stone-800/30 relative group">
-                  <Avatar className="size-8 border border-stone-200 dark:border-stone-800">
-                    <AvatarImage src={reply.user_avatar} />
-                    <AvatarFallback>{reply.user_name?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 pr-8">
-                      <p className="font-bold text-sm text-stone-800 dark:text-stone-200">{reply.user_name}</p>
-                      <span className="text-[10px] text-stone-400 dark:text-stone-500 ml-auto">
-                        {new Date(reply.created_at).toLocaleString('vi-VN')}
-                      </span>
+                  return (
+                    <div key={reply.id} className="flex gap-3 bg-stone-50/50 dark:bg-[#1F1512] p-4 rounded-xl border border-stone-100/50 dark:border-stone-800/30 relative group">
+                      <Avatar className="size-8 border border-stone-200 dark:border-stone-800">
+                        <AvatarImage src={reply.user_avatar} />
+                        <AvatarFallback>{reply.user_name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 pr-8 flex-wrap">
+                          <p className="font-bold text-sm text-stone-800 dark:text-stone-200">{reply.user_name}</p>
+                          
+                          {/* 🌟 HIỂN THỊ NHÃN ADMIN LẤP LÁNH NỔI BẬT TRÊN PHẢN HỒI CON [MỚI] */}
+                          {isReplyAuthorAdmin && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] animate-pulse scale-[0.85] origin-left select-none">
+                              ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
+                            </span>
+                          )}
+
+                          <span className="text-[10px] text-stone-400 dark:text-stone-500 ml-auto">
+                            {new Date(reply.created_at).toLocaleString('vi-VN')}
+                          </span>
+                        </div>
+                        <p className="text-stone-700 dark:text-stone-300 mt-1 whitespace-pre-wrap leading-relaxed text-sm">
+                          {renderContent(reply.content)}
+                        </p>
+
+                        {/* NÚT PHẢN HỒI (REPLY) TRÊN BÌNH LUẬN CON */}
+                        {isSignedIn && (
+                          <button 
+                            onClick={() => {
+                              setReplyToId(comment.id) // Vẫn mở khung nhập ở cuối của bình luận cha này
+                              setReplyContent(`@${reply.user_name} `) // Tự động điền @tên người gửi phản hồi trước đó!
+                            }}
+                            className="mt-2 flex items-center gap-1.5 text-[10px] text-stone-500 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-400 font-semibold transition-colors"
+                          >
+                            <MessageSquare className="size-3" />
+                            Phản hồi
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 🌟 PHÂN QUYỀN MỞ KHÓA NÚT XÓA PHẢN HỒI: Admin HOẶC chính chủ đều xóa được [1] */}
+                      {(isAdmin || user?.id === reply.user_id) && (
+                        <button 
+                          type="button"
+                          onClick={() => handleDelete(reply.id)}
+                          className="absolute top-3 right-3 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
+                          title="Xóa phản hồi"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      )}
                     </div>
-                    <p className="text-stone-700 dark:text-stone-300 mt-1 whitespace-pre-wrap leading-relaxed text-sm">
-                      {renderContent(reply.content)}
-                    </p>
+                  )
+                })}
 
-                    {/* NÚT PHẢN HỒI (REPLY) TRÊN BÌNH LUẬN CON */}
-                    {isSignedIn && (
-                      <button 
-                        onClick={() => {
-                          setReplyToId(comment.id) // Vẫn mở khung nhập ở cuối của bình luận cha này
-                          setReplyContent(`@${reply.user_name} `) // Tự động điền @tên người gửi phản hồi trước đó!
-                        }}
-                        className="mt-2 flex items-center gap-1.5 text-[10px] text-stone-500 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-400 font-semibold transition-colors"
-                      >
-                        <MessageSquare className="size-3" />
-                        Phản hồi
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 🌟 PHÂN QUYỀN MỞ KHÓA NÚT XÓA PHẢN HỒI: Admin HOẶC chính chủ đều xóa được [1] */}
-                  {(isAdmin || user?.id === reply.user_id) && (
-                    <button 
-                      type="button"
-                      onClick={() => handleDelete(reply.id)}
-                      className="absolute top-3 right-3 text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
-                      title="Xóa phản hồi"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {/* KHUNG NHẬP PHẢN HỒI (Chỉ xuất hiện khi click nút Phản hồi) */}
-              {replyToId === comment.id && (
-                <form onSubmit={(e) => handleReplySubmit(e, comment.id)} className="flex gap-2 mt-2 items-end">
-                  <CornerDownRight className="size-5 text-stone-400 shrink-0 self-center" />
-                  <Input 
-                    placeholder="Viết câu trả lời của bạn..."
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    className="flex-1 text-sm h-9 border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1E1410] text-stone-800 dark:text-stone-100 focus-visible:ring-amber-500"
-                    autoFocus
-                  />
-                  <Button type="submit" size="sm" className="h-9 bg-amber-700 hover:bg-amber-800 text-white">Gửi</Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-9 dark:text-stone-300 dark:hover:bg-stone-800" onClick={() => setReplyToId(null)}>Hủy</Button>
-                </form>
-              )}
+                {/* KHUNG NHẬP PHẢN HỒI (Chỉ xuất hiện khi click nút Phản hồi) */}
+                {replyToId === comment.id && (
+                  <form onSubmit={(e) => handleReplySubmit(e, comment.id)} className="flex gap-2 mt-2 items-end">
+                    <CornerDownRight className="size-5 text-stone-400 shrink-0 self-center" />
+                    <Input 
+                      placeholder="Viết câu trả lời của bạn..."
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      className="flex-1 text-sm h-9 border-stone-200 dark:border-stone-800 bg-white dark:bg-[#1E1410] text-stone-800 dark:text-stone-100 focus-visible:ring-amber-500"
+                      autoFocus
+                    />
+                    <Button type="submit" size="sm" className="h-9 bg-amber-700 hover:bg-amber-800 text-white">Gửi</Button>
+                    <Button type="button" variant="ghost" size="sm" className="h-9 dark:text-stone-300 dark:hover:bg-stone-800" onClick={() => setReplyToId(null)}>Hủy</Button>
+                  </form>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {parentComments.length === 0 && (
           <p className="text-stone-500 dark:text-stone-400 text-center italic py-8 bg-stone-50 dark:bg-stone-900/50 rounded-xl border border-dashed border-stone-200 dark:border-stone-800">
