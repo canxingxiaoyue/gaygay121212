@@ -15,10 +15,24 @@ export async function getUserNotifications() {
 
     const isAdmin = userId === ADMIN_ID
 
-    // Lấy tối đa 100 thông báo gần nhất để gom nhóm theo các tháng trực quan
+    // 🌟 ĐÃ SỬA: Sử dụng LEFT JOIN để kết hợp bảng notifications với stories nhằm lấy thêm cột TÊN TRUYỆN (story_title) [MỚI]
     const query = isAdmin 
-      ? sql`SELECT * FROM notifications WHERE recipient_id = ${userId} OR recipient_id = 'ADMIN' ORDER BY created_at DESC LIMIT 100`
-      : sql`SELECT * FROM notifications WHERE recipient_id = ${userId} ORDER BY created_at DESC LIMIT 100`
+      ? sql`
+          SELECT n.*, s.title AS story_title 
+          FROM notifications n
+          LEFT JOIN stories s ON n.story_slug = s.slug
+          WHERE n.recipient_id = ${userId} OR n.recipient_id = 'ADMIN' 
+          ORDER BY n.created_at DESC 
+          LIMIT 100
+        `
+      : sql`
+          SELECT n.*, s.title AS story_title 
+          FROM notifications n
+          LEFT JOIN stories s ON n.story_slug = s.slug
+          WHERE n.recipient_id = ${userId} 
+          ORDER BY n.created_at DESC 
+          LIMIT 100
+        `
       
     const { rows } = await query
     return rows

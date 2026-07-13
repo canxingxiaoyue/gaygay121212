@@ -194,8 +194,32 @@ export function NotificationBell() {
                               <div className="flex-1 space-y-1 pr-6">
                                 <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
                                   <span className="font-bold text-stone-900 dark:text-stone-100">{safeName}</span>
-                                  {notif.type === 'REPLY' && ' đã phản hồi bình luận của bạn trong '}
-                                  {notif.type === 'NEW_COMMENT' && ' đã để lại lời bình luận trong '}
+                                  
+                                  {/* 🌟 ĐÃ SỬA: Bổ sung in thêm TÊN TRUYỆN lấy động từ Database thông qua LEFT JOIN [MỚI] */}
+                                  {notif.type === 'REPLY' && (
+                                    <>
+                                      {' đã phản hồi bình luận của bạn trong '}
+                                      {notif.story_title ? (
+                                        <>
+                                          {'truyện '}
+                                          <span className="font-bold text-stone-900 dark:text-stone-100 italic">“{notif.story_title}”</span>
+                                          {', '}
+                                        </>
+                                      ) : null}
+                                    </>
+                                  )}
+                                  {notif.type === 'NEW_COMMENT' && (
+                                    <>
+                                      {' đã để lại lời bình luận trong '}
+                                      {notif.story_title ? (
+                                        <>
+                                          {'truyện '}
+                                          <span className="font-bold text-stone-900 dark:text-stone-100 italic">“{notif.story_title}”</span>
+                                          {', '}
+                                        </>
+                                      ) : null}
+                                    </>
+                                  )}
                                   {notif.type === 'new_chapter' && ' vừa cập nhật thêm chương mới: '}
                                   {notif.type === 'new_story' && ' - Tác phẩm mới vừa ra mắt độc giả: '}
                                   <span className="font-semibold text-amber-800 dark:text-amber-500">Chương {notif.chapter_number}</span>.
