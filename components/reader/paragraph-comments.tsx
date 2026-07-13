@@ -345,7 +345,7 @@ export function ParagraphComments({
                                           {/* 🌟 ĐÃ SỬA: Xóa từ khóa animate-pulse để nhãn Admin hiển thị tĩnh lặng, tinh tế trên phản hồi con [MỚI] */}
                                           {isReplyCommenterAdmin && (
                                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-[0.85] origin-left select-none">
-                                              ⋆. ˚࿔ Admin 𝜗𝜚˚⋆
+                                              ⋆. ˚࿔ Chủ nhà 𝜗𝜚˚⋆
                                             </span>
                                           )}
                                         </div>
