@@ -130,8 +130,8 @@ export function NotificationBell() {
 
       {/* Bảng Dropdown Thông báo */}
       {isOpen && (
-        // 🌟 ĐÃ NÂNG LỚP PHỦ LÊN z-[110] ĐỂ NỔI BẬT LÊN TRÊN CÙNG HOÀN TOÀN [1.1.2]
-        <div className="absolute right-0 mt-2 w-92 sm:w-100 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-850 rounded-2xl shadow-xl z-[110] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+        // 🌟 ĐÃ SỬA: Sử dụng fixed kết hợp left-4 right-4 trên mobile để tự động co giãn theo màn hình chống tràn viền, đổi sang absolute trên desktop [MỚI]
+        <div className="fixed top-20 left-4 right-4 sm:absolute sm:top-full sm:mt-2 sm:left-auto sm:right-0 sm:w-96 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-850 rounded-2xl shadow-xl z-[110] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="flex justify-between items-center p-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/50">
             <h3 className="font-serif font-bold text-sm text-stone-800 dark:text-stone-200">Thông báo mới</h3>
             <CheckCheck className="size-4 text-stone-400" />
@@ -195,7 +195,7 @@ export function NotificationBell() {
                                 <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
                                   <span className="font-bold text-stone-900 dark:text-stone-100">{safeName}</span>
                                   
-                                  {/* 🌟 ĐÃ SỬA: Bổ sung in thêm TÊN TRUYỆN lấy động từ Database thông qua LEFT JOIN [MỚI] */}
+                                  {/* 🌟 ĐÃ SỬA: Bổ sung in thêm TÊN TRUYỆN lấy động từ Database thông qua LEFT JOIN */}
                                   {notif.type === 'REPLY' && (
                                     <>
                                       {' đã phản hồi bình luận của bạn trong '}
