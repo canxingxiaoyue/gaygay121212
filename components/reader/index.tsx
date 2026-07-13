@@ -332,11 +332,6 @@ export function ChapterReader({
     synth.speak(utterance)
     setIsSpeaking(true)
   }
-
-  function goTo(n: number) {
-    router.push(`/truyen/${story.slug}/${n}`)
-  }
-
   const handleSave = async () => {
     setIsSaving(true)
     const editor = editorRef.current
