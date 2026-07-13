@@ -44,7 +44,7 @@ export function SiteHeader() {
   }
 
   return (
-    // 🌟 Đã giữ nguyên class font-cute-quicksand cho các chữ menu tròn trịa, sạch sẽ
+    // 🌟 Đã giữ nguyên cấu hình không ghim cố định (non-sticky) để trang đọc truyện thoáng đãng
     <header className="w-full border-b border-border bg-background font-cute-quicksand">
       {/* Nhúng mã tải font chữ Quicksand (menu) và Great Vibes + Dancing Script (thư pháp) trực tiếp cực kỳ an toàn */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -54,6 +54,10 @@ export function SiteHeader() {
         }
         .font-cute-thu-phap {
           font-family: 'Great Vibes', 'Dancing Script', cursive !important;
+        }
+        /* 🌟 GIẢI CỨU CLERK: Ép mở khóa click chuột trên di động khi mở lồng trong Menu trượt [MỚI] */
+        .cl-userButtonPopoverCard, .cl-portal, .cl-popover {
+          pointer-events: auto !important;
         }
       `}} />
 
@@ -105,10 +109,10 @@ export function SiteHeader() {
           )}
         </nav>
 
-        {/* CONTAINER CHỨA CÁC NÚT ĐIỀU KHIỂN ĐÃ CO GIÃN THEO DI ĐỘNG */}
+        {/* CONTAINER CHỨA CÁC NÚT ĐIỀU KHIỂN ĐÃ CO GIÃN THEO DI ĐỘNG [1.1.2] */}
         <div className="flex items-center gap-2 shrink-0">
           
-          {/* 🌟 CHỈ HIỂN THỊ TRÊN MÀY TÍNH (lg): KHUNG SEARCH VÀ CÁC ICON TIỆN ÍCH */}
+          {/* 🌟 CHỈ HIỂN THỊ TRÊN MÀY TÍNH (lg): KHUNG SEARCH VÀ CÁC ICON TIỆN ÍCH [1.1.2] */}
           <div className="hidden lg:flex items-center gap-2 shrink-0">
             <form onSubmit={submitSearch}>
               <div className="relative">
@@ -126,7 +130,7 @@ export function SiteHeader() {
             <AccountMenu />
           </div>
 
-          {/* 🌟 DI ĐỘNG (DƯỚI lg): CHỈ HIỆN DUY NHẤT NÚT BA GẠCH */}
+          {/* 🌟 DI ĐỘNG (DƯỚI lg): CHỈ HIỆN DUY NHẤT NÚT BA GẠCH [1.1.2] */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -139,16 +143,16 @@ export function SiteHeader() {
               </Button>
             </SheetTrigger>
             
-            {/* 🌟 NÂNG CẤP MENU BA GẠCH DI ĐỘNG: GOM TOÀN BỘ CHỨC NĂNG BÊN LỀ VÀO TRONG */}
+            {/* 🌟 NÂNG CẤP MENU BA GẠCH DI ĐỘNG: GOM TOÀN BỘ CHỨC NĂNG BÊN LỀ VÀO TRONG [1.1.2] */}
             <SheetContent side="right" className="w-72 flex flex-col gap-5 pt-6 font-sans">
               <SheetHeader className="text-left border-b border-stone-100 dark:border-stone-850 pb-3">
-                {/* Áp dụng font chữ thư pháp bay bổng cho tiêu đề mobile [MỚI] */}
+                {/* Áp dụng font chữ thư pháp bay bổng cho tiêu đề mobile */}
                 <SheetTitle className="font-cute-thu-phap text-2xl tracking-wide pt-1">
                   Tàn Tinh Hiểu Nguyệt
                 </SheetTitle>
               </SheetHeader>
 
-              {/* 1. Thanh tìm kiếm trên mobile */}
+              {/* 1. Thanh tìm kiếm trên mobile [1.1.2] */}
               <form onSubmit={submitSearch} className="px-2">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -161,7 +165,7 @@ export function SiteHeader() {
                 </div>
               </form>
 
-              {/* 2. Dòng tiện ích phụ xếp cạnh nhau siêu đẹp: Theme, Chuông, Avatar Đăng nhập */}
+              {/* 2. Dòng tiện ích phụ xếp cạnh nhau siêu đẹp: Theme, Chuông, Avatar Đăng nhập [1.1.2] */}
               <div className="flex items-center justify-between px-3 py-2 border-y border-stone-100 dark:border-stone-850/60 bg-stone-50/50 dark:bg-stone-950/20 rounded-2xl mx-2">
                 <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Hộp tiện ích:</span>
                 <div className="flex items-center gap-2.5">
