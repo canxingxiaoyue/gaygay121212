@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { useApp } from '@/components/favorites-provider'
 import type { Chapter, Story } from '@/lib/stories'
 
-// Imports hằng số và các tệp bóc tách con
+// Imports hằng số và các tệp bóc tách con [MỚI]
 import { FONT_MAPPING, THEME_MAPPING, KLEIN_BTN_THEME, POPUP_THEME_MAPPING, KLEIN_STICKERS } from './reader-constants'
 import { ReaderNav } from './reader-nav'
 import { ReaderToolbar } from './reader-toolbar'
