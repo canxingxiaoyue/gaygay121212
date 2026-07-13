@@ -140,7 +140,7 @@ export function ChapterComments({
             <Input
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Gửi bình luận hoặc cảm nhận chương..."
+              placeholder="Meo meo meo..."
               className={cn("h-10 rounded-full focus-visible:outline-none focus-visible:ring-1 px-4 text-xs flex-1 border", POPUP_THEME_MAPPING[readerTheme]?.input)}
               disabled={isSending}
               onKeyDown={(e) => e.key === 'Enter' && handleSendChapterComment()}

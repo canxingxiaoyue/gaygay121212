@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { SignInButton } from '@clerk/nextjs' // 🌟 Đã thêm dòng này
 import { Loader2, X, Image as ImageIcon, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -248,7 +249,7 @@ export function ParagraphComments({
                       <div className="flex gap-3 text-[10px] mt-1 select-none font-bold">
                         {editingCommentId === comm.id ? (
                           <>
-                            <button onClick={() => handleSaveCommentEdit(comm.id)} className="hover:text-green-600 transition-colors text-stone-400 dark:text-stone-500">Lưu</button>
+                            <button onClick={() => handleSaveCommentEdit(comm.id)} className="hover:text-green-650 transition-colors text-stone-400 dark:text-stone-500">Lưu</button>
                             <button onClick={() => setEditingCommentId(null)} className="hover:text-stone-600 dark:hover:text-stone-300 transition-colors text-stone-400 dark:text-stone-500">Hủy</button>
                           </>
                         ) : (
@@ -390,7 +391,13 @@ export function ParagraphComments({
           {!isSignedIn ? (
             <div className="text-center py-4 bg-stone-50/50 dark:bg-stone-950/20 rounded-2xl border border-dashed border-stone-200 dark:border-stone-850 mt-2">
               <p className="text-xs text-stone-500">
-                Vui lòng <Link href="/sign-in" className="text-[#8B5E3C] dark:text-[#EADBC8] hover:underline font-bold">đăng nhập</Link> để gửi lời meo meo.
+                Vui lòng{" "}
+                <SignInButton mode="modal">
+                  <span className="text-[#8B5E3C] dark:text-[#EADBC8] hover:underline font-bold cursor-pointer">
+                    đăng nhập
+                  </span>
+                </SignInButton>{" "}
+                để gửi lời meo meo.
               </p>
             </div>
           ) : (
@@ -432,7 +439,7 @@ export function ParagraphComments({
                 <Input 
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Gửi bình luận hoặc cảm nhận..."
+                  placeholder="Meo meo meo..."
                   className={cn("h-10 rounded-full focus-visible:outline-none focus-visible:ring-1 px-4 text-xs flex-1 border", POPUP_THEME_MAPPING[readerTheme]?.input)}
                   disabled={isSending}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendParaComment()}

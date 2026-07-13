@@ -26,7 +26,7 @@ export default async function SearchPage() {
             Tìm kiếm truyện
           </h1>
           <p className="mt-1 text-sm text-stone-500">
-            Tìm kiếm, tra cứu và lọc tất cả các bộ truyện tại Tàn Tinh Hiểu Nguyệt.
+            Đọc gì đi bây bi~
           </p>
         </header>
 

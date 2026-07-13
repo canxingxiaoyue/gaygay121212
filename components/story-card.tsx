@@ -24,7 +24,8 @@ export function StoryCard({ story }: { story: Story }) {
           />
         </Link>
         <div className="absolute right-2 top-2 z-10">
-          <FavoriteButton storySlug={story.slug} />
+          {/* 🌟 ĐÃ SỬA: Thêm tùy chọn variant="icon" để nút tròn mờ ảo trên bìa */}
+          <FavoriteButton storySlug={story.slug} variant="icon" />
         </div>
       </div>
 

@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpen, Coffee, Sparkles, Star, Moon } from 'lucide-react' // 🌟 Đã thêm Star và Moon
+import { ArrowRight, BookOpen, Coffee, Sparkles, Star, Moon } from 'lucide-react' // Giữ nguyên để tránh lỗi biên dịch
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { StoryCard } from '@/components/story-card'
-import { getMergedStories } from '@/app/actions/admin' // <-- Đã đổi import gọi hàm gộp truyện
+import { getMergedStories } from '@/app/actions/admin'
 
 export default async function HomePage() { 
   // Lấy danh sách truyện đã gộp từ Database và CHỈ hiển thị truyện đang công khai (true)
@@ -20,7 +20,7 @@ export default async function HomePage() {
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-16">
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 text-left">
               <p className="italic font-serif text-lg md:text-xl text-amber-800/80 dark:text-amber-200/80 tracking-wide">
                 “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
               </p>
@@ -45,56 +45,69 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Cột bên phải: 🌟 KHUNG ẢNH TRANG TRÍ PHONG CÁCH HOÀNG HÔN LUNG LINH */}
-            <div className="flex flex-col gap-2">
-              
-              {/* Khung tranh nền Gradient bầu trời chuyển màu thơ mộng */}
-              <div className="relative aspect-video rounded-3xl border border-stone-200/40 dark:border-stone-800 shadow-xl overflow-hidden bg-gradient-to-b from-[#7c86b2] via-[#b6bccd] to-[#fceea7] p-6 flex items-center justify-center select-none">
+            {/* Cột bên phải: 🌟 KHUNG BẦU TRỜI THIÊN VĂN HIỆN ĐẠI, SANG TRỌNG & SỐNG ĐỘNG (BẢN TINH CHỈNH TINH TẾ) */}
+            <div className="relative aspect-video w-full rounded-3xl border border-stone-200/40 dark:border-stone-800 shadow-2xl overflow-hidden select-none transition-all duration-500">
+              {/* Nhúng mã CSS Animation lấp lánh tự đóng gói */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes twinkle {
+                  0%, 100% { opacity: 0.2; transform: scale(0.85); }
+                  50% { opacity: 1; transform: scale(1.15); }
+                }
+                .animate-twinkle-fast {
+                  animation: twinkle 3s infinite ease-in-out;
+                }
+                .animate-twinkle-medium {
+                  animation: twinkle 4.5s infinite ease-in-out;
+                }
+                .animate-twinkle-slow {
+                  animation: twinkle 6s infinite ease-in-out;
+                }
+              `}} />
+
+              {/* 1. HAI LỚP ẢNH NỀN FADE MƯỢT MÀ THEO LIGHT/DARK MODE */}
+              {/* Ảnh nền Light Mode (Ban ngày) */}
+              <Image
+                src="/sky-light.png"
+                alt="Sky Light"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="absolute top-0 left-0 w-full h-full object-cover scale-[1.06] opacity-100 dark:opacity-0 transition-all duration-500 ease-in-out"
+                priority
+              />
+              {/* Ảnh nền Dark Mode (Ban đêm) */}
+              <Image
+                src="/Bautroidem.png"
+                alt="Sky Dark"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="absolute top-0 left-0 w-full h-full object-cover scale-[1.06] opacity-0 dark:opacity-100 transition-all duration-500 ease-in-out"
+                priority
+              />
+
+              {/* 2. CHÒM SAO LẤP LÁNH ĐÈ LÊN TRÊN (CHỈ BẬT RÕ NÉT Ở DARK MODE) */}
+              <div className="absolute inset-0 pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-500">
+                {/* Sao lớn lấp lánh */}
+                <div className="absolute top-[25%] left-[18%] w-1.5 h-1.5 bg-white rounded-full animate-twinkle-slow filter drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]" />
+                <div className="absolute top-[45%] left-[35%] w-1.5 h-1.5 bg-yellow-100 rounded-full animate-twinkle-medium filter drop-shadow-[0_0_3px_rgba(253,224,71,0.6)]" />
+                <div className="absolute bottom-[40%] right-[32%] w-1.5 h-1.5 bg-white rounded-full animate-twinkle-fast filter drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]" />
                 
-                {/* 1. Đường viền đứt nét viền quanh khung (Dashed outline) */}
-                <div className="absolute inset-3 rounded-[1.25rem] border-2 border-dashed border-white/30 pointer-events-none" />
-
-                {/* 2. CÁC ICON TRANG TRÍ DỄ THƯƠNG Ở KHUNG NGOÀI */}
-                {/* Ngôi sao vàng lớn trên bên trái */}
-                <div className="absolute top-5 left-5 -rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] animate-bounce" style={{ animationDuration: '3s' }}>
-                  <Star className="size-6 text-[#fcefa8] fill-[#fcefa8]" />
-                </div>
-                {/* Ngôi sao vàng lớn trên bên phải */}
-                <div className="absolute top-5 right-5 rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] animate-bounce" style={{ animationDuration: '4s' }}>
-                  <Star className="size-6 text-[#fcefa8] fill-[#fcefa8]" />
-                </div>
-                {/* Trăng khuyết vàng dưới bên trái */}
-                <div className="absolute bottom-5 left-5 -rotate-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-                  <Moon className="size-7 text-[#fcefa8] fill-[#fcefa8]" />
-                </div>
-                {/* Ngôi sao nhỏ lấp lánh dưới bên phải */}
-                <div className="absolute bottom-5 right-5 rotate-45 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-                  <Sparkles className="size-5 text-[#fcefa8] fill-[#fcefa8]" />
-                </div>
-
-                {/* 3. Khung trắng bo góc chứa bức tranh chính ở giữa */}
-              <div className="relative w-[90%] h-[85%] bg-white rounded-2xl shadow-inner overflow-hidden flex items-center justify-center z-10">
-  <Image
-    src="/kemchanh.png"
-    alt="Artist: Kem chanh màu xanh"
-    fill
-    priority
-    className="object-contain" // 🌟 ĐÃ SỬA: Chuyển về object-contain để ảnh không bao giờ bị cắt xén [1]
-  />
-</div>
+                {/* Sao nhỏ lấp lánh */}
+                <div className="absolute top-[15%] right-[25%] w-1 h-1 bg-white rounded-full animate-twinkle-fast" />
+                <div className="absolute bottom-[28%] left-[22%] w-1 h-1 bg-blue-100 rounded-full animate-twinkle-slow" />
+                <div className="absolute top-[60%] right-[40%] w-1 h-1 bg-white rounded-full animate-twinkle-medium" />
+                
+                {/* Sao cực nhỏ */}
+                <div className="absolute top-[35%] right-[12%] w-[2px] h-[2px] bg-white rounded-full animate-twinkle-slow opacity-60" />
+                <div className="absolute bottom-[55%] left-[10%] w-[2px] h-[2px] bg-white rounded-full animate-twinkle-fast opacity-80" />
               </div>
-
-              {/* Chú thích phía dưới */}
-              <p className="text-center text-sm font-sans text-stone-500 dark:text-stone-400 italic">
-                Artist: Kem chanh màu xanh
-              </p>
             </div>
+
           </div>
         </section>
 
         {/* Featured Section */}
         <section className="mx-auto max-w-6xl px-4 py-12">
-          <SectionHeader title="Truyện mới nổi bật" desc="Những câu chuyện đang được quán giới thiệu" href="/truyen" />
+          <SectionHeader title="Truyện mới nổi bật" desc="Hàng mới ra lò" href="/truyen" />
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {featured.map((s) => (
               <StoryCard key={s.slug} story={s} />
@@ -105,7 +118,7 @@ export default async function HomePage() {
         {/* Popular Section */}
         <section className="border-y border-border bg-card">
           <div className="mx-auto max-w-6xl px-4 py-12">
-            <SectionHeader title="Được đọc nhiều nhất" desc="Bảng xếp hạng theo lượt đọc tại quán" href="/truyen" />
+            <SectionHeader title="Được đọc nhiều nhất" desc="Bảng xếp hạng theo lượt đọc" href="/truyen" />
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {popular.map((s) => (
                 <StoryCard key={s.slug} story={s} />

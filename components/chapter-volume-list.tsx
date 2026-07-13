@@ -379,7 +379,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
                   <Textarea 
                     value={editVol.description} 
                     onChange={(e) => setEditVol({...editVol, description: e.target.value})} 
-                    placeholder="Nhập mô tả ngắn cho quyển này dợ dợ..."
+                    placeholder="Nhập mô tả ngắn cho quyển này..."
                     className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 min-h-[50px] text-xs"
                   />
                 </div>
