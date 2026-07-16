@@ -449,8 +449,10 @@ export function ChapterReader({
     } catch (error) {
       alert("Sự cố tải ảnh!")
       cleanMarker(); setIsUploading(false)
-    } fill
+    } finally {
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
+}
 
   const handleEditorInput = (html: string) => {
     setEditorHtml(html)
