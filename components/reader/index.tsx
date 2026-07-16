@@ -449,9 +449,7 @@ export function ChapterReader({
     } catch (error) {
       alert("Sự cố tải ảnh!")
       cleanMarker(); setIsUploading(false)
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = ""
-    }
+    } fill
   }
 
   const handleEditorInput = (html: string) => {
@@ -804,8 +802,8 @@ export function ChapterReader({
             THEME_MAPPING[readerTheme]?.text
           )}
         >
-          <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Lexend:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;600;700&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');` }} />
-
+          {/* 🌟 ĐÃ CẬP NHẬT ĐƯỜNG DẪN TẢI GOOGLE FONTS ĐẦY ĐỦ CẢ BALOO 2 VÀ PATRICK HAND */}
+          <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Comfortaa:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lexend:wght@400;600;700&family=Literata:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Nunito:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');` }} />
           {/* Toolbar - Trả về dạng thường không ghim để màn hình thông thoáng */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
             <div className="flex items-center gap-2">

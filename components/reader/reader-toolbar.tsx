@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react' // 🌟 BỔ SUNG THÊM HOOK ĐỂ BẮT SỰ KIỆN CLICK OUTSIDE [1]
+import { useEffect, useRef } from 'react'
 import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -95,12 +95,18 @@ export function ReaderToolbar({
       {settingsOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-72 max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-2xl border border-amber-500/20 dark:border-stone-850 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-4 shadow-[0_20px_50px_rgba(139,94,60,0.18)] space-y-4 text-sm font-sans text-stone-800 dark:text-stone-200 animate-in fade-in zoom-in-95 duration-200"
+          className="w-72 max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-2xl border border-amber-500/20 dark:border-stone-850 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md p-4 shadow-[0_20px_50px_rgba(139,94,60,0.18)] space-y-4 text-sm font-cute-quicksand text-stone-800 dark:text-stone-200 animate-in fade-in zoom-in-95 duration-200"
         >
-      
+          {/* Nhúng mã tải font chữ trực tiếp để phục vụ hiển thị */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Quicksand:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Nunito:wght@400;600;700&display=swap');
+            .font-cute-quicksand { font-family: 'Quicksand', sans-serif !important; }
+            .font-cute-comfortaa { font-family: 'Comfortaa', sans-serif !important; }
+          `}} />
+
           {/* THEME */}
           <div className="space-y-2 pb-3 border-b border-stone-100 dark:border-stone-850">
-            <span className="font-bold text-stone-700 dark:text-stone-300 block">🎨 Giao diện đọc</span>
+            <span className="font-cute-comfortaa font-bold text-stone-700 dark:text-stone-300 block text-[15px]">🎨 Giao diện đọc</span>
             <div className="grid grid-cols-3 gap-2">
               {THEME_LABELS.map(t => (
                 <button
@@ -117,10 +123,10 @@ export function ReaderToolbar({
 
           {/* FONTS / SIZES */}
           <div className="space-y-3.5">
-            <span className="font-bold text-stone-700 dark:text-stone-300 block">🔠 Tùy chỉnh chữ</span>
+            <span className="font-cute-comfortaa font-bold text-stone-700 dark:text-stone-300 block text-[15px]">🔠 Tùy chỉnh chữ</span>
             
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-stone-500 dark:text-stone-400">Cỡ chữ:</span>
+              <span className="font-semibold text-stone-500 dark:text-stone-400">Cỡ chữ:</span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -141,24 +147,45 @@ export function ReaderToolbar({
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-stone-500 dark:text-stone-400">Font chữ:</span>
+              <span className="font-semibold text-stone-500 dark:text-stone-400">Font chữ:</span>
               <Select value={fontFamily} onValueChange={setFontFamily}>
-                <SelectTrigger className="w-[140px] h-7 text-[10px] rounded border-stone-200 dark:border-[#E5D8C8]">
+                <SelectTrigger className="w-[140px] h-7 text-[10.5px] font-semibold rounded border-stone-200 dark:border-[#E5D8C8]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="z-[110]">
-                  <SelectItem value="serif">Serif (Georgia)</SelectItem>
-                  <SelectItem value="quicksand">Quicksand</SelectItem>
-                  <SelectItem value="nunito">Nunito</SelectItem>
-                  <SelectItem value="lexend">Lexend</SelectItem>
-                  <SelectItem value="comfortaa">Comfortaa</SelectItem>
-                  <SelectItem value="manrope">Manrope</SelectItem>
+                {/* 🌟 ĐÃ SỬA: Chỉ hiển thị tên sạch không chú thích, áp dụng chính font đó để render tên [MỚI] */}
+                 <SelectContent className="z-[110] font-cute-quicksand">
+                  <SelectItem value="serif">
+                    <span style={{ fontFamily: "Lora, Georgia, serif" }} className="text-[12.5px]">Serif</span>
+                  </SelectItem>
+                  <SelectItem value="quicksand">
+                    <span style={{ fontFamily: "'Quicksand', sans-serif" }} className="text-[12.5px]">Quicksand</span>
+                  </SelectItem>
+                  <SelectItem value="nunito">
+                    <span style={{ fontFamily: "'Nunito', sans-serif" }} className="text-[12.5px]">Nunito</span>
+                  </SelectItem>
+                  <SelectItem value="comfortaa">
+                    <span style={{ fontFamily: "'Comfortaa', sans-serif" }} className="text-[12.5px]">Comfortaa</span>
+                  </SelectItem>
+                  <SelectItem value="garamond">
+                    <span style={{ fontFamily: "'EB Garamond', serif" }} className="text-[12.5px]">Garamond</span>
+                  </SelectItem>
+                  <SelectItem value="merriweather">
+                    <span style={{ fontFamily: "'Merriweather', serif" }} className="text-[12.5px]">Merriweather</span>
+                  </SelectItem>
+                  <SelectItem value="literata">
+                    <span style={{ fontFamily: "'Literata', serif" }} className="text-[12.5px]">Literata</span>
+                  </SelectItem>
+                  <SelectItem value="bitter">
+                    <span style={{ fontFamily: "'Bitter', serif" }} className="text-[12.5px]">Bitter</span>
+                  </SelectItem>
+                  <SelectItem value="sourcesans">
+                    <span style={{ fontFamily: "'Source Sans 3', sans-serif" }} className="text-[12.5px]">Source Sans</span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-stone-500 dark:text-stone-400">Khoảng dòng:</span>
+              <span className="font-semibold text-stone-500 dark:text-stone-400">Khoảng dòng:</span>
               <div className="flex gap-1">
                 {['normal', 'relaxed', 'loose'].map((lh) => (
                   <button
@@ -174,7 +201,7 @@ export function ReaderToolbar({
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-stone-500 dark:text-stone-400">Chiều rộng:</span>
+              <span className="font-semibold text-stone-500 dark:text-stone-400">Chiều rộng:</span>
               <div className="flex gap-1">
                 {['xl', '2xl', '3xl'].map((cw) => (
                   <button
