@@ -97,7 +97,7 @@ export function ChapterComments({
 
   return (
     <div className="mt-12 border-t border-dashed border-stone-200 dark:border-stone-800 pt-8 font-sans animate-fade-in">
-      {/* Nhúng font chữ tròn trịa cho nhãn Chủ nhà lấp lánh ở trang bình luận chương [MỚI] */}
+      {/* Nhúng font chữ tròn trịa cho nhãn Admin lấp lánh ở trang bình luận chương [MỚI] */}
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap');
         .font-cute-comfortaa {
@@ -181,9 +181,6 @@ export function ChapterComments({
               const textPart = contentParts[0]
               const imgPart = contentParts[1]
 
-              // Kiểm tra xem người bình luận chương này có phải Admin (Chủ nhà) không [MỚI]
-              const isCommenterAdmin = commentUserId && commentUserId === process.env.NEXT_PUBLIC_ADMIN_ID
-
               const replies = getReplies(comm.id)
               const isExpanded = expandedCommentIds.includes(comm.id)
 
@@ -201,14 +198,6 @@ export function ChapterComments({
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-stone-900 dark:text-stone-100">{rawName}</span>
-                        
-                        {/* 🌟 HIỂN THỊ NHÃN CHỦ NHÀ TĨNH LẶNG TINH TẾ [MỚI] */}
-                        {isCommenterAdmin && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-90 origin-left select-none">
-                            ⋆. ˚࿔ Chủ nhà 𝜗𝜚˚⋆
-                          </span>
-                        )}
-
                         {comm.paragraph_index !== -1 && (
                           <span className="text-[9px] bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded text-stone-500 font-medium select-none">Đoạn {comm.paragraph_index + 1}</span>
                         )}
@@ -357,9 +346,9 @@ export function ChapterComments({
                                           placeholder={`Phản hồi ${rRawName}...`}
                                           className={cn("h-8 rounded-full text-xs px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
                                           disabled={isSending}
-                                          onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)} // Gắn ID cha gốc để luồng phẳng
+                                          onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)}
                                         />
-                                        <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[9px] font-bold px-2.5", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
+                                        <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[10px] font-bold px-3", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
                                           {isSending ? <Loader2 className="size-3 animate-spin" /> : "Gửi"}
                                         </Button>
                                       </div>

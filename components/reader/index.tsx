@@ -108,7 +108,7 @@ export function ChapterReader({
   // State lưu số lượng bình luận cho mỗi đoạn văn
   const [paraCommentCounts, setParaCommentCounts] = useState<Record<number, number>>({})
 
-  // KHÔI PHỤC MENU CHUỘT PHẢI SOẠN THẢO ADMIN
+  // KHÔI PHỤC MENU CHUỘT PHẢI SOẠO THẢO ADMIN
   const [contextMenuVisible, setContextMenuVisible] = useState(false)
   const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 })
 
@@ -333,6 +333,7 @@ export function ChapterReader({
     setIsSpeaking(true)
   }
 
+  // 🌟 ĐÃ KHÔI PHỤC DUY NHẤT 1 HÀM goTo Ở ĐÂY
   function goTo(n: number) {
     router.push(`/truyen/${story.slug}/${n}`)
   }
@@ -371,64 +372,6 @@ export function ChapterReader({
         selection?.removeAllRanges()
         selection?.addRange(savedRangeRef.current)
       }
-    }
-  }
-
-  // 🌟 KHÔI PHỤC HOÀN TOÀN HÀM XỬ LÝ CLICK NHÃN DÂN ĐOẠN VĂN (ĐÃ SỬA CHỐNG LỖI) [2]
-  const handleStickerClick = async (stickerId: string) => {
-    if (!isSignedIn || !user) {
-      alert("Vui lòng đăng nhập!")
-      return
-    }
-    const previousComments = [...paraComments]
-    const isSelected = userReactions.includes(stickerId)
-    let updatedComments = [...paraComments]
-
-    if (isSelected) {
-      updatedComments = updatedComments.filter(comm => {
-        const idParts = (comm.sender_name || '').split(' ||USER_ID||:')
-        return !((idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId)
-      })
-    } else {
-      updatedComments.push({
-        id: -Date.now(),
-        sender_name: `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`,
-        content: '||DISCORD_REACTION||',
-        reaction: stickerId,
-        created_at: new Date().toISOString()
-      })
-    }
-    setParaComments(updatedComments)
-
-    try {
-      const existing = previousComments.find(comm => {
-        const idParts = (comm.sender_name || '').split(' ||USER_ID||:')
-        return (idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId
-      })
-      if (existing) {
-        const res = await deleteParagraphComment(existing.id)
-        if (!res.success) { 
-          setParaComments(previousComments)
-          alert("Lỗi: " + res.error) 
-        } else { 
-          const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
-          setParaComments(list)
-          loadCommentCounts() 
-        }
-      } else {
-        const dbSenderName = `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`
-        const res = await addParagraphComment(story.slug, chapter.number, activeParaIndex, dbSenderName, '||DISCORD_REACTION||', stickerId)
-        if (!res.success) { 
-          setParaComments(previousComments)
-          alert("Lỗi: " + res.error) 
-        } else { 
-          const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
-          setParaComments(list)
-          loadCommentCounts() 
-        }
-      }
-    } catch (err) { 
-      setParaComments(previousComments) 
     }
   }
 
@@ -639,7 +582,7 @@ export function ChapterReader({
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await uploadCommentImage(formData) // <-- GỌI HÀM NÀY MỚI ĐÚNG
+      const res = await uploadCommentImage(formData)
       if (res.success && res.url) {
         if (isChapterArea) setChapterCommentImgUrl(res.url); else setCommentImgUrl(res.url)
       } else alert("Lỗi khi tải ảnh: " + res.error)
@@ -655,7 +598,6 @@ export function ChapterReader({
   const handleCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, false) }
   const handleChapterCommentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { handleCommentImageUploadGeneral(e, true) }
 
-  // 🌟 KHỞI TẠO LẠI BỘ TẢI DANH SÁCH BÌNH LUẬN ĐOẠN VĂN (MỚI BỔ SUNG KHÔNG SỢ LỖI CHÌM HÀM)
   const handleOpenParaComment = async (index: number, rawText: string) => {
     setActiveParaIndex(index)
     setActiveParaText(rawText)
@@ -671,6 +613,65 @@ export function ChapterReader({
       console.error("Lỗi khi tải bình luận:", error)
     } finally {
       setIsLoadingComments(false)
+    }
+  }
+
+  // 🌟 KHỞI TẠO DUY NHẤT 1 HÀM handleStickerClick TRÊN MÁY BẢO VỆ CHỐNG TRÀN SỐ INT [MỚI]
+  const handleStickerClick = async (stickerId: string) => {
+    if (!isSignedIn || !user) {
+      alert("Vui lòng đăng nhập!")
+      return
+    }
+    const previousComments = [...paraComments]
+    const isSelected = userReactions.includes(stickerId)
+    let updatedComments = [...paraComments]
+
+    if (isSelected) {
+      updatedComments = updatedComments.filter(comm => {
+        const idParts = (comm.sender_name || '').split(' ||USER_ID||:')
+        return !((idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId)
+      })
+    } else {
+      updatedComments.push({
+        id: -Date.now(),
+        sender_name: `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`,
+        content: '||DISCORD_REACTION||',
+        reaction: stickerId,
+        created_at: new Date().toISOString()
+      })
+    }
+    setParaComments(updatedComments)
+
+    try {
+      const existing = previousComments.find(comm => {
+        const idParts = (comm.sender_name || '').split(' ||USER_ID||:')
+        return (idParts[1] || '').split(' ||AVATAR_URL||:')[0] === user.id && comm.reaction === stickerId
+      })
+      if (existing) {
+        if (existing.id < 0) return // 🌟 PHÒNG VỆ: Tránh gửi ID âm tạm thời của client lên database gây lỗi tràn số INT!
+        const res = await deleteParagraphComment(existing.id)
+        if (!res.success) { 
+          setParaComments(previousComments)
+          alert("Lỗi: " + res.error) 
+        } else { 
+          const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
+          setParaComments(list)
+          loadCommentCounts() 
+        }
+      } else {
+        const dbSenderName = `${user.fullName || user.username} ||USER_ID||:${user.id} ||AVATAR_URL||:${user.imageUrl}`
+        const res = await addParagraphComment(story.slug, chapter.number, activeParaIndex, dbSenderName, '||DISCORD_REACTION||', stickerId)
+        if (!res.success) { 
+          setParaComments(previousComments)
+          alert("Lỗi: " + res.error) 
+        } else { 
+          const list = await getParagraphComments(story.slug, chapter.number, activeParaIndex)
+          setParaComments(list)
+          loadCommentCounts() 
+        }
+      }
+    } catch (err) { 
+      setParaComments(previousComments) 
     }
   }
 
@@ -749,19 +750,6 @@ export function ChapterReader({
     }
     return chapter.content
   }, [chapter.content])
-
-  function goTo(n: number) {
-    router.push(`/truyen/${story.slug}/${n}`)
-  }
-
-  // 🌟 NẾU CLIENT CHƯA TẢI XONG (CHƯA MOUNT), HIỂN THỊ LOGO LOADING ĐỂ TRÁNH HYDRATION MISMATCH FREEZE NÚT TRÊN HEADER [1.2]
-  if (!mounted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FFFDFB] dark:bg-[#131110]">
-        <Loader2 className="size-8 animate-spin text-[#8B5E3C] dark:text-[#EADBC8]" />
-      </div>
-    )
-  }
 
   return (
     <div className="relative">
