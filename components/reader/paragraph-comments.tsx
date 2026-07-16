@@ -122,11 +122,19 @@ export function ParagraphComments({
             POPUP_THEME_MAPPING[readerTheme]?.container
           )}
         >
-          {/* Nhúng font chữ tròn trịa cho nhãn Admin lấp lánh */}
+          {/* Nhúng font chữ tròn trịa cho nhãn Admin và CSS ẩn thanh cuộn */}
           <style dangerouslySetInnerHTML={{ __html: `
             @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap');
             .font-cute-comfortaa {
               font-family: 'Comfortaa', sans-serif !important;
+            }
+            /* 🌟 ẨN THANH CUỘN (SCROLLBAR) NHƯNG VẪN CUỘN LƯỚT MƯỢT MÀ [MỚI] */
+            .no-scrollbar::-webkit-scrollbar {
+              display: none !important;
+            }
+            .no-scrollbar {
+              -ms-overflow-style: none !important;
+              scrollbar-width: none !important;
             }
           `}} />
 
@@ -157,7 +165,8 @@ export function ParagraphComments({
             >
               ⋆｡˚☾ Dấu chân dưới trăng .✦ ݁˖
             </span>
-           <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-28 sm:max-h-32 overflow-y-auto justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
+           {/* 🌟 ĐÃ SỬA: Thêm class no-scrollbar để ẩn hoàn toàn thanh cuộn dọc nhưng vẫn vuốt trượt mượt mà [MỚI] */}
+           <div className={cn("grid grid-cols-5 sm:grid-cols-6 gap-2 p-2.5 rounded-3xl border max-h-28 sm:max-h-32 overflow-y-auto no-scrollbar justify-items-center w-full shadow-inner", POPUP_THEME_MAPPING[readerTheme]?.reactionBg)}>
               {sortedStickers.map((sticker) => {
                 const count = paraComments.filter(c => c.reaction === sticker.id).length
                 const isSelected = userReactions.includes(sticker.id)
@@ -170,7 +179,7 @@ export function ParagraphComments({
                     onClick={() => handleStickerClick(sticker.id)}
                     className={cn(
                       "flex flex-col items-center justify-between p-1.5 border transition-all duration-200 hover:scale-105 rounded-xl w-14 h-16 relative select-none",
-                      isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeEmoji : "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/40 dark:border-stone-850"
+                      isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeEmoji : "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/40 dark:border-stone-800"
                     )}
                     title={sticker.label}
                   >
@@ -178,7 +187,7 @@ export function ParagraphComments({
                       <img src={`/stickers/${sticker.file}`} alt={sticker.label} className="w-full h-full object-contain rounded-md" />
                     </div>
                     {displayCount > 0 && (
-                      <span className={cn("text-[9px] font-bold px-1 py-0.5 rounded-full border leading-none scale-90", isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeBadge : POPUP_THEME_MAPPING[readerTheme]?.inactiveBadge)}>
+                      <span className={cn("text-[9px] font-bold px-1 py-0.5 rounded-full border leading-none scale-90", isSelected ? POPUP_THEME_MAPPING[readerTheme]?.activeEmoji : POPUP_THEME_MAPPING[readerTheme]?.inactiveBadge)}>
                         {displayCount}
                       </span>
                     )}
@@ -230,7 +239,7 @@ export function ParagraphComments({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-stone-800 dark:text-stone-200">{rawName}</span>
                           
-                          {/* 🌟 ĐÃ SỬA: Xóa từ khóa animate-pulse để nhãn Admin hiển thị tĩnh lặng, tinh tế [MỚI] */}
+                          {/* 🌟 HIỂN THỊ NHÃN ADMIN TĨNH LẶNG TINH TẾ */}
                           {isCommenterAdmin && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-90 origin-left select-none">
                               ⋆. ˚࿔ Chủ nhà 𝜗𝜚˚⋆
@@ -329,7 +338,7 @@ export function ParagraphComments({
                                 const isReplyCommenterAdmin = rCommentUserId && rCommentUserId === process.env.NEXT_PUBLIC_ADMIN_ID
 
                                 return (
-                                  <div key={reply.id} className="flex gap-2 items-start animate-fade-in">
+                                  <div key={reply.id} className="flex gap-2 items-start">
                                     {rDisplayAvatar ? (
                                       <img src={rDisplayAvatar} alt={rRawName} className="size-6 rounded-full object-cover shrink-0 border" />
                                     ) : (
@@ -342,7 +351,7 @@ export function ParagraphComments({
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                           <span className="font-bold text-stone-800 dark:text-stone-300">{rRawName}</span>
                                           
-                                          {/* 🌟 ĐÃ SỬA: Xóa từ khóa animate-pulse để nhãn Admin hiển thị tĩnh lặng, tinh tế trên phản hồi con [MỚI] */}
+                                          {/* 🌟 HIỂN THỊ NHÃN ADMIN TĨNH LẶNG TINH TẾ TRÊN PHẢN HỒI CON [MỚI] */}
                                           {isReplyCommenterAdmin && (
                                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-cute-comfortaa font-bold bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-stone-900 border border-rose-200/40 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_15px_rgba(244,63,94,0.3)] scale-[0.85] origin-left select-none">
                                               ⋆. ˚࿔ Chủ nhà 𝜗𝜚˚⋆
@@ -473,7 +482,7 @@ export function ParagraphComments({
                 <Input 
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Meo meo meo..."
+                  placeholder="Gửi bình luận hoặc cảm nhận..."
                   className={cn("h-10 rounded-full focus-visible:outline-none focus-visible:ring-1 px-4 text-xs flex-1 border", POPUP_THEME_MAPPING[readerTheme]?.input)}
                   disabled={isSending}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendParaComment()}
