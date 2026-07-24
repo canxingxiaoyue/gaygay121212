@@ -6,52 +6,77 @@ export const FONT_MAPPING: Record<string, string> = {
   garamond: "'EB Garamond', serif",
   merriweather: "'Merriweather', serif",
   literata: "'Literata', serif",
-  bitter: "'Bitter', serif",
-  sourcesans: "'Source Sans 3', sans-serif",
 }
 
-export const THEME_MAPPING: Record<string, { container: string; text: string; badge: string; navBtn: string; activeItem: string }> = {
+export const THEME_MAPPING: Record<string, { 
+  name: string; 
+  container: string; 
+  text: string; 
+  badge: string; 
+  navBtn: string; 
+  activeItem: string;
+  accentBorder: string;
+  activeSelection: string;
+}> = {
   light: {
+    name: "🤍 Mèo Trắng",
     container: "bg-[#FFFDFB] dark:bg-stone-900 border-stone-200/60 dark:border-stone-850",
-    text: "text-stone-900 dark:text-stone-100",
+    text: "text-[#4A3E3D] dark:text-stone-100",
     badge: "bg-[#8B5E3C] text-white border-white dark:border-stone-900",
     navBtn: "border-stone-200 bg-transparent text-stone-700 hover:bg-[#F4EEE6] hover:border-stone-300 transition-colors",
-    activeItem: "bg-stone-200/60 text-stone-900 dark:bg-stone-800 dark:text-amber-400 font-bold"
+    activeItem: "bg-[#F4EEE6] text-[#5C3D2E] dark:bg-stone-850 dark:text-amber-400 font-bold",
+    accentBorder: "border-[#E5D8C8] dark:border-stone-700 shadow-[0_0_12px_rgba(229,216,200,0.3)]",
+    activeSelection: "bg-[#F4EEE6] border-[#E5D8C8] text-[#5C3D2E] dark:bg-stone-800 dark:border-stone-750 dark:text-stone-100"
   },
   dark: {
+    name: "🖤 Mèo Mun",
     container: "bg-[#131110] border-stone-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
     text: "text-[#e7e5e4]",
     badge: "bg-[#EADBC8] text-stone-950 border-stone-950",
     navBtn: "border-stone-800 bg-transparent text-stone-300 hover:bg-stone-800 hover:border-stone-700 transition-colors",
-    activeItem: "bg-stone-800 text-stone-100 font-bold"
+    activeItem: "bg-stone-800 text-stone-100 font-bold",
+    accentBorder: "border-stone-750 shadow-[0_0_12px_rgba(255,255,255,0.03)]",
+    activeSelection: "bg-stone-800 border-stone-700 text-stone-100"
   },
   sepia: {
+    name: "📜 Mèo Sữa",
     container: "bg-[#F4ECD8] border-[#EADBC8]",
     text: "text-[#5C3D2E]",
     badge: "bg-[#8B5E3C] text-[#F4ECD8] border-[#F4ECD8]",
     navBtn: "border-[#EADBC8] bg-transparent text-[#5C3D2E] hover:bg-[#EADBC8]/70 hover:border-[#DEC4B0] transition-colors",
-    activeItem: "bg-[#EADBC8] text-[#5C3D2E] font-bold"
+    activeItem: "bg-[#EADBC8] text-[#5C3D2E] font-bold",
+    accentBorder: "border-[#DEC4B0] shadow-[0_0_12px_rgba(234,219,200,0.4)]",
+    activeSelection: "bg-[#EADBC8] border-[#DEC4B0] text-[#5C3D2E]"
   },
   emerald: {
+    name: "🍃 Mèo Matcha",
     container: "bg-[#EAEFE3] border-[#D2DAC3]",
     text: "text-[#3B4D31]",
     badge: "bg-[#3B4D31] text-[#EAEFE3] border-[#EAEFE3]",
     navBtn: "border-[#D2DAC3] bg-transparent text-[#3B4D31] hover:bg-[#DDE6D5]/70 hover:border-[#C8D3BE] transition-colors",
-    activeItem: "bg-[#DDE6D5] text-[#3B4D31] font-bold"
+    activeItem: "bg-[#DDE6D5] text-[#3B4D31] font-bold",
+    accentBorder: "border-[#C8D3BE] shadow-[0_0_12px_rgba(59,77,49,0.15)]",
+    activeSelection: "bg-[#DDE6D5] border-[#C8D3BE] text-[#3B4D31]"
   },
   coffee: {
+    name: "🤎 Mèo Mocha",
     container: "bg-[#F0E6DF] border-[#DECAC0]",
     text: "text-[#4A3228]",
     badge: "bg-[#4A3228] text-[#F0E6DF] border-[#F0E6DF]",
     navBtn: "border-[#DECAC0] bg-transparent text-[#4A3228] hover:bg-[#E0D2C8]/70 hover:border-[#D0BFAF] transition-colors",
-    activeItem: "bg-[#E0D2C8] text-[#4A3228] font-bold"
+    activeItem: "bg-[#E0D2C8] text-[#4A3228] font-bold",
+    accentBorder: "border-[#D0BFAF] shadow-[0_0_12px_rgba(74,50,40,0.18)]",
+    activeSelection: "bg-[#E0D2C8] border-[#D0BFAF] text-[#4A3228]"
   },
   rose: {
+    name: "🌸 Mèo Đào",
     container: "bg-[#FDF0F2] border-[#F5D6D8]",
     text: "text-[#632B30]",
     badge: "bg-[#632B30] text-[#FDF0F2] border-[#FDF0F2]",
     navBtn: "border-[#F5D6D8] bg-transparent text-[#632B30] hover:bg-[#F9E2E5]/70 hover:border-[#EDCCD2] transition-colors",
-    activeItem: "bg-[#F9E2E5] text-[#632B30] font-bold"
+    activeItem: "bg-[#F9E2E5] text-[#632B30] font-bold",
+    accentBorder: "border-[#EDCCD2] shadow-[0_0_12px_rgba(99,43,48,0.18)]",
+    activeSelection: "bg-[#F9E2E5] border-[#EDCCD2] text-[#632B30]"
   }
 }
 
@@ -81,7 +106,6 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-stone-200/60",
     imgBtn: "hover:bg-[#F4EEE6] hover:border-stone-300",
     actionBtn: "text-stone-500 hover:text-stone-900 hover:bg-black/5 active:bg-black/10",
-    // 🌟 Dấu chân dưới trăng: Xám ấm nhẹ nhàng
     footprintText: "text-stone-400 dark:text-stone-500 drop-shadow-[0_0_8px_rgba(168,162,158,0.3)]"
   },
   dark: {
@@ -100,7 +124,6 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-stone-800/60",
     imgBtn: "hover:bg-stone-800 hover:border-stone-750",
     actionBtn: "text-stone-400 hover:text-stone-100 hover:bg-white/10 active:bg-white/15",
-    // 🌟 Dấu chân dưới trăng: Xám nhạt nổi bật trên nền đen, không dùng trắng tinh
     footprintText: "text-stone-500 drop-shadow-[0_0_8px_rgba(120,113,108,0.4)]"
   },
   sepia: {
@@ -119,7 +142,6 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-[#DEC4B0]/60",
     imgBtn: "hover:bg-[#EADBC8] hover:border-[#DEC4B0]",
     actionBtn: "text-[#5C3D2E]/60 hover:text-[#5C3D2E] hover:bg-[#5C3D2E]/10 active:bg-[#5C3D2E]/15",
-    // 🌟 Dấu chân dưới trăng: Tone nâu trầm giảm bão hòa
     footprintText: "text-[#5C3D2E]/45 drop-shadow-[0_0_8px_rgba(92,61,46,0.25)]"
   },
   emerald: {
@@ -138,7 +160,6 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-[#D2DAC3]/70",
     imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]",
     actionBtn: "text-[#3B4D31]/60 hover:text-[#3B4D31] hover:bg-[#3B4D31]/10 active:bg-[#3B4D31]/15",
-    // 🌟 Dấu chân dưới trăng: Tone xanh pastel mềm mại
     footprintText: "text-[#3B4D31]/45 drop-shadow-[0_0_8px_rgba(59,77,49,0.25)]"
   },
   coffee: {
@@ -157,7 +178,6 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-[#DECAC0]/70",
     imgBtn: "hover:bg-[#E0D2C8] hover:border-[#D0BFAF]",
     actionBtn: "text-[#4A3228]/60 hover:text-[#4A3228] hover:bg-[#4A3228]/10 active:bg-[#4A3228]/15",
-    // 🌟 Dấu chân dưới trăng: Tone cà phê sữa giảm bão hòa
     footprintText: "text-[#4A3228]/45 drop-shadow-[0_0_8px_rgba(74,50,40,0.25)]"
   },
   rose: {
@@ -176,16 +196,16 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     threadBorder: "border-[#F5D6D8]/70",
     imgBtn: "hover:bg-[#F9E2E5] hover:border-[#EDCCD2]",
     actionBtn: "text-[#632B30]/60 hover:text-[#632B30] hover:bg-[#632B30]/10 active:bg-[#632B30]/15",
-    // 🌟 Dấu chân dưới trăng: Tone hồng đào pastel mềm mại
     footprintText: "text-[#632B30]/45 drop-shadow-[0_0_8px_rgba(99,43,48,0.25)]"
   }
 }
 
+// 🌟 ĐÃ CẬP NHẬT: Thêm đầy đủ 7 nhãn dán mèo Klein mới của bạn vào danh sách hệ thống [MỚI]
 export const KLEIN_STICKERS = [
   { id: 'blink', file: 'Kleinblink.jpg', label: 'Lấp lánh' },
   { id: 'canloi', file: 'Kleincanloi.jpg', label: 'Cạn lời' },
   { id: 'chamhoi', file: 'Kleinchamhoi.PNG', label: 'Chấm hỏi' },
-  { id: 'ditu', file: 'Kleinditu.jpg', label: 'Bóc lịch' },
+  { id: 'ditu', file: 'Kleinditu.png', label: 'Bóc lịch' },
   { id: 'gaothet', file: 'Kleingaothet.jpg', label: 'Gào thét' },
   { id: 'ghichep', file: 'Kleinghichep.jpg', label: 'Ghi chép' },
   { id: 'gomo', file: 'Kleingomo.jpg', label: 'Gõ mõ tích đức' },
@@ -195,4 +215,11 @@ export const KLEIN_STICKERS = [
   { id: 'luoibieng', file: 'Kleinluoibieng.jpg', label: 'Trì trệ / lười biếng' },
   { id: 'nghingo', file: 'Kleinnghingo.jpg', label: 'Nghi ngờ' },
   { id: 'xinan', file: 'Kleinxinan.jpg', label: 'Ăn chực' },
+  { id: 'xuathon', file: 'Kleinxuathon.png', label: 'Xuất hồn' },
+  { id: 'camon2', file: 'Kleincamon2.png', label: 'Cảm ơn 2' },
+  { id: 'camon', file: 'Kleincamon.png', label: 'Cảm ơn' },
+  { id: 'xoadau', file: 'Kleinxoadau.png', label: 'Xoa đầu' },
+  { id: 'xulong', file: 'Kleinxulong.png', label: 'Xù lông' },
+  { id: 'nungniu', file: 'Kleinnungniu.png', label: 'Nũng nịu' },
+  { id: 'oeoe', file: 'Kleinọeọe.png', label: 'Oẹ oẹ' },
 ]
