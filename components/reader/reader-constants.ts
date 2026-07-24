@@ -26,72 +26,32 @@ export const THEME_MAPPING: Record<string, { container: string; text: string; ba
     activeItem: "bg-stone-800 text-stone-100 font-bold"
   },
   sepia: {
-    // 🌟 ĐÃ SỬA: Sử dụng ảnh nền vân giấy mới bạn chọn, thiết lập bg-cover bg-center cực kỳ sắc nét kết hợp ghim nền bg-fixed chống nhòe
-    container: "bg-[url('/sepia-bg.png?v=3')] bg-fixed bg-cover bg-center border-[#DECAC0] shadow-inner",
-    text: "text-[#2B1B15]", // Đổi sang tông màu nâu đen nguyên bản cực kỳ dịu mắt của sách cổ
-    badge: "bg-[#5C3D2E] text-[#F4ECD8] border-[#F4ECD8]",
-    navBtn: "border-[#DECAC0] bg-transparent text-[#2B1B15] hover:bg-[#EADBC8]/70 hover:border-[#DEC4B0] transition-colors",
+    container: "bg-[#F4ECD8] border-[#EADBC8]",
+    text: "text-[#5C3D2E]",
+    badge: "bg-[#8B5E3C] text-[#F4ECD8] border-[#F4ECD8]",
+    navBtn: "border-[#EADBC8] bg-transparent text-[#5C3D2E] hover:bg-[#EADBC8]/70 hover:border-[#DEC4B0] transition-colors",
     activeItem: "bg-[#EADBC8] text-[#5C3D2E] font-bold"
   },
   emerald: {
-    container: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3] shadow-[0_20px_50px_rgba(59,77,49,0.15)]",
-    quote: "bg-[#DDE6D5]/40 border-[#D2DAC3]/40 text-[#3B4D31]/80",
-    input: "border-[#D2DAC3] bg-[#EAEFE3] focus-visible:ring-[#3B4D31]",
-    text: "text-[#3B4D31]/90",
-    button: "hover:bg-[#DDE6D5] text-[#3B4D31]",
-    reactionBg: "bg-[#DDE6D5]/40 border-[#D2DAC3]/45",
-    activeEmoji: "bg-[#3B4D31] border-[#3B4D31] text-white shadow-[0_0_15px_rgba(59,77,49,0.3)] scale-[1.03]",
-    sendBtn: "bg-[#3B4D31] hover:bg-[#2F3D27] text-white shadow-[0_4px_10px_rgba(59,77,49,0.15)]",
-    close: "text-[#3B4D31]/50 hover:text-[#3B4D31]",
-    fallback: "bg-[#DDE6D5] text-[#3B4D31]",
-    activeBadge: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3]/60",
-    inactiveBadge: "bg-[#DDE6D5]/50 text-[#3B4D31]/60 border-[#DDE6D5]/40",
-    mutedText: "text-[#3B4D31]/60 font-medium",
-    replyBtn: "text-[#3B4D31]/70 hover:text-[#3B4D31] font-bold",
-    editBtn: "text-[#3B4D31]/70 hover:text-[#3B4D31] font-bold",
-    deleteBtn: "text-[#3B4D31]/70 hover:text-red-600 font-bold",
-    threadBorder: "border-[#D2DAC3]/70",
-    imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]"
+    container: "bg-[#EAEFE3] border-[#D2DAC3]",
+    text: "text-[#3B4D31]",
+    badge: "bg-[#3B4D31] text-[#EAEFE3] border-[#EAEFE3]",
+    navBtn: "border-[#D2DAC3] bg-transparent text-[#3B4D31] hover:bg-[#DDE6D5]/70 hover:border-[#C8D3BE] transition-colors",
+    activeItem: "bg-[#DDE6D5] text-[#3B4D31] font-bold"
   },
   coffee: {
-    container: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0] shadow-[0_20px_50px_rgba(74,50,40,0.15)]",
-    quote: "bg-[#E0D2C8]/40 border-[#DECAC0]/40 text-[#4A3228]/80",
-    input: "border-[#DECAC0] bg-[#F0E6DF] focus-visible:ring-[#4A3228]",
-    text: "text-[#4A3228]/90",
-    button: "hover:bg-[#E0D2C8] text-[#4A3228]",
-    reactionBg: "bg-[#E0D2C8]/40 border-[#DECAC0]/45",
-    activeEmoji: "bg-[#4A3228] border-[#4A3228] text-white shadow-[0_0_15px_rgba(74,50,40,0.3)] scale-[1.03]",
-    sendBtn: "bg-[#4A3228] hover:bg-[#38221A] text-white shadow-[0_4px_10px_rgba(74,50,40,0.15)]",
-    close: "text-[#4A3228]/50 hover:text-[#4A3228]",
-    fallback: "bg-[#E0D2C8] text-[#4A3228]",
-    activeBadge: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0]/60",
-    inactiveBadge: "bg-[#E0D2C8]/50 text-[#4A3228]/60 border-[#E0D2C8]/40",
-    mutedText: "text-[#4A3228]/60 font-medium",
-    replyBtn: "text-[#4A3228]/70 hover:text-[#4A3228] font-bold",
-    editBtn: "text-[#4A3228]/70 hover:text-[#4A3228] font-bold",
-    deleteBtn: "text-[#4A3228]/70 hover:text-red-600 font-bold",
-    threadBorder: "border-[#DECAC0]/70",
-    imgBtn: "hover:bg-[#E0D2C8] hover:border-[#D0BFAF]"
+    container: "bg-[#F0E6DF] border-[#DECAC0]",
+    text: "text-[#4A3228]",
+    badge: "bg-[#4A3228] text-[#F0E6DF] border-[#F0E6DF]",
+    navBtn: "border-[#DECAC0] bg-transparent text-[#4A3228] hover:bg-[#E0D2C8]/70 hover:border-[#D0BFAF] transition-colors",
+    activeItem: "bg-[#E0D2C8] text-[#4A3228] font-bold"
   },
   rose: {
-    container: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8] shadow-[0_20px_50px_rgba(99,43,48,0.15)]",
-    quote: "bg-[#F9E2E5]/40 border-[#F5D6D8]/40 text-[#632B30]/80",
-    input: "border-[#F5D6D8] bg-[#FDF0F2] text-[#632B30] focus-visible:ring-pink-400",
-    text: "text-[#632B30]/90",
-    button: "hover:bg-[#F9E2E5] text-[#632B30]",
-    reactionBg: "bg-[#F9E2E5]/40 border-[#F5D6D8]/45",
-    activeEmoji: "bg-[#632B30] border-[#632B30] text-white shadow-[0_0_15px_rgba(99,43,48,0.3)]",
-    sendBtn: "bg-[#632B30] hover:bg-[#4F1A1F] text-white shadow-[0_4px_10px_rgba(99,43,48,0.15)]",
-    close: "text-[#632B30]/50 hover:text-[#632B30]",
-    fallback: "bg-[#F9E2E5] text-[#632B30]",
-    activeBadge: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8]/60",
-    inactiveBadge: "bg-[#F9E2E5]/50 text-[#632B30]/60 border-[#F9E2E5]/40",
-    mutedText: "text-[#632B30]/60 font-medium",
-    replyBtn: "text-[#632B30]/70 hover:text-[#632B30] font-bold",
-    editBtn: "text-[#632B30]/70 hover:text-[#632B30] font-bold",
-    deleteBtn: "text-[#632B30]/70 hover:text-red-600 font-bold",
-    threadBorder: "border-[#F5D6D8]/70",
-    imgBtn: "hover:bg-[#F9E2E5] hover:border-[#EDCCD2]"
+    container: "bg-[#FDF0F2] border-[#F5D6D8]",
+    text: "text-[#632B30]",
+    badge: "bg-[#632B30] text-[#FDF0F2] border-[#FDF0F2]",
+    navBtn: "border-[#F5D6D8] bg-transparent text-[#632B30] hover:bg-[#F9E2E5]/70 hover:border-[#EDCCD2] transition-colors",
+    activeItem: "bg-[#F9E2E5] text-[#632B30] font-bold"
   }
 }
 
@@ -118,12 +78,11 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     fallback: "bg-[#F4EEE6] text-[#8B5E3C] dark:bg-stone-800 dark:text-[#EADBC8]",
     activeBadge: "bg-[#FFFDFB] text-[#8B5E3C] border-amber-200/20",
     inactiveBadge: "bg-[#F4EEE6] text-stone-500 border-stone-200/40",
-    mutedText: "text-stone-400 dark:text-stone-500",
-    replyBtn: "text-stone-400 hover:text-stone-600 dark:hover:text-stone-300",
-    editBtn: "text-stone-400 hover:text-[#8B5E3C]",
-    deleteBtn: "text-stone-400 hover:text-red-500",
     threadBorder: "border-stone-200/60",
-    imgBtn: "hover:bg-[#F4EEE6] hover:border-stone-300"
+    imgBtn: "hover:bg-[#F4EEE6] hover:border-stone-300",
+    actionBtn: "text-stone-500 hover:text-stone-900 hover:bg-black/5 active:bg-black/10",
+    // 🌟 Dấu chân dưới trăng: Xám ấm nhẹ nhàng
+    footprintText: "text-stone-400 dark:text-stone-500 drop-shadow-[0_0_8px_rgba(168,162,158,0.3)]"
   },
   dark: {
     container: "bg-[#131110] border-stone-800 text-[#e7e5e4] shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
@@ -138,33 +97,30 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     fallback: "bg-stone-800 text-[#EADBC8]",
     activeBadge: "bg-[#131110] text-[#EADBC8] border-stone-850",
     inactiveBadge: "bg-stone-800 text-stone-400 border-stone-800",
-    mutedText: "text-stone-500",
-    replyBtn: "text-stone-500 hover:text-stone-300",
-    editBtn: "text-stone-500 hover:text-[#EADBC8]",
-    deleteBtn: "text-stone-500 hover:text-[#EADBC8]",
     threadBorder: "border-stone-800/60",
-    imgBtn: "hover:bg-stone-800 hover:border-stone-750"
+    imgBtn: "hover:bg-stone-800 hover:border-stone-750",
+    actionBtn: "text-stone-400 hover:text-stone-100 hover:bg-white/10 active:bg-white/15",
+    // 🌟 Dấu chân dưới trăng: Xám nhạt nổi bật trên nền đen, không dùng trắng tinh
+    footprintText: "text-stone-500 drop-shadow-[0_0_8px_rgba(120,113,108,0.4)]"
   },
   sepia: {
-    // 🌟 ĐỒNG BỘ: Áp dụng ảnh nền vân giấy mới của bạn có ghim nền bg-fixed cho cả bảng popup bình luận đoạn văn
-    container: "bg-[url('/sepia-bg.png?v=3')] bg-fixed bg-cover bg-center text-[#2B1B15] border-[#DECAC0] shadow-[0_20px_50px_rgba(92,61,46,0.15)]",
-    quote: "bg-[#EADBC8]/30 border-[#EADBC8]/45 text-[#2B1B15]/80",
-    input: "border-[#DECAC0] bg-[url('/sepia-bg.png?v=3')] bg-fixed bg-cover bg-center focus-visible:ring-[#8B5E3C]",
-    text: "text-[#2B1B15]/90",
-    button: "hover:bg-[#EADBC8] text-[#2B1B15]",
-    reactionBg: "bg-[#EADBC8]/35 border-[#DECAC0]/45",
+    container: "bg-[#F4ECD8] text-[#5C3D2E] border-[#EADBC8] shadow-[0_20px_50px_rgba(92,61,46,0.15)]",
+    quote: "bg-[#EADBC8]/30 border-[#EADBC8]/40 text-[#5C3D2E]/80",
+    input: "border-[#EADBC8] bg-[#F4ECD8] focus-visible:ring-[#8B5E3C]",
+    text: "text-[#5C3D2E]/90",
+    button: "hover:bg-[#EADBC8] text-[#5C3D2E]",
+    reactionBg: "bg-[#EADBC8]/30 border-[#EADBC8]/45",
     activeEmoji: "bg-[#8B5E3C] border-[#8B5E3C] text-white shadow-[0_0_15px_rgba(139,94,60,0.3)] scale-[1.03]",
     sendBtn: "bg-[#8B5E3C] hover:bg-[#5C3D2E] text-white shadow-[0_4px_10px_rgba(92,61,46,0.15)]",
-    close: "text-[#2B1B15]/50 hover:text-[#2B1B15]",
-    fallback: "bg-[#EADBC8]/40 text-[#2B1B15]",
-    activeBadge: "bg-[url('/sepia-bg.png?v=3')] bg-fixed bg-cover bg-center text-[#8B5E3C] border-[#DEC4B0]",
-    inactiveBadge: "bg-[#EADBC8]/50 text-[#2B1B15]/60 border-[#DECAC0]/40",
-    mutedText: "text-[#8B5E3C]/80 font-medium",
-    replyBtn: "text-[#8B5E3C] hover:text-[#5C3D2E] font-bold",
-    editBtn: "text-[#8B5E3C] hover:text-[#5C3D2E] font-bold",
-    deleteBtn: "text-[#8B5E3C] hover:text-red-600 font-bold",
+    close: "text-[#5C3D2E]/50 hover:text-[#5C3D2E]",
+    fallback: "bg-[#EADBC8]/40 text-[#5C3D2E]",
+    activeBadge: "bg-[#F4ECD8] text-[#8B5E3C] border-[#DEC4B0]",
+    inactiveBadge: "bg-[#EADBC8]/50 text-[#5C3D2E]/60 border-[#EADBC8]/40",
     threadBorder: "border-[#DEC4B0]/60",
-    imgBtn: "hover:bg-[#EADBC8] hover:border-[#DECAC0]"
+    imgBtn: "hover:bg-[#EADBC8] hover:border-[#DEC4B0]",
+    actionBtn: "text-[#5C3D2E]/60 hover:text-[#5C3D2E] hover:bg-[#5C3D2E]/10 active:bg-[#5C3D2E]/15",
+    // 🌟 Dấu chân dưới trăng: Tone nâu trầm giảm bão hòa
+    footprintText: "text-[#5C3D2E]/45 drop-shadow-[0_0_8px_rgba(92,61,46,0.25)]"
   },
   emerald: {
     container: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3] shadow-[0_20px_50px_rgba(59,77,49,0.15)]",
@@ -179,12 +135,11 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     fallback: "bg-[#DDE6D5] text-[#3B4D31]",
     activeBadge: "bg-[#EAEFE3] text-[#3B4D31] border-[#D2DAC3]/60",
     inactiveBadge: "bg-[#DDE6D5]/50 text-[#3B4D31]/60 border-[#DDE6D5]/40",
-    mutedText: "text-[#3B4D31]/60 font-medium",
-    replyBtn: "text-[#3B4D31]/70 hover:text-[#3B4D31] font-bold",
-    editBtn: "text-[#3B4D31]/70 hover:text-[#3B4D31] font-bold",
-    deleteBtn: "text-[#3B4D31]/70 hover:text-red-600 font-bold",
     threadBorder: "border-[#D2DAC3]/70",
-    imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]"
+    imgBtn: "hover:bg-[#DDE6D5] hover:border-[#C8D3BE]",
+    actionBtn: "text-[#3B4D31]/60 hover:text-[#3B4D31] hover:bg-[#3B4D31]/10 active:bg-[#3B4D31]/15",
+    // 🌟 Dấu chân dưới trăng: Tone xanh pastel mềm mại
+    footprintText: "text-[#3B4D31]/45 drop-shadow-[0_0_8px_rgba(59,77,49,0.25)]"
   },
   coffee: {
     container: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0] shadow-[0_20px_50px_rgba(74,50,40,0.15)]",
@@ -199,17 +154,16 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     fallback: "bg-[#E0D2C8] text-[#4A3228]",
     activeBadge: "bg-[#F0E6DF] text-[#4A3228] border-[#DECAC0]/60",
     inactiveBadge: "bg-[#E0D2C8]/50 text-[#4A3228]/60 border-[#E0D2C8]/40",
-    mutedText: "text-[#4A3228]/60 font-medium",
-    replyBtn: "text-[#4A3228]/70 hover:text-[#4A3228] font-bold",
-    editBtn: "text-[#4A3228]/70 hover:text-[#4A3228] font-bold",
-    deleteBtn: "text-[#4A3228]/70 hover:text-red-600 font-bold",
     threadBorder: "border-[#DECAC0]/70",
-    imgBtn: "hover:bg-[#E0D2C8] hover:border-[#D0BFAF]"
+    imgBtn: "hover:bg-[#E0D2C8] hover:border-[#D0BFAF]",
+    actionBtn: "text-[#4A3228]/60 hover:text-[#4A3228] hover:bg-[#4A3228]/10 active:bg-[#4A3228]/15",
+    // 🌟 Dấu chân dưới trăng: Tone cà phê sữa giảm bão hòa
+    footprintText: "text-[#4A3228]/45 drop-shadow-[0_0_8px_rgba(74,50,40,0.25)]"
   },
   rose: {
     container: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8] shadow-[0_20px_50px_rgba(99,43,48,0.15)]",
     quote: "bg-[#F9E2E5]/40 border-[#F5D6D8]/40 text-[#632B30]/80",
-    input: "border-[#F5D6D8] bg-[#FDF0F2] text-[#632B30] focus-visible:ring-pink-400",
+    input: "border-[#F5D6D8] bg-[#FDF0F2] focus-visible:ring-pink-400",
     text: "text-[#632B30]/90",
     button: "hover:bg-[#F9E2E5] text-[#632B30]",
     reactionBg: "bg-[#F9E2E5]/40 border-[#F5D6D8]/45",
@@ -219,12 +173,11 @@ export const POPUP_THEME_MAPPING: Record<string, any> = {
     fallback: "bg-[#F9E2E5] text-[#632B30]",
     activeBadge: "bg-[#FDF0F2] text-[#632B30] border-[#F5D6D8]/60",
     inactiveBadge: "bg-[#F9E2E5]/50 text-[#632B30]/60 border-[#F9E2E5]/40",
-    mutedText: "text-[#632B30]/60 font-medium",
-    replyBtn: "text-[#632B30]/70 hover:text-[#632B30] font-bold",
-    editBtn: "text-[#632B30]/70 hover:text-[#632B30] font-bold",
-    deleteBtn: "text-[#632B30]/70 hover:text-red-600 font-bold",
     threadBorder: "border-[#F5D6D8]/70",
-    imgBtn: "hover:bg-[#F9E2E5] hover:border-[#EDCCD2]"
+    imgBtn: "hover:bg-[#F9E2E5] hover:border-[#EDCCD2]",
+    actionBtn: "text-[#632B30]/60 hover:text-[#632B30] hover:bg-[#632B30]/10 active:bg-[#632B30]/15",
+    // 🌟 Dấu chân dưới trăng: Tone hồng đào pastel mềm mại
+    footprintText: "text-[#632B30]/45 drop-shadow-[0_0_8px_rgba(99,43,48,0.25)]"
   }
 }
 

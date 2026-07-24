@@ -1,6 +1,7 @@
 'use server'
 
 import { sql } from '@vercel/postgres'
+import { revalidatePath } from 'next/cache' // 🌟 BỔ SUNG: Dùng để ép Next.js xóa cache mượt mà
 
 /**
  * LẤY DANH SÁCH BÌNH LUẬN CỦA ĐOẠN VĂN THỜI GIAN THỰC
@@ -49,6 +50,7 @@ export async function addParagraphComment(
     
     // Nếu chỉ là thao tác thả Sticker Discord thì KHÔNG gửi thông báo để tránh spam
     if (content === '||DISCORD_REACTION||') {
+      revalidatePath('/', 'layout') // Ép làm mới giao diện
       return { success: true }
     }
 
@@ -92,6 +94,7 @@ export async function addParagraphComment(
       VALUES ('ADMIN', ${actorName}, ${actorAvatar}, 'NEW_COMMENT', ${storySlug}, ${chapterNum}, ${cleanText}, NOW())
     `
 
+    revalidatePath('/', 'layout') // Ép làm mới giao diện
     return { success: true }
   } catch (error: any) {
     console.error("Lỗi lưu bình luận đoạn văn:", error)
@@ -104,7 +107,14 @@ export async function addParagraphComment(
  */
 export async function deleteParagraphComment(commentId: number) {
   try {
+    // 1. Xóa bình luận gốc được chọn
     await sql`DELETE FROM paragraph_comments WHERE id = ${commentId}`
+
+    // 2. 🌟 SỬA LỖI BÌNH LUẬN MA: Tìm và diệt sạch toàn bộ các phản hồi con "ăn theo" bình luận này!
+    const parentMarker = `%||PARENT_ID||:${commentId}`
+    await sql`DELETE FROM paragraph_comments WHERE content LIKE ${parentMarker}`
+
+    revalidatePath('/', 'layout') // Ép Next.js xóa cache mượt mà
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -117,6 +127,7 @@ export async function deleteParagraphComment(commentId: number) {
 export async function updateParagraphComment(commentId: number, newContent: string) {
   try {
     await sql`UPDATE paragraph_comments SET content = ${newContent} WHERE id = ${commentId}`
+    revalidatePath('/', 'layout') // Ép làm mới giao diện
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -124,7 +135,7 @@ export async function updateParagraphComment(commentId: number, newContent: stri
 }
 
 /**
- * LẤY SỐ LƯỢNG BÌNH LUẬN ĐOẠN VĂN (CHỈ ĐẾM CMT CHỮ, BỎ QUA THẢ CẢM XÚC DISCORD) [1]
+ * LẤY SỐ LƯỢNG BÌNH LUẬN ĐOẠN VĂN (CHỈ ĐẾM CMT CHỮ, BỎ QUA THẢ CẢM XÚC DISCORD)
  */
 export async function getChapterParagraphCommentCounts(storySlug: string, chapterNum: number) {
   try {
@@ -133,7 +144,7 @@ export async function getChapterParagraphCommentCounts(storySlug: string, chapte
       FROM paragraph_comments 
       WHERE story_slug = ${storySlug} 
         AND chapter_number = ${chapterNum}
-        AND content <> '||DISCORD_REACTION||'
+        AND reaction IS NULL
       GROUP BY paragraph_index
     `
     return rows as { paragraph_index: number; comment_count: number }[]
@@ -143,7 +154,7 @@ export async function getChapterParagraphCommentCounts(storySlug: string, chapte
 }
 
 /**
- * 🌟 LẤY TOÀN BỘ BÌNH LUẬN TRONG CHƯƠNG (GỒM CẢ BÌNH LUẬN CHƯƠNG LẪN ĐOẠN VĂN, LỌC BỎ STICKER DISCORD) [2]
+ * LẤY TOÀN BỘ BÌNH LUẬN TRONG CHƯƠNG (GỒM CẢ BÌNH LUẬN CHƯƠNG LẪN ĐOẠN VĂN, LỌC BỎ STICKER DISCORD)
  */
 export async function getChapterAllComments(storySlug: string, chapterNum: number) {
   try {
@@ -151,7 +162,7 @@ export async function getChapterAllComments(storySlug: string, chapterNum: numbe
       SELECT * FROM paragraph_comments 
       WHERE story_slug = ${storySlug} 
         AND chapter_number = ${chapterNum}
-        AND content <> '||DISCORD_REACTION||' -- Lọc bỏ sticker Discord ngầm [1.1.2]
+        AND reaction IS NULL
       ORDER BY created_at ASC
     `
     return rows

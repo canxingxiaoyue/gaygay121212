@@ -226,21 +226,22 @@ export function ChapterComments({
                       </div>
                     )}
 
-                    <div className="flex gap-3 text-[10px] mt-1 select-none font-bold">
+                    {/* 🌟 NÚT ACTION CỦA BÌNH LUẬN GỐC ĐÃ ĐƯỢC ĐỒNG BỘ THEME */}
+                    <div className="flex flex-wrap gap-1 text-[10px] mt-1.5 select-none font-bold -ml-2">
                       {editingCommentId === comm.id ? (
                         <>
-                          <button onClick={() => handleSaveCommentEdit(comm.id)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Lưu</button>
-                          <button onClick={() => setEditingCommentId(null)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Hủy</button>
+                          <button onClick={() => handleSaveCommentEdit(comm.id)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Lưu</button>
+                          <button onClick={() => setEditingCommentId(null)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Hủy</button>
                         </>
                       ) : (
                         <>
                           {isSignedIn && (
-                            <button onClick={() => handleReplyClick(comm.id, rawName)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Phản hồi</button>
+                            <button onClick={() => handleReplyClick(comm.id, rawName)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Phản hồi</button>
                           )}
                           {(isAdmin || (isSignedIn && user?.id === commentUserId)) && (
                             <>
-                              <button onClick={() => handleStartCommentEdit(comm.id, textPart)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.editBtn)}>Sửa</button>
-                              <button onClick={() => handleDeleteComment(comm.id)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.deleteBtn)}>Xóa</button>
+                              <button onClick={() => handleStartCommentEdit(comm.id, textPart)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Sửa</button>
+                              <button onClick={() => handleDeleteComment(comm.id)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Xóa</button>
                             </>
                           )}
                         </>
@@ -265,7 +266,8 @@ export function ChapterComments({
 
                     {replies.length > 0 && (
                       <div className="mt-2 text-left">
-                        <button onClick={() => toggleExpanded(comm.id)} className={cn("flex items-center gap-1.5 text-[10px] transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>
+                        {/* NÚT XEM PHẢN HỒI ĐÃ ĐƯỢC ĐỒNG BỘ THEME */}
+                        <button onClick={() => toggleExpanded(comm.id)} className={cn("flex items-center gap-1.5 text-[10px] px-2 py-1 -ml-2 rounded-[6px] transition-all duration-200 font-bold", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>
                           <span>₍^•⩊•^₎Ⳋ</span> {isExpanded ? "Ẩn phản hồi" : `Xem ${replies.length} phản hồi`}
                         </button>
 
@@ -302,7 +304,6 @@ export function ChapterComments({
                                       </div>
                                       <span className={cn("text-[8px]", POPUP_THEME_MAPPING[readerTheme]?.mutedText)}>{new Date(reply.created_at).toLocaleDateString('vi-VN')}</span>
                                     </div>
-                                    
                                     {editingCommentId === reply.id ? (
                                       <Input
                                         value={editingCommentText}
@@ -314,38 +315,40 @@ export function ChapterComments({
                                       <p className="text-stone-600 dark:text-stone-400 leading-normal text-[11px]">{rTextPart}</p>
                                     )}
 
-                                    <div className="flex gap-2 text-[9px] font-bold mt-0.5">
+                                    {/* 🌟 NÚT ACTION CỦA PHẢN HỒI CON ĐÃ ĐƯỢC ĐỒNG BỘ THEME */}
+                                    <div className="flex flex-wrap gap-1 text-[10px] mt-1 select-none font-bold -ml-2">
                                       {editingCommentId === reply.id ? (
                                         <>
-                                          <button onClick={() => handleSaveCommentEdit(reply.id)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Lưu</button>
-                                          <button onClick={() => setEditingCommentId(null)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Hủy</button>
+                                          <button onClick={() => handleSaveCommentEdit(reply.id)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Lưu</button>
+                                          <button onClick={() => setEditingCommentId(null)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Hủy</button>
                                         </>
                                       ) : (
                                         <>
                                           {isSignedIn && (
-                                            <button onClick={() => handleReplyClick(reply.id, rRawName)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.replyBtn)}>Phản hồi</button>
+                                            <button onClick={() => handleReplyClick(reply.id, rRawName)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Phản hồi</button>
                                           )}
                                           {(isAdmin || (isSignedIn && user?.id === rCommentUserId)) && (
                                             <>
-                                              <button onClick={() => handleStartCommentEdit(reply.id, rTextPart)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.editBtn)}>Sửa</button>
-                                              <button onClick={() => handleDeleteComment(reply.id)} className={cn("transition-colors", POPUP_THEME_MAPPING[readerTheme]?.deleteBtn)}>Xóa</button>
+                                              <button onClick={() => handleStartCommentEdit(reply.id, rTextPart)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Sửa</button>
+                                              <button onClick={() => handleDeleteComment(reply.id)} className={cn("px-2 py-1 rounded-[6px] transition-all duration-200", POPUP_THEME_MAPPING[readerTheme]?.actionBtn)}>Xóa</button>
                                             </>
                                           )}
                                         </>
                                       )}
                                     </div>
 
+                                    {/* Khung nhập phản hồi con lồng nhau */}
                                     {replyingToId === reply.id && (
-                                      <div className="mt-2 flex gap-2 max-w-[200px] sm:max-w-xs items-center animate-in slide-in-from-top-1 duration-150">
+                                      <div className="mt-2 flex gap-2 max-w-md items-center animate-in slide-in-from-top-1 duration-150">
                                         <Input
                                           value={replyText}
                                           onChange={(e) => setReplyText(e.target.value)}
                                           placeholder={`Phản hồi ${rRawName}...`}
-                                          className={cn("h-8 rounded-full text-[10px] px-3 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
+                                          className={cn("h-8 rounded-full text-xs px-3.5 border focus-visible:ring-0", POPUP_THEME_MAPPING[readerTheme]?.input)}
                                           disabled={isSending}
                                           onKeyDown={(e) => e.key === 'Enter' && handleSendReply(comm.id)}
                                         />
-                                        <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[9px] font-bold px-2.5", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
+                                        <Button onClick={() => handleSendReply(comm.id)} disabled={isSending || !replyText.trim()} size="sm" className={cn("h-8 rounded-full text-[10px] font-bold px-3", POPUP_THEME_MAPPING[readerTheme]?.sendBtn)}>
                                           {isSending ? <Loader2 className="size-3 animate-spin" /> : "Gửi"}
                                         </Button>
                                       </div>
