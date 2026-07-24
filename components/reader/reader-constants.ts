@@ -212,7 +212,7 @@ export const KLEIN_STICKERS = [
   { id: 'hoahong', file: 'Kleinhoahong.jpg', label: 'Tặng hoa hồng' },
   { id: 'khoc_nam', file: 'Kleinkhoc.jpg', label: 'Nằm khóc mệt mỏi' },
   { id: 'khoc_mat', file: 'Kleinkhoc.png', label: 'Mếu khóc' },
-  { id: 'luoibieng', file: 'Kleinluoibieng.jpg', label: 'Trì trệ / lười biếng' },
+  { id: 'luoibieng', file: 'Kleinluoibieng.jpg', label: 'lười biếng' },
   { id: 'nghingo', file: 'Kleinnghingo.jpg', label: 'Nghi ngờ' },
   { id: 'xinan', file: 'Kleinxinan.jpg', label: 'Ăn chực' },
   { id: 'xuathon', file: 'Kleinxuathon.png', label: 'Xuất hồn' },

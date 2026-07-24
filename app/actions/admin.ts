@@ -257,7 +257,7 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
 }
 
 /**
- * 🌟 ĐÃ CẬP NHẬT: TẠO TRUYỆN MỚI TRÊN WEB, LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC
+ * ACTION: TẠO TRUYỆN MỚI TRÊN WEB, LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC
  */
 export async function createNewStory(data: {
   slug: string; 
@@ -279,7 +279,7 @@ export async function createNewStory(data: {
   try {
     const cleanSlug = data.slug.trim().toLowerCase();
 
-    // 🌟 PHÒNG VỆ: Cắt bớt danh sách thể loại và tags nếu nó vượt quá 250 ký tự để tránh crash DB VARCHAR(255)
+    // PHÒNG VỆ: Cắt bớt danh sách thể loại và tags nếu nó vượt quá 250 ký tự để tránh crash DB VARCHAR(255)
     const safeGenres = data.genres.trim().length > 250 ? data.genres.trim().slice(0, 250) : data.genres.trim();
     const safeTags = data.tags.trim().length > 250 ? data.tags.trim().slice(0, 250) : data.tags.trim();
 
@@ -302,9 +302,9 @@ export async function createNewStory(data: {
       ON CONFLICT (slug) DO NOTHING
     `
 
-    // 2. 🌟 LƯU NỘI DUNG CÁC CHƯƠNG BẰNG THUẬT TOÁN CHIA LÔ BATCHING
+    // 2. LƯU NỘI DUNG CÁC CHƯƠNG BẰNG THUẬT TOÁN CHIA LÔ BATCHING
     if (data.chapters && data.chapters.length > 0) {
-      // 🌟 GIẢI PHÁP TỐI ƯU: Chia nhỏ thành các lô 50 chương và lưu song song 
+      // GIẢI PHÁP TỐI ƯU: Chia nhỏ thành các lô 50 chương và lưu song song 
       // để tăng tốc độ lên gấp 50 lần, chống sập máy chủ Vercel do Timeout
       const chunkSize = 50;
       for (let i = 0; i < data.chapters.length; i += chunkSize) {
@@ -362,7 +362,7 @@ export async function createNewStory(data: {
 }
 
 /**
- * 🌟 ĐÃ CẬP NHẬT: TỰ ĐỘNG LƯU FILE ẢNH LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
+ * ACTION: TỰ ĐỘNG LƯU FILE ẢNH LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
  */
 export async function uploadImage(formData: FormData) {
   const { userId } = await auth()
@@ -400,7 +400,7 @@ export async function uploadImage(formData: FormData) {
 }
 
 /**
- * 🌟 ĐÃ CẬP NHẬT: TỰ ĐỘNG LƯU FILE ẢNH CMT LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
+ * ACTION: TỰ ĐỘNG LƯU FILE ẢNH CMT LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
  */
 export async function uploadCommentImage(formData: FormData) {
   // Chỉ yêu cầu đăng nhập, không yêu cầu là Admin
@@ -595,10 +595,16 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
     `
 
     // 2. Dịch chuyển số chương của các chương sau lùi lại 1 đơn vị để tránh đứt quãng
+    // 🌟 KHẮC PHỤC LỖI TRÙNG KHÓA: Dùng mẹo đẩy sang mốc số âm tạm thời để cơ sở dữ liệu không bị "đụng xe" [1]
     await sql`
       UPDATE chapter_contents 
-      SET chapter_number = chapter_number - 1 
+      SET chapter_number = -(chapter_number - 1)
       WHERE story_slug = ${storySlug} AND chapter_number > ${chapterNum}
+    `
+    await sql`
+      UPDATE chapter_contents 
+      SET chapter_number = -chapter_number 
+      WHERE story_slug = ${storySlug} AND chapter_number < 0
     `
 
     // 3. Cập nhật lại số lượng chương (chapter_count) trong database
@@ -626,16 +632,22 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
       }
     }
 
-    // 4. Nếu có mốc phân quyển (volumes) bị ảnh hưởng, lùi mốc đó lại 1 đơn vị
-    await sql`
-      UPDATE story_volumes 
-      SET start_chapter = start_chapter - 1 
-      WHERE story_slug = ${storySlug} AND start_chapter > ${chapterNum}
-    `
     // Nếu có quyển bắt đầu đúng tại chương bị xóa, xóa mốc quyển đó luôn (trừ quyển đầu tiên)
     await sql`
       DELETE FROM story_volumes 
       WHERE story_slug = ${storySlug} AND start_chapter = ${chapterNum} AND start_chapter > 1
+    `
+
+    // 4. Lùi mốc phân quyển (volumes) lại 1 đơn vị bằng cơ chế âm tạm thời chống trùng khóa [1]
+    await sql`
+      UPDATE story_volumes 
+      SET start_chapter = -(start_chapter - 1)
+      WHERE story_slug = ${storySlug} AND start_chapter > ${chapterNum}
+    `
+    await sql`
+      UPDATE story_volumes 
+      SET start_chapter = -start_chapter
+      WHERE story_slug = ${storySlug} AND start_chapter < 0
     `
 
     return { success: true }
@@ -646,7 +658,7 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
 }
 
 /**
- * 🌟 ĐÃ THÊM: ACTION LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC TỪ FILE
+ * ACTION: UPLOAD DANH SÁCH CHƯƠNG HÀNG LOẠT
  */
 export async function uploadChaptersFromText(storySlug: string, chapters: { number: number; title: string; content: string }[]) {
   const { userId } = await auth()
@@ -683,6 +695,62 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
     return { success: true }
   } catch (error: any) {
     console.error("Lỗi khi upload danh sách chương:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+// 🌟 ACTION MỚI: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG ĐÃ QUA LỌC BÓC TÁCH [5]
+// Sử dụng cơ chế INSERT ON CONFLICT để ghi đè hoặc tạo mới tránh trùng lặp dữ liệu [5, 6]
+export async function bulkImportChapters(
+  storySlug: string,
+  startCount: number,
+  chapters: { title: string; content: string }[]
+) {
+  try {
+    const { userId } = await auth()
+    if (!userId || !checkIsAdmin(userId)) {
+      return { success: false, error: 'Quyền truy cập bị từ chối!' }
+    }
+
+    // Thực hiện lưu từng chương một cách nhanh chóng và bảo vệ toàn vẹn dữ liệu [5, 6]
+    for (let i = 0; i < chapters.length; i++) {
+      const chap = chapters[i]
+      const nextChapterNum = startCount + i + 1 // Tự động đánh số liên tiếp bù trừ tránh trùng lặp [6]
+
+      const safeChapterTitle = chap.title.trim().length > 250 
+        ? chap.title.trim().slice(0, 247) + '...' 
+        : chap.title.trim()
+
+      await sql`
+        INSERT INTO chapter_contents (story_slug, chapter_number, content, title)
+        VALUES (${storySlug}, ${nextChapterNum}, ${chap.content}, ${safeChapterTitle})
+        ON CONFLICT (story_slug, chapter_number) 
+        DO UPDATE SET content = ${chap.content}, title = ${safeChapterTitle}
+      `
+    }
+
+    // 2. Cập nhật lại tổng số lượng chương (chapter_count) trong bảng stories hoặc metadata [6]
+    const nextTotalCount = startCount + chapters.length
+    const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
+    
+    if (dbStoryResult.rows.length > 0) {
+      await sql`
+        UPDATE stories 
+        SET chapter_count = ${nextTotalCount} 
+        WHERE slug = ${storySlug}
+      `
+    } else {
+      await sql`
+        INSERT INTO story_metadata (slug, chapter_count)
+        VALUES (${storySlug}, ${nextTotalCount})
+        ON CONFLICT (slug)
+        DO UPDATE SET chapter_count = ${nextTotalCount}
+      `
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Lỗi import chương đồng loạt:", error)
     return { success: false, error: error.message }
   }
 }
