@@ -5,8 +5,8 @@ import { auth } from '@clerk/nextjs/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { put } from '@vercel/blob' 
-import { Story } from '@/lib/stories' // 🌟 Đã xóa STORIES
-const STORIES: Story[] = [] // 🌟 Tự khai báo mảng rỗng để không bị lỗi Webpack biên dịch
+import { Story } from '@/lib/stories' // Đã xóa STORIES
+const STORIES: Story[] = [] // Tự khai báo mảng rỗng để không bị lỗi Webpack biên dịch
 
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
 
@@ -667,7 +667,7 @@ export async function bulkImportChapters(
   }
 }
 
-// ACTION: XÓA CÙNG LÚC NHIỀU CHƯƠNG ĐÃ CHỌN VÀ TỰ ĐỘNG ĐÁNH LẠI SỐ CHƯƠNG LIÊN TIẾP
+// 🌟 ACTION: XÓA CÙNG LÚC NHIỀU CHƯƠNG ĐÃ CHỌN VÀ TỰ ĐỘNG ĐÁNH LẠI SỐ CHƯƠNG LIÊN TIẾP (ĐÃ SỬA LỖI TYPESCRIPT)
 export async function bulkDeleteChapters(storySlug: string, chapterNums: number[]) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) {
@@ -679,13 +679,18 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
   }
 
   try {
-    // 1. Xóa tất cả các chương được chọn trong bảng chapter_contents
-    await sql`
-      DELETE FROM chapter_contents
-      WHERE story_slug = ${storySlug} AND chapter_number = ANY(${chapterNums}::int[])
-    `
+    // 1. Lọc danh sách số chương an toàn
+    const safeChapterNums = chapterNums.map(n => Number(n)).filter(n => !isNaN(n))
+    if (safeChapterNums.length === 0) return { success: true }
 
-    // 2. Lấy lại toàn bộ danh sách các chương còn lại sắp xếp theo thứ tự cũ
+    // 2. Xóa tất cả các chương được chọn bằng sql.query an toàn không bị lỗi TypeScript Primitive
+    await sql.query(
+      `DELETE FROM chapter_contents 
+       WHERE story_slug = $1 AND chapter_number IN (${safeChapterNums.join(',')})`,
+      [storySlug]
+    )
+
+    // 3. Lấy lại toàn bộ danh sách các chương còn lại sắp xếp theo thứ tự cũ
     const remaining = await sql`
       SELECT chapter_number, title, content
       FROM chapter_contents
@@ -693,7 +698,7 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
       ORDER BY chapter_number ASC
     `
 
-    // 3. Đánh lại số chương liên tiếp từ 1 đến N để không bị hổng đứt quãng
+    // 4. Đánh lại số chương liên tiếp từ 1 đến N để không bị hổng đứt quãng
     await sql`
       UPDATE chapter_contents
       SET chapter_number = -chapter_number
@@ -712,7 +717,7 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
       `
     }
 
-    // 4. Cập nhật lại tổng số lượng chương (chapter_count) trong database
+    // 5. Cập nhật lại tổng số lượng chương (chapter_count) trong database
     const newTotalCount = remaining.rows.length
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
 
