@@ -10,12 +10,12 @@ import { formatViews } from '@/lib/stories'
 import { CommentSection } from '@/components/comment-section'
 import { AddChapterButton } from '@/components/add-chapter-button' 
 import { incrementViews, getStoryViews } from '@/app/actions/views'
-import { getMergedStories, getStoryVolumes } from '@/app/actions/admin' // Bổ sung import getStoryVolumes
+import { getMergedStories, getStoryVolumes } from '@/app/actions/admin'
 import { AdminStoryControls } from '@/components/admin-story-controls'
-import { ChapterVolumeList } from '@/components/chapter-volume-list' // Import Component phân quyển gập mở mới
+import { ChapterVolumeList } from '@/components/chapter-volume-list' 
 import { auth } from '@clerk/nextjs/server' 
 
-// 🌟 ĐÃ SỬA: Lấy danh sách truyện từ Database để tạo đường dẫn tự động
+// Lấy danh sách truyện từ Database để tạo đường dẫn tự động
 export async function generateStaticParams() {
   const stories = await getMergedStories()
   if (!stories || stories.length === 0) return []
@@ -86,7 +86,7 @@ export default async function StoryDetailPage({
   })
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col font-sans">
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-32">
         <nav className="mb-5 flex items-center gap-1 text-sm text-muted-foreground">
@@ -101,21 +101,20 @@ export default async function StoryDetailPage({
           <span className="text-foreground line-clamp-1">{story.title}</span>
         </nav>
 
-        <div className="grid gap-6 md:grid-cols-[260px_1fr]">
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-[260px] overflow-hidden rounded-xl border border-stone-200 dark:border-stone-800 shadow-md">
-            <Image
+        <div className="grid gap-6 md:grid-cols-[260px_1fr] items-start">
+          
+          {/* 🌟 KHUNG ẢNH BÌA HIỂN THỊ NGUYÊN BẢN 100%: Tự động co giãn theo tỉ lệ gốc của bức ảnh, không cắt bớt 1px nào [MỚI] */}
+          <div className="relative mx-auto w-full max-w-[260px] overflow-hidden rounded-[22px] border border-stone-200/80 dark:border-stone-800/80 bg-stone-100 dark:bg-stone-950 shadow-md self-start shrink-0">
+            <img
               src={story.cover || '/placeholder.svg'}
               alt={`Bìa truyện ${story.title}`}
-              fill
-              sizes="260px"
-              className="object-cover"
-              priority
+              className="w-full h-auto block select-none"
             />
           </div>
 
+          {/* CỘT THÔNG TIN BÊN PHẢI */}
           <div className="flex flex-col gap-4">
             <div>
-              {/* Đã xóa nhãn "Đang ra / Hoàn thành" ở đây */}
               <h1 className="font-serif text-3xl font-bold leading-tight md:text-4xl text-stone-800 dark:text-stone-100">
                 {story.title}
               </h1>
@@ -149,7 +148,6 @@ export default async function StoryDetailPage({
               </span>
             </div>
 
-            {/* Hiển thị tĩnh nội dung Giới thiệu và Link */}
             <div className="mt-2 space-y-4">
               <div className="text-sm leading-relaxed text-stone-700 dark:text-stone-300 whitespace-pre-line text-pretty">
                 {story.description}
@@ -166,12 +164,10 @@ export default async function StoryDetailPage({
           </div>
         </div>
 
-        {/* 🌟 Gắn Component Bảng Điều Khiển Truyền Đầy Đủ Object Truyện */}
         {isAdmin && (
           <AdminStoryControls story={story} />
         )}
 
-        {/* KHU VỰC DANH SÁCH CHƯƠNG ĐÃ ĐƯỢC PHÂN QUYỂN GẬP MỞ */}
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-stone-100">
@@ -180,7 +176,6 @@ export default async function StoryDetailPage({
             <AddChapterButton storySlug={story.slug} currentCount={story.chapters.length} />
           </div>
 
-          {/* GỌI COMPONENT PHÂN QUYỂN THẢ XUỐNG */}
           <ChapterVolumeList 
             storySlug={story.slug}
             chapters={mergedChapters}

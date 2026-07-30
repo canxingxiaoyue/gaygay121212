@@ -2,71 +2,83 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, BookOpen } from 'lucide-react'
-import { Story } from '@/lib/stories'
-import { FavoriteButton } from '@/components/favorite-button'
-import { StoryRating } from '@/components/story-rating'
-import { StoryViews } from '@/components/story-views' // Import component kết nối Database
+import { Heart, Eye, BookOpen, Star } from 'lucide-react'
+import type { Story } from '@/lib/stories'
+import { cn } from '@/lib/utils'
 
 export function StoryCard({ story }: { story: Story }) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-md">
-      {/* ẢNH BÌA CHẠM VIỀN TRÊN, TRÁI, PHẢI SIÊU MƯỢT MÀ NHƯ CŨ */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-stone-100">
-        <Link href={`/truyen/${story.slug}`} className="block h-full w-full">
-          <Image
-            src={story.cover || '/placeholder.svg'}
-            alt={`Bìa truyện ${story.title}`}
-            fill
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover transition-transform group-hover:scale-105 duration-300"
-            priority
-          />
-        </Link>
-        <div className="absolute right-2 top-2 z-10">
-          {/* 🌟 ĐÃ SỬA: Thêm tùy chọn variant="icon" để nút tròn mờ ảo trên bìa */}
-          <FavoriteButton storySlug={story.slug} variant="icon" />
-        </div>
+    <Link
+      href={`/truyen/${story.slug}`}
+      className="group relative flex flex-col overflow-hidden rounded-[22px] border border-stone-200/80 dark:border-white/10 bg-[#FFFDFB] dark:bg-[#221C1A] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:border-[#D89A52]/80 dark:hover:shadow-[0_8px_25px_rgba(216,154,82,0.12)] select-none"
+    >
+      {/* KHUNG ẢNH BÌA TRÀN VIỀN */}
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-stone-100 dark:bg-[#1A1615]">
+        <Image
+          src={story.cover || '/placeholder.svg'}
+          alt={`Bìa truyện ${story.title}`}
+          fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        
+        {/* Nút yêu thích góc trên */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+          }}
+          className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white transition-transform active:scale-90 hover:bg-black/50"
+        >
+          <Heart className="size-4" />
+        </button>
       </div>
 
-      {/* CHỈ ÁP DỤNG PADDING CHO PHẦN CHỮ Ở DƯỚI */}
-      <div className="flex flex-1 flex-col p-4 gap-1">
-        <Link href={`/truyen/${story.slug}`} className="block">
-          <h3 className="line-clamp-1 font-serif text-base font-bold text-foreground hover:text-primary transition-colors">
-            {story.title}
-          </h3>
-        </Link>
-        <p className="line-clamp-1 text-xs text-muted-foreground">
-          {story.author}
+      {/* NỘI DUNG THÔNG TIN TRUYỆN */}
+      <div className="flex flex-1 flex-col p-4 text-left font-sans">
+        {/* 🌟 TÊN TRUYỆN: Tông màu kem sáng cao cấp trong Dark Mode, hover đổi màu vàng đồng */}
+        <h3 className="font-serif text-base font-bold text-stone-800 dark:text-[#E9D7C3] line-clamp-1 group-hover:text-amber-800 dark:group-hover:text-[#F4C27A] transition-colors">
+          {story.title}
+        </h3>
+
+        {/* 🌟 TÁC GIẢ: Tông màu nâu ca-cao sáng dễ đọc */}
+        <p className="mt-1 text-xs text-stone-500 dark:text-[#B59C86] line-clamp-1 font-medium">
+          {story.author || 'Ẩn danh'}
         </p>
 
-        {/* Thể loại */}
-        <div className="flex flex-wrap gap-1 mt-1">
-          {story.genres.slice(0, 2).map((g) => (
-            <span key={g} className="rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
-              {g}
+        {/* 🌟 THỂ LOẠI (TAGS): Khung màu hổ phách ám vàng sang trọng, rõ chữ 100% */}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {(story.genres || []).slice(0, 2).map((genre) => (
+            <span
+              key={genre}
+              className="rounded-lg bg-stone-100 dark:bg-[#322824] border border-stone-200/60 dark:border-[#D89A52]/30 px-2.5 py-0.5 text-[10.5px] font-semibold text-stone-600 dark:text-[#F4C27A]"
+            >
+              {genre}
             </span>
           ))}
         </div>
 
-        {/* Đánh giá, Lượt xem, Số chương (ĐỒNG BỘ HOÀN TOÀN VỚI DATABASE VERCEL) */}
-        <div className="mt-auto flex items-center gap-3 pt-3 text-[11px] text-muted-foreground border-t border-border mt-3">
-          
-          {/* Lấy điểm đánh giá trung bình thật */}
-          <StoryRating storySlug={story.slug} />
-          
-          <span className="flex items-center gap-1">
-            <Eye className="size-3.5" />
-            {/* Lấy lượt xem thực tế thật */}
-            <StoryViews storySlug={story.slug} baseViews={story.views} /> 
-          </span>
+        {/* 🌟 THÔNG SỐ ĐÁNH GIÁ, LƯỢT XEM VÀ CHƯƠNG RÕ NÉT */}
+        <div className="mt-auto pt-3 flex items-center justify-between text-[11px] border-t border-stone-100 dark:border-white/10">
+          <div className="flex items-center gap-1 font-bold text-amber-600 dark:text-[#F4C27A]">
+            <Star className="size-3.5 fill-amber-400 text-amber-400" />
+            <span>{story.rating ? Number(story.rating).toFixed(1) : "5.0"}</span>
+          </div>
 
-          <span className="flex items-center gap-1">
-            <BookOpen className="size-3.5" />
-            {story.chapters.length}
-          </span>
+          <div className="flex items-center gap-3 text-stone-500 dark:text-[#B59C86] font-medium">
+            <span className="flex items-center gap-1">
+              <Eye className="size-3 text-stone-400 dark:text-[#B59C86]" />
+              <span className="dark:text-[#E9D7C3]">{story.views || 0}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <BookOpen className="size-3 text-stone-400 dark:text-[#B59C86]" />
+              <span className="dark:text-[#E9D7C3]">{story.chapters?.length || (story as any).chapter_count || 0}</span>
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

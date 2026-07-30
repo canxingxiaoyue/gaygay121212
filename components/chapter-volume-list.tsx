@@ -2,12 +2,26 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronUp, Trash2, Plus, Loader2, BookOpen, Edit2, XCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Trash2, 
+  Plus, 
+  Loader2, 
+  BookOpen, 
+  Edit2, 
+  XCircle
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { addOrUpdateVolume, deleteVolume, deleteChapter } from '@/app/actions/admin'
-import { useRouter } from 'next/navigation'
+import { 
+  addOrUpdateVolume, 
+  deleteVolume, 
+  deleteChapter, 
+  bulkDeleteChapters 
+} from '@/app/actions/admin'
 import { cn } from '@/lib/utils'
 
 interface Chapter {
@@ -46,7 +60,7 @@ function parseVolumeTitle(dbTitle: string): VolumeData {
   if (match) {
     return {
       volume_number: parseInt(match[1], 10) || 1,
-      volume_name: dbTitle // Giữ nguyên dbTitle gốc để không bị mất chữ "Quyển" của dữ liệu cũ
+      volume_name: dbTitle
     }
   }
   return {
@@ -55,7 +69,7 @@ function parseVolumeTitle(dbTitle: string): VolumeData {
   }
 }
 
-// 🌟 ĐÃ SỬA: Hàm hiển thị trả về đúng tên bạn nhập, xóa bỏ hoàn toàn chữ tự động Quyển 1, Quyển 2 [1]
+// HÀM HIỂN THỊ TÊN ĐỘNG
 function getVolumeDisplayName(dbTitle: string): string {
   try {
     if (dbTitle.startsWith('{') && dbTitle.endsWith('}')) {
@@ -71,6 +85,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
   
   const [isPending, setIsPending] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedNums, setSelectedNums] = useState<number[]>([])
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [editVol, setEditVol] = useState({
@@ -81,7 +96,26 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     description: ''
   })
 
-  // Thuật toán chia nhóm chương dựa trên mốc Quyển (Volumes)
+  // 1. TÍNH NĂNG CHỌN TẤT CẢ / BỎ CHỌN TẤT CẢ
+  const allSelected = chapters.length > 0 && selectedNums.length === chapters.length
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedNums([])
+    } else {
+      setSelectedNums(chapters.map(c => c.number))
+    }
+  }
+
+  const toggleSelectChapter = (num: number) => {
+    if (selectedNums.includes(num)) {
+      setSelectedNums(selectedNums.filter(n => n !== num))
+    } else {
+      setSelectedNums([...selectedNums, num])
+    }
+  }
+
+  // 2. CHIA NHÓM CHƯƠNG THEO QUYỂN (VOLUMES)
   const groupedChapters = useMemo(() => {
     const groups: { start_chapter: number; title: string; chapters: Chapter[] }[] = []
     let currentGroup = { start_chapter: 1, title: 'Danh sách chương', chapters: [] as Chapter[] }
@@ -99,7 +133,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
         if (currentGroup.chapters.length > 0) groups.push(currentGroup)
         currentGroup = { 
           start_chapter: matchingVol.start_chapter, 
-          title: getVolumeDisplayName(matchingVol.title), // Hiện tên đã bóc tách động [1]
+          title: getVolumeDisplayName(matchingVol.title),
           chapters: [] 
         }
       }
@@ -112,7 +146,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     return groups
   }, [chapters, volumes])
 
-  const [openGroups, setOpenGroups] = useState<number[]>([groupedChapters[0]?.start_chapter])
+  const [openGroups, setOpenGroups] = useState<number[]>([groupedChapters[0]?.start_chapter || 1])
 
   const toggleGroup = (startChapter: number) => {
     if (openGroups.includes(startChapter)) {
@@ -122,6 +156,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     }
   }
 
+  // 3. THAO TÁC QUẢN LÝ QUYỂN
   const handleCancelEdit = () => {
     setIsEditMode(false)
     setEditVol({
@@ -194,6 +229,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     } finally { setIsPending(false) }
   }
 
+  // 4. THAO TÁC XÓA ĐƠN VÀ XÓA HÀNG LOẠT
   const handleDeleteChapterClick = async (chapterNumber: number, chapterTitle: string) => {
     const confirmDelete = confirm(
       `CẢNH BÁO CỰC KỲ QUAN TRỌNG:\n\nBạn có chắc chắn muốn XÓA VĨNH VIỄN "${chapterTitle}" không?\n\n` +
@@ -205,7 +241,7 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     try {
       const res = await deleteChapter(storySlug, chapterNumber)
       if (res.success) {
-        alert("Đã xóa và sắp xếp lại các chương thành công!")
+        setSelectedNums(selectedNums.filter(n => n !== chapterNumber))
         router.refresh()
       } else alert("Lỗi khi xóa chương: " + res.error)
     } catch (err) {
@@ -215,188 +251,312 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
     }
   }
 
+  const handleBulkDelete = async () => {
+    if (selectedNums.length === 0) return
+    if (!confirm(`Bạn có chắc chắn muốn XÓA ${selectedNums.length} chương đã chọn không? Thao tác này không thể hoàn tác!`)) {
+      return
+    }
+
+    setIsPending(true)
+    try {
+      const res = await bulkDeleteChapters(storySlug, selectedNums)
+      if (res.success) {
+        setSelectedNums([])
+        router.refresh()
+      } else {
+        alert("Lỗi khi xóa hàng loạt: " + res.error)
+      }
+    } catch (err: any) {
+      alert("Lỗi kết nối: " + err.message)
+    } finally {
+      setIsPending(false)
+    }
+  }
+
   return (
-    <div className="w-full space-y-4 relative">
+    <div className="w-full space-y-4 font-sans text-left relative">
       
+      {/* NỀN ĐỒNG BỘ DỮ LIỆU */}
       {isPending && (
-        <div className="fixed inset-0 z-[100] bg-black/15 backdrop-blur-[1px] flex items-center justify-center">
-          <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-850 flex items-center gap-3">
-            <Loader2 className="size-5 animate-spin text-amber-800" />
-            <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">Đang đồng bộ dữ liệu truyện...</span>
+        <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="bg-white dark:bg-[#241D18] p-4 rounded-2xl shadow-2xl border border-[#F2E8DC] dark:border-white/10 flex items-center gap-3">
+            <Loader2 className="size-5 animate-spin text-[#A45C12] dark:text-[#F4C27A]" />
+            <span className="text-xs font-semibold text-[#5A3823] dark:text-[#E9D7C3]">Đang đồng bộ dữ liệu...</span>
           </div>
         </div>
       )}
 
+      {/* BAR THÔNG TIN ADMIN & NÚT MỞ POPUP QUẢN LÝ QUYỂN */}
       {isAdmin && (
-        <div className="flex justify-end mb-2">
-          <Button 
-            onClick={() => { setIsModalOpen(true); handleCancelEdit() }} 
-            variant="outline" 
-            className="border-[#E5D8C8] text-[#8B5E3C] bg-[#F4EEE6]/40 hover:bg-[#F4EEE6] hover:text-[#5C3D2E] gap-1.5 h-8 text-xs rounded-xl"
-          >
-            <Plus className="size-4" /> Quản lý thanh chia quyển
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 px-1 text-xs font-bold text-[#7A4A2D] dark:text-[#E9D7C3]">
+          <div className="flex items-center gap-2">
+            <span>{chapters.length} chương</span>
+            {selectedNums.length > 0 && (
+              <span className="text-[#A45C12] dark:text-[#F4C27A] font-semibold bg-[#FFF4E7] dark:bg-[#3D2D23] px-2.5 py-0.5 rounded-full border border-[#D89A52]/40 text-[11px]">
+                Đã chọn {selectedNums.length}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {chapters.length > 0 && (
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-bold text-[#7A4A2D] dark:text-[#E9D7C3] hover:text-[#5A3823] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="size-4 rounded border-[#EEDFD0] dark:border-white/10 text-[#D89A52] focus:ring-[#D89A52] cursor-pointer accent-[#D89A52]"
+                />
+                <span>Chọn tất cả</span>
+              </label>
+            )}
+
+            <Button 
+              onClick={() => { setIsModalOpen(true); handleCancelEdit() }} 
+              variant="outline" 
+              className="border-[#EEDFD0] dark:border-white/10 text-[#7A4A2D] dark:text-[#E9D7C3] bg-white dark:bg-[#241D18] hover:bg-[#FFF4E7] dark:hover:bg-[#3D2D23] gap-1.5 h-8 px-3 text-xs font-semibold rounded-xl shadow-2xs transition-all"
+            >
+              <Plus className="size-3.5 text-[#A45C12] dark:text-[#F4C27A]" /> Quản lý thanh chia quyển
+            </Button>
+          </div>
         </div>
       )}
 
+      {/* THANH THAO TÁC STICKY KHI CHỌN CHƯƠNG */}
+      {isAdmin && selectedNums.length > 0 && (
+        <div className="sticky top-20 z-40 flex flex-wrap items-center justify-between gap-3 px-5 py-3 rounded-[18px] border border-[#D89A52]/50 bg-white/95 dark:bg-[#241D18]/95 backdrop-blur-md shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3 text-xs sm:text-sm font-bold text-[#5A3823] dark:text-[#E9D7C3]">
+            <span className="flex items-center justify-center h-6 px-2.5 rounded-full bg-[#FFF4E7] dark:bg-[#3D2D23] border border-[#D89A52] text-[#A45C12] dark:text-[#F4C27A] text-xs font-extrabold">
+              Đã chọn {selectedNums.length} chương
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={toggleSelectAll}
+              className="h-8 px-3 rounded-xl border-[#EEDFD0] dark:border-white/10 text-xs font-semibold text-[#7A4A2D] dark:text-[#E9D7C3] hover:bg-[#FFF4E7] dark:hover:bg-[#3D2D23]"
+            >
+              {allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedNums([])}
+              className="h-8 px-3 rounded-xl text-xs font-semibold text-[#9B8C80] hover:text-[#5A3823] dark:text-stone-400 dark:hover:text-[#E9D7C3]"
+            >
+              Bỏ chọn
+            </Button>
+            <Button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={isPending}
+              size="sm"
+              className="h-8 px-3.5 rounded-xl text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white gap-1.5 shadow-sm active:scale-95 transition-all"
+            >
+              {isPending ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+              Xóa
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* KHUNG CARD NGOÀI QUYỂN */}
       {groupedChapters.map((group) => {
         const isOpen = openGroups.includes(group.start_chapter)
 
         return (
-          <div key={group.start_chapter} className="border border-[#E5D8C8]/60 dark:border-stone-800/60 rounded-2xl bg-[#FFFDFB] dark:bg-[#1a1412] shadow-sm overflow-hidden transition-all duration-300">
-            
+          <div 
+            key={group.start_chapter} 
+            className="rounded-[20px] border border-[#F2E8DC] dark:border-white/10 bg-white dark:bg-[#241D18] p-4 sm:p-5 shadow-[0_4px_20px_rgba(80,50,20,0.04)] transition-all duration-200"
+          >
+            {/* HEADER QUYỂN */}
             <div 
               onClick={() => toggleGroup(group.start_chapter)}
-              className={cn(
-                "flex items-center justify-between px-6 py-4 cursor-pointer transition group select-none animate-fade-in",
-                isOpen ? "bg-[#F4EEE6]/30 dark:bg-stone-900/40" : "bg-transparent"
-              )}
+              className="flex items-center justify-between cursor-pointer select-none group"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-[#F4EEE6]/80 dark:bg-stone-800 text-[#8B5E3C] dark:text-[#EADBC8] border border-[#E5D8C8]/40 dark:border-stone-700 transition group-hover:scale-105">
-                  <BookOpen className="size-4" />
+              <div className="flex items-center gap-2.5">
+                <div className="flex p-2 rounded-xl bg-[#FFF4E7] dark:bg-[#3D2D23] text-[#A45C12] dark:text-[#F4C27A] shrink-0 items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                  <BookOpen className="size-4.5" />
                 </div>
-                
-                <h3 className="font-serif text-[16px] font-bold text-[#5C3D2E] dark:text-[#EADBC8] tracking-wide transition group-hover:text-[#8B5E3C]">
-                  {group.title}
-                </h3>
+                <div>
+                  <h3 className="font-serif font-bold text-[#5A3823] dark:text-[#E9D7C3] text-base sm:text-lg leading-tight">
+                    {group.title}
+                  </h3>
+                </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 font-sans">
+                <span className="text-xs font-medium text-[#9B8C80] dark:text-[#B59C86]">
                   {group.chapters.length} chương
                 </span>
-                <div className="p-1.5 rounded-full bg-[#F4EEE6]/70 dark:bg-stone-800 text-[#5C3D2E] dark:text-stone-400 group-hover:bg-[#EADBC8] dark:group-hover:bg-stone-700 transition">
+                <div className="flex size-7.5 items-center justify-center rounded-full bg-[#FFF4E7]/60 dark:bg-[#3D2D23]/60 text-[#5A3823] dark:text-[#E9D7C3] hover:bg-[#FFF4E7] dark:hover:bg-[#3D2D23] transition-colors">
                   {isOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                 </div>
               </div>
             </div>
 
+            {/* 🌟 LƯỚI CARD CHƯƠNG ĐÃ ĐƯỢC CĂN LỀ TRÁI CÂN ĐỐI THẲNG HÀNG 100% [MỚI] */}
             {isOpen && (
-              <div className="p-5 border-t border-[#E5D8C8]/40 dark:border-stone-800/60 bg-[#FBF9F6]/40 dark:bg-transparent">
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  {group.chapters.map((ch) => (
-                    <div key={ch.number} className="relative group w-full">
-                      <Link
-                        href={`/truyen/${storySlug}/${ch.number}`}
+              <>
+                <div className="my-3.5 border-t border-[#F6EBDD] dark:border-white/10" />
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 animate-in fade-in duration-200">
+                  {group.chapters.map((ch) => {
+                    const isSelected = selectedNums.includes(ch.number)
+
+                    return (
+                      <div 
+                        key={ch.number} 
+                        onClick={() => isAdmin && toggleSelectChapter(ch.number)}
                         className={cn(
-                          "flex items-center justify-center rounded-xl border border-[#E5D8C8]/60 dark:border-stone-800 bg-[#FFFDFB] dark:bg-stone-900 px-3 py-3 transition-all hover:border-[#8B5E3C] hover:text-[#8B5E3C] hover:bg-[#F4EEE6]/60 dark:hover:bg-stone-800/40 hover:shadow-sm w-full text-center overflow-hidden",
-                          isAdmin && "pr-9 text-left" 
+                          // 🌟 justify-start & text-left giúp tất cả tên chương bắt đầu ở mép trái thẳng hàng đứng
+                          "group relative flex h-[42px] items-center justify-start px-3.5 rounded-xl border text-left transition-all duration-200 ease-out select-none cursor-pointer overflow-hidden",
+                          isSelected
+                            ? "bg-gradient-to-r from-[#F4C27A] to-[#D89A52] border-[#D89A52] text-white shadow-[0_4px_12px_rgba(216,154,82,0.3)] scale-[1.01]"
+                            : "bg-white dark:bg-[#31261F] border-[#EEDFD0] dark:border-white/10 text-[#7A4A2D] dark:text-[#E9D7C3] hover:border-[#D89A52] dark:hover:border-[#D89A52] hover:bg-[#FFF8F1] dark:hover:bg-[#3D2D23] hover:-translate-y-[1px] hover:shadow-xs"
                         )}
                       >
-                        <span className="text-[13px] font-bold uppercase tracking-wide text-[#5C3D2E]/80 dark:text-stone-300 line-clamp-1 truncate text-center w-full">
-                          {ch.title}
-                        </span>
-                      </Link>
+                        {/* CHECKBOX ADMIN */}
+                        {isAdmin && (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              e.stopPropagation()
+                              toggleSelectChapter(ch.number)
+                            }}
+                            className="size-3.5 rounded border-stone-300 dark:border-stone-700 text-[#D89A52] focus:ring-[#D89A52] cursor-pointer shrink-0 mr-2 accent-[#D89A52]"
+                          />
+                        )}
 
-                      {isAdmin && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault() 
-                            e.stopPropagation() 
-                            handleDeleteChapterClick(ch.number, ch.title)
-                          }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 transition opacity-0 group-hover:opacity-100 shadow-sm border border-red-200/40 dark:border-red-900/30"
-                          title={`Xóa vĩnh viễn ${ch.title}`}
+                        {/* 🌟 text-left giúp chữ CHƯƠNG... bắt đầu thẳng hàng tăm tắp từ bên trái qua */}
+                        <Link
+                          href={`/truyen/${storySlug}/${ch.number}`}
+                          onClick={(e) => isAdmin && e.stopPropagation()}
+                          className={cn(
+                            "text-[12px] font-bold uppercase tracking-tight truncate flex-1 text-left transition-colors min-w-0",
+                            isSelected
+                              ? "text-white"
+                              : "text-[#7A4A2D] dark:text-[#E9D7C3] group-hover:text-[#5A3823] dark:group-hover:text-[#F4C27A]"
+                          )}
                         >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                          {ch.title}
+                        </Link>
+
+                        {/* NÚT XÓA ĐƠN HOVER */}
+                        {isAdmin && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault() 
+                              e.stopPropagation() 
+                              handleDeleteChapterClick(ch.number, ch.title)
+                            }}
+                            className="p-0.5 text-[#9B8C80] hover:text-rose-600 dark:hover:text-rose-400 rounded transition-colors opacity-0 group-hover:opacity-100 ml-1 shrink-0"
+                            title={`Xóa vĩnh viễn ${ch.title}`}
+                          >
+                            <Trash2 className="size-3" />
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
+              </>
             )}
           </div>
         )
       })}
 
-      {/* MODAL QUẢN LÝ QUYỂN */}
+      {/* POPUP MODAL QUẢN LÝ QUYỂN */}
       {isAdmin && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-stone-900 p-6 shadow-2xl border border-stone-200 dark:border-stone-800 transform transition-all">
+          <div className="w-full max-w-md rounded-[28px] bg-white dark:bg-[#241D18] p-6 sm:p-7 shadow-2xl border border-[#F2E8DC] dark:border-white/10 transform transition-all max-h-[88vh] overflow-y-auto">
             
-            <div className="flex justify-between items-center mb-4 border-b border-stone-100 dark:border-stone-800 pb-3">
-              <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 flex items-center gap-2">
-                {isEditMode ? <Edit2 className="size-5 text-amber-600 animate-pulse" /> : <Plus className="size-5 text-amber-800" />}
+            <div className="flex justify-between items-center mb-4 border-b border-[#F6EBDD] dark:border-white/10 pb-3">
+              <h3 className="text-lg font-serif font-bold text-[#5A3823] dark:text-[#E9D7C3] flex items-center gap-2">
+                {isEditMode ? <Edit2 className="size-5 text-[#A45C12] animate-pulse" /> : <Plus className="size-5 text-[#A45C12]" />}
                 {isEditMode ? 'Chỉnh sửa Quyển' : 'Tạo thanh Quyển mới'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition">
+              <button onClick={() => setIsModalOpen(false)} className="text-[#9B8C80] hover:text-[#5A3823] dark:hover:text-[#E9D7C3] transition">
                 <XCircle className="size-6" />
               </button>
             </div>
             
             <div className="space-y-4">
-              <div className="bg-stone-50 dark:bg-stone-950/50 p-4 rounded-2xl border border-stone-100 dark:border-stone-800 space-y-3">
+              <div className="bg-[#FFF9F4] dark:bg-[#31261F] p-4 rounded-2xl border border-[#EEDFD0] dark:border-white/10 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wide">Số quyển:</label>
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wide">Số quyển:</label>
                     <Input 
                       type="number" 
                       min={1}
                       value={editVol.volumeNumber} 
                       onChange={(e) => setEditVol({...editVol, volumeNumber: parseInt(e.target.value) || 1})} 
-                      className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 h-9"
+                      className="mt-1 border-[#EEDFD0] dark:border-white/10 font-semibold bg-white dark:bg-[#241D18] text-[#5A3823] dark:text-[#E9D7C3] h-9 rounded-xl"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wide">Chương bắt đầu:</label>
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wide">Chương bắt đầu:</label>
                     <Input 
                       type="number" 
                       min={1}
                       value={editVol.startChapter} 
                       onChange={(e) => setEditVol({...editVol, startChapter: parseInt(e.target.value) || 1})} 
                       disabled={isEditMode}
-                      className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 h-9 disabled:opacity-50"
+                      className="mt-1 border-[#EEDFD0] dark:border-white/10 font-semibold bg-white dark:bg-[#241D18] text-[#5A3823] dark:text-[#E9D7C3] h-9 rounded-xl disabled:opacity-50"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wide">Tên quyển:</label>
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wide">Tên quyển:</label>
                     <Input 
                       value={editVol.volumeName} 
                       onChange={(e) => setEditVol({...editVol, volumeName: e.target.value})} 
                       placeholder="Nhập tên quyển..."
-                      className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 h-9"
+                      className="mt-1 border-[#EEDFD0] dark:border-white/10 font-semibold bg-white dark:bg-[#241D18] text-[#5A3823] dark:text-[#E9D7C3] h-9 rounded-xl"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wide">Chương kết thúc (nếu có):</label>
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wide">Chương kết thúc (nếu có):</label>
                     <Input 
                       type="number" 
                       value={editVol.endChapter} 
                       onChange={(e) => setEditVol({...editVol, endChapter: e.target.value})} 
-                      placeholder="Tự động tính..."
-                      className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 h-9"
+                      placeholder="Ví dụ: 192"
+                      className="mt-1 border-[#EEDFD0] dark:border-white/10 font-semibold bg-white dark:bg-[#241D18] text-[#5A3823] dark:text-[#E9D7C3] h-9 rounded-xl"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wide">Mô tả quyển (nếu có):</label>
+                <div className="text-left">
+                  <label className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wide">Mô tả quyển (nếu có):</label>
                   <Textarea 
                     value={editVol.description} 
                     onChange={(e) => setEditVol({...editVol, description: e.target.value})} 
                     placeholder="Nhập mô tả ngắn cho quyển này..."
-                    className="mt-1 border-stone-200 dark:border-stone-800 font-semibold bg-white dark:bg-stone-900 min-h-[50px] text-xs"
+                    className="mt-1 border-[#EEDFD0] dark:border-white/10 font-semibold bg-white dark:bg-[#241D18] text-[#5A3823] dark:text-[#E9D7C3] min-h-[50px] text-xs rounded-xl"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-1 border-t border-stone-100 dark:border-stone-800">
+              <div className="flex justify-end gap-2 pt-1 border-t border-[#F6EBDD] dark:border-white/10">
                 {isEditMode ? (
-                  <Button variant="outline" onClick={handleCancelEdit} disabled={isPending} className="rounded-xl h-9 text-xs font-semibold">
+                  <Button variant="outline" onClick={handleCancelEdit} disabled={isPending} className="rounded-xl h-9 text-xs font-semibold text-[#9B8C80]">
                     Hủy chỉnh sửa
                   </Button>
                 ) : (
-                  <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={isPending} className="rounded-xl h-9 text-xs font-semibold">
+                  <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={isPending} className="rounded-xl h-9 text-xs font-semibold text-[#9B8C80]">
                     Hủy
                   </Button>
                 )}
 
-                <Button onClick={handleSaveVolume} disabled={isPending} className="bg-[#8B5E3C] hover:bg-[#5C3D2E] text-white rounded-xl h-9 text-xs font-semibold transition-all">
+                <Button onClick={handleSaveVolume} disabled={isPending} className="bg-[#A45C12] hover:bg-[#8A490F] text-white rounded-xl h-9 text-xs font-semibold transition-all">
                   {isPending && <Loader2 className="size-4 animate-spin mr-1.5" />} 
                   {isEditMode ? 'Cập nhật' : 'Lưu quyển'}
                 </Button>
@@ -404,8 +564,8 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
 
               {/* DANH SÁCH CÁC QUYỂN HIỆN TẠI */}
               {volumes.length > 0 && (
-                <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2 block">Các quyển hiện tại:</span>
+                <div className="pt-4 border-t border-[#F6EBDD] dark:border-white/10">
+                  <span className="text-[10px] font-bold text-[#9B8C80] uppercase tracking-wider mb-2 block text-left">Các quyển hiện tại:</span>
                   <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                     {[...volumes]
                       .map(v => ({ ...v, parsed: parseVolumeTitle(v.title) }))
@@ -422,25 +582,24 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
                             key={v.start_chapter} 
                             onClick={() => handleEditClick(v)}
                             className={cn(
-                              "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden",
+                              "flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all duration-200 group relative overflow-hidden text-left",
                               isActive 
-                                ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200 dark:border-amber-900" 
-                                : "bg-[#FBF9F6] dark:bg-stone-900 border-stone-200/60 dark:border-stone-800 hover:border-amber-300 dark:hover:border-stone-700"
+                                ? "bg-[#FFF4E7] dark:bg-[#3D2D23] border-[#D89A52]" 
+                                : "bg-[#FFF9F4] dark:bg-[#31261F] border-[#EEDFD0] dark:border-white/10 hover:border-[#D89A52]"
                             )}
                             title="Bấm vào để chỉnh sửa quyển này"
                           >
                             <div className="flex items-start gap-3">
-                              <span className={cn("text-base mt-0.5", isActive ? "text-amber-600" : "text-stone-400 group-hover:text-amber-600")}>📖</span>
+                              <span className={cn("text-base mt-0.5", isActive ? "text-[#A45C12]" : "text-[#9B8C80] group-hover:text-[#A45C12]")}>📖</span>
                               <div>
-                                {/* 🌟 ĐÃ SỬA: Hiển thị đúng getVolumeDisplayName động để xóa hẳn chữ tự động Quyển 1, Quyển 2 [1] */}
-                                <p className={cn("text-sm font-bold", isActive ? "text-amber-900 dark:text-amber-100" : "text-stone-700 dark:text-stone-200")}>
+                                <p className={cn("text-xs font-bold", isActive ? "text-[#5A3823] dark:text-[#E9D7C3]" : "text-[#7A4A2D] dark:text-[#E9D7C3]")}>
                                   {getVolumeDisplayName(v.title)}
                                 </p>
-                                <p className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 mt-0.5">
+                                <p className="text-[11px] font-semibold text-[#9B8C80] dark:text-stone-400 mt-0.5">
                                   Chương {v.start_chapter} → {finalEndChapter}
                                 </p>
                                 {v.parsed.description && (
-                                  <p className="text-[10px] text-stone-400 italic line-clamp-1 mt-0.5 max-w-[200px]">
+                                  <p className="text-[10px] text-[#9B8C80] italic line-clamp-1 mt-0.5 max-w-[200px]">
                                     {v.parsed.description}
                                   </p>
                                 )}
@@ -450,14 +609,14 @@ export function ChapterVolumeList({ storySlug, chapters, volumes, isAdmin }: Cha
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleEditClick(v) }}
-                                className="p-1.5 text-amber-600 bg-amber-50 dark:bg-amber-950/20 hover:bg-amber-100 rounded-md transition"
+                                className="p-1.5 text-[#A45C12] bg-[#FFF4E7] dark:bg-[#3D2D23] hover:bg-[#FFE8D1] rounded-lg transition"
                                 title="Chỉnh sửa"
                               >
                                 <Edit2 className="size-3.5" />
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteVolume(v) }} 
-                                className="p-1.5 text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/40 rounded-md transition"
+                                className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 rounded-lg transition"
                                 title="Xóa quyển"
                               >
                                 <Trash2 className="size-3.5"/>

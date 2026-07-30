@@ -14,13 +14,9 @@ function checkIsAdmin(userId: string | null | undefined) {
   return userId && userId === ADMIN_ID
 }
 
-/**
- * ACTION: GỘP TRUYỆN VÀ ĐỒNG BỘ CẢ METADATA SỬA ĐÈ TỪ DATABASE
- * @param onlyPublic Nếu là true, chỉ trả về các truyện đang được công khai cho độc giả đọc
- */
+// ACTION: GỘP TRUYỆN VÀ ĐỒNG BỘ CẢ METADATA SỬA ĐÈ TỪ DATABASE
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
   try {
-    // 1. Lấy tất cả truyện mới được đăng từ bảng stories trên web
     const dbResult = await sql`SELECT * FROM stories ORDER BY created_at DESC`
     const dbStories: Story[] = dbResult.rows.map((row) => ({
       slug: row.slug,
@@ -34,28 +30,23 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       description: row.description || '',
       link: row.link || '',
       tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
-      is_public: row.is_public !== undefined ? row.is_public : true, // Nhận trạng thái công khai từ database
+      is_public: row.is_public !== undefined ? row.is_public : true,
       chapters: Array.from({ length: row.chapter_count || 0 }, (_, i) => ({
         number: i + 1,
         title: `Chương ${i + 1}`
       }))
     }))
 
-    // 2. Lấy toàn bộ thông tin chỉnh sửa từ bảng story_metadata
     const metaResult = await sql`SELECT * FROM story_metadata`
     const metadataMap = new Map<string, any>()
     metaResult.rows.forEach((row) => {
       metadataMap.set(row.slug, row)
     })
 
-    // 3. Tiến hành gộp chung mảng tĩnh và mảng database lại làm một
-    // 🌟 ĐÃ SỬA: Thêm điều kiện phòng vệ an toàn phòng trường hợp STORIES bị xóa hoặc rỗng [1]
     const safeStories = Array.isArray(STORIES) ? STORIES : []
     const allCombinedStories = [...safeStories, ...dbStories]
 
-    // 4. Đồng bộ thông tin đã sửa đè từ story_metadata vào TOÀN BỘ danh sách truyện đã gộp
     const fullyMergedStories = allCombinedStories.map((s) => {
-      // Trạng thái công khai mặc định là true
       let isPublic = (s as any).is_public !== undefined ? (s as any).is_public : true
       
       const meta = metadataMap.get(s.slug)
@@ -67,7 +58,6 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
         return {
           ...s,
           is_public: isPublic,
-          // NHẬN DIỆN THÔNG TIN ĐÃ SỬA
           title: meta.title || s.title,
           author: meta.author || s.author,
           cover: meta.cover || s.cover,
@@ -86,7 +76,6 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       }
     })
     
-    // Nếu chế độ chỉ công khai được bật, lọc bỏ toàn bộ các truyện bị ẩn (is_public === false)
     if (onlyPublic) {
       return fullyMergedStories.filter((s) => s.is_public !== false)
     }
@@ -98,9 +87,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
   }
 }
 
-/**
- * ACTION: BẬT / TẮT TRẠNG THÁI CÔNG KHAI TRUYỆN (HỦY ĐĂNG)
- */
+// ACTION: BẬT / TẮT TRẠNG THÁI CÔNG KHAI TRUYỆN (HỦY ĐĂNG)
 export async function togglePublishStory(storySlug: string, currentIsPublic: boolean) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -108,7 +95,6 @@ export async function togglePublishStory(storySlug: string, currentIsPublic: boo
   const nextIsPublic = !currentIsPublic
 
   try {
-    // 1. Nếu là truyện trên database, cập nhật trực tiếp tại bảng stories
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
     if (dbStoryResult.rows.length > 0) {
       await sql`
@@ -118,7 +104,6 @@ export async function togglePublishStory(storySlug: string, currentIsPublic: boo
       `
     }
 
-    // 2. Đồng bộ trạng thái ẩn/hiện vào bảng metadata (áp dụng được cho cả truyện tĩnh)
     await sql`
       INSERT INTO story_metadata (slug, is_public)
       VALUES (${storySlug}, ${nextIsPublic})
@@ -133,21 +118,14 @@ export async function togglePublishStory(storySlug: string, currentIsPublic: boo
   }
 }
 
-/**
- * ACTION: XÓA SẠCH TRUYỆN VÀ DỌN DẸP DỮ LIỆU LIÊN QUAN
- */
+// ACTION: XÓA SẠCH TRUYỆN VÀ DỌN DẸP DỮ LIỆU LIÊN QUAN
 export async function deleteStory(storySlug: string) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
-    // 1. Xóa nội dung các chương truyện trong chapter_contents
     await sql`DELETE FROM chapter_contents WHERE story_slug = ${storySlug}`
-
-    // 2. Xóa dữ liệu chỉnh sửa trong story_metadata
     await sql`DELETE FROM story_metadata WHERE slug = ${storySlug}`
-
-    // 3. Xóa các lượt lưu yêu thích của người dùng đối với truyện này
     try {
       await sql`DELETE FROM favorites WHERE story_slug = ${storySlug}`
     } catch (_) {
@@ -155,11 +133,7 @@ export async function deleteStory(storySlug: string) {
         await sql`DELETE FROM user_favorites WHERE story_slug = ${storySlug}`
       } catch (_) {}
     }
-
-    // 4. Xóa tất cả thông báo hệ thống liên quan tới truyện này
     await sql`DELETE FROM notifications WHERE story_slug = ${storySlug}`
-
-    // 5. Xóa truyện khỏi danh sách chính trên cơ sở dữ liệu
     await sql`DELETE FROM stories WHERE slug = ${storySlug}`
 
     return { success: true }
@@ -169,9 +143,7 @@ export async function deleteStory(storySlug: string) {
   }
 }
 
-/**
- * ACTION: TỰ ĐỘNG TĂNG SỐ LƯỢNG CHƯƠNG KHI KHỞI TẠO CHƯƠNG MỚI & GỬI THÔNG BÁO CHO ĐỘC GIẢ
- */
+// ACTION: TỰ ĐỘNG TĂNG SỐ LƯỢNG CHƯƠNG KHI KHỞI TẠO CHƯƠNG MỚI
 export async function addNewChapter(storySlug: string, currentChapterCount: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -179,18 +151,15 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
   const nextChapterNum = currentChapterCount + 1
 
   try {
-    // Kiểm tra xem truyện này nằm ở bảng stories (truyện mới) hay chỉ có trong stories.ts (truyện tĩnh)
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
     
     if (dbStoryResult.rows.length > 0) {
-      // Nếu là truyện mới trên database, tăng trực tiếp chapter_count ở bảng stories
       await sql`
         UPDATE stories 
         SET chapter_count = ${nextChapterNum} 
         WHERE slug = ${storySlug}
       `
     } else {
-      // Nếu là truyện tĩnh, tăng chapter_count và lưu đè vào bảng story_metadata
       await sql`
         INSERT INTO story_metadata (slug, chapter_count)
         VALUES (${storySlug}, ${nextChapterNum})
@@ -199,7 +168,6 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
       `
     }
 
-    // 1. Lấy Tên truyện và Ảnh bìa làm avatar thông báo
     let storyTitle = storySlug
     let storyCover = '/placeholder.svg'
     
@@ -218,7 +186,6 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
       }
     }
 
-    // 2. Tìm danh sách những người dùng đã lưu yêu thích truyện này
     let favResult
     try {
       favResult = await sql`SELECT user_id FROM favorites WHERE story_slug = ${storySlug}`
@@ -230,7 +197,6 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
       }
     }
 
-    // 3. Thêm bản ghi thông báo loại 'new_chapter'
     if (favResult && favResult.rows.length > 0) {
       for (const fav of favResult.rows) {
         await sql`
@@ -256,9 +222,7 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
   }
 }
 
-/**
- * ACTION: TẠO TRUYỆN MỚI TRÊN WEB, LƯU HÀNG LOẠT LÔ 50 CHƯƠNG SIÊU TỐC
- */
+// ACTION: TẠO TRUYỆN MỚI TRÊN WEB
 export async function createNewStory(data: {
   slug: string; 
   title: string; 
@@ -269,7 +233,7 @@ export async function createNewStory(data: {
   link: string; 
   tags: string; 
   chapter_count: number;
-  chapters?: { number: number; title: string; content: string }[] // Nhận thêm mảng chương bóc tách từ file
+  chapters?: { number: number; title: string; content: string }[]
 }) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -278,12 +242,9 @@ export async function createNewStory(data: {
 
   try {
     const cleanSlug = data.slug.trim().toLowerCase();
-
-    // PHÒNG VỆ: Cắt bớt danh sách thể loại và tags nếu nó vượt quá 250 ký tự để tránh crash DB VARCHAR(255)
     const safeGenres = data.genres.trim().length > 250 ? data.genres.trim().slice(0, 250) : data.genres.trim();
     const safeTags = data.tags.trim().length > 250 ? data.tags.trim().slice(0, 250) : data.tags.trim();
 
-    // 1. Lưu metadata của truyện mới vào bảng stories
     await sql`
       INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public)
       VALUES (
@@ -297,15 +258,12 @@ export async function createNewStory(data: {
         ${data.link.trim()}, 
         ${safeTags}, 
         ${data.chapter_count},
-        true -- Mặc định khi tạo truyện mới sẽ ở chế độ công khai
+        true
       )
       ON CONFLICT (slug) DO NOTHING
     `
 
-    // 2. LƯU NỘI DUNG CÁC CHƯƠNG BẰNG THUẬT TOÁN CHIA LÔ BATCHING
     if (data.chapters && data.chapters.length > 0) {
-      // GIẢI PHÁP TỐI ƯU: Chia nhỏ thành các lô 50 chương và lưu song song 
-      // để tăng tốc độ lên gấp 50 lần, chống sập máy chủ Vercel do Timeout
       const chunkSize = 50;
       for (let i = 0; i < data.chapters.length; i += chunkSize) {
         const chunk = data.chapters.slice(i, i + chunkSize);
@@ -325,7 +283,6 @@ export async function createNewStory(data: {
       }
     }
 
-    // 3. Tự động lấy danh sách User nhận thông báo
     let userIds: string[] = []
     try {
       const usersRes = await sql`SELECT id FROM users`
@@ -335,7 +292,6 @@ export async function createNewStory(data: {
       userIds = activeUsersRes.rows.map(r => r.recipient_id)
     }
 
-    // 4. Gửi thông báo truyện mới cho độc giả
     if (userIds.length > 0) {
       for (const uid of userIds) {
         await sql`
@@ -361,9 +317,7 @@ export async function createNewStory(data: {
   }
 }
 
-/**
- * ACTION: TỰ ĐỘNG LƯU FILE ẢNH LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
- */
+// ACTION: UPLOAD ẢNH
 export async function uploadImage(formData: FormData) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -372,7 +326,6 @@ export async function uploadImage(formData: FormData) {
     const file = formData.get('file') as File
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
-    // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
     if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
       const blob = await put(`story-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
         access: 'public',
@@ -380,7 +333,6 @@ export async function uploadImage(formData: FormData) {
       return { success: true, url: blob.url }
     }
 
-    // 🌟 FALLBACK 2: Nếu chưa cấu hình Token (Chạy offline ở localhost dưới máy của bạn)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
@@ -399,11 +351,8 @@ export async function uploadImage(formData: FormData) {
   }
 }
 
-/**
- * ACTION: TỰ ĐỘNG LƯU FILE ẢNH CMT LÊN CLOUD VERCEL BLOB NẾU CÓ TOKEN, FALLBACK LƯU LOCAL NẾU CHẠY OFFLINE
- */
+// ACTION: UPLOAD ẢNH BÌNH LUẬN
 export async function uploadCommentImage(formData: FormData) {
-  // Chỉ yêu cầu đăng nhập, không yêu cầu là Admin
   const { userId } = await auth()
   if (!userId) return { success: false, error: 'Bạn cần đăng nhập để tải ảnh!' }
 
@@ -411,7 +360,6 @@ export async function uploadCommentImage(formData: FormData) {
     const file = formData.get('file') as File
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
-    // 🌟 ƯU TIÊN 1: Nếu đã cấu hình Vercel Blob (Chạy trên môi trường Vercel production)
     if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
       const blob = await put(`comment-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
         access: 'public',
@@ -419,11 +367,9 @@ export async function uploadCommentImage(formData: FormData) {
       return { success: true, url: blob.url }
     }
 
-    // 🌟 FALLBACK 2: Nếu chưa cấu hình Token (Chạy offline ở localhost dưới máy của bạn)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Tạo thư mục riêng cho ảnh bình luận để dễ quản lý
     const dirPath = path.join(process.cwd(), 'public', 'comment-images')
     await fs.mkdir(dirPath, { recursive: true })
 
@@ -439,9 +385,7 @@ export async function uploadCommentImage(formData: FormData) {
   }
 }
 
-/**
- * ACTION LƯU HOẶC SỬA NỘI DUNG CHƯƠNG TRUYỆN
- */
+// ACTION LƯU HOẶC SỬA NỘI DUNG CHƯƠNG
 export async function updateChapterContent(storySlug: string, chapterNum: number, content: string, title: string) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -460,9 +404,7 @@ export async function updateChapterContent(storySlug: string, chapterNum: number
   }
 }
 
-/**
- * ACTION LƯU HOẶC SỬA GIỚI THIỆU TRUYỆN
- */
+// ACTION LƯU HOẶC SỬA GIỚI THIỆU TRUYỆN
 export async function updateStoryMetadata(slug: string, description: string, link: string, genres: string) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -481,9 +423,7 @@ export async function updateStoryMetadata(slug: string, description: string, lin
   }
 }
 
-/**
- * ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
- */
+// ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
 export async function updateFullStoryInfo(
   slug: string,
   data: { title: string; author: string; cover: string; description: string; link: string; genres: string }
@@ -492,7 +432,6 @@ export async function updateFullStoryInfo(
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
-    // Cập nhật truyện mới trên bảng stories
     const dbStory = await sql`SELECT slug FROM stories WHERE slug = ${slug}`
     if (dbStory.rows.length > 0) {
       await sql`
@@ -503,7 +442,6 @@ export async function updateFullStoryInfo(
       `
     }
 
-    // Ghi đè vào bảng metadata (Áp dụng cho cả truyện gốc)
     await sql`
       INSERT INTO story_metadata (slug, title, author, cover, description, link, genres)
       VALUES (${slug}, ${data.title}, ${data.author}, ${data.cover}, ${data.description}, ${data.link}, ${data.genres})
@@ -519,13 +457,7 @@ export async function updateFullStoryInfo(
   }
 }
 
-// ==============================================================
-// 🌟 CÁC LỆNH MỚI BỔ SUNG CHO TÍNH NĂNG CHIA QUYỂN (ACCORDION)
-// ==============================================================
-
-/**
- * ACTION: LẤY DANH SÁCH QUYỂN CỦA TRUYỆN
- */
+// ACTION: LẤY DANH SÁCH QUYỂN CỦA TRUYỆN
 export async function getStoryVolumes(storySlug: string) {
   try {
     const res = await sql`
@@ -540,9 +472,7 @@ export async function getStoryVolumes(storySlug: string) {
   }
 }
 
-/**
- * ACTION: THÊM / SỬA THANH CHIA QUYỂN
- */
+// ACTION: THÊM / SỬA THANH CHIA QUYỂN
 export async function addOrUpdateVolume(storySlug: string, startChapter: number, title: string) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -560,9 +490,7 @@ export async function addOrUpdateVolume(storySlug: string, startChapter: number,
   }
 }
 
-/**
- * ACTION: XÓA THANH CHIA QUYỂN
- */
+// ACTION: XÓA THANH CHIA QUYỂN
 export async function deleteVolume(storySlug: string, startChapter: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -578,9 +506,7 @@ export async function deleteVolume(storySlug: string, startChapter: number) {
   }
 }
 
-/**
- * ACTION: XÓA CHƯƠNG VÀ TỰ ĐỘNG DỒN SỐ CHƯƠNG PHÍA SAU LÊN (SHIFTING)
- */
+// ACTION: XÓA CHƯƠNG VÀ TỰ ĐỘNG DỒN SỐ CHƯƠNG PHÍA SAU LÊN
 export async function deleteChapter(storySlug: string, chapterNum: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) {
@@ -588,14 +514,11 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
   }
 
   try {
-    // 1. Xóa nội dung chương mục tiêu trong chapter_contents
     await sql`
       DELETE FROM chapter_contents 
       WHERE story_slug = ${storySlug} AND chapter_number = ${chapterNum}
     `
 
-    // 2. Dịch chuyển số chương của các chương sau lùi lại 1 đơn vị để tránh đứt quãng
-    // 🌟 KHẮC PHỤC LỖI TRÙNG KHÓA: Dùng mẹo đẩy sang mốc số âm tạm thời để cơ sở dữ liệu không bị "đụng xe" [1]
     await sql`
       UPDATE chapter_contents 
       SET chapter_number = -(chapter_number - 1)
@@ -607,7 +530,6 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
       WHERE story_slug = ${storySlug} AND chapter_number < 0
     `
 
-    // 3. Cập nhật lại số lượng chương (chapter_count) trong database
     const dbStoryResult = await sql`SELECT chapter_count FROM stories WHERE slug = ${storySlug} LIMIT 1`
     
     if (dbStoryResult.rows.length > 0) {
@@ -619,7 +541,6 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
         WHERE slug = ${storySlug}
       `
     } else {
-      // Truyện tĩnh trong story_metadata
       const metaResult = await sql`SELECT chapter_count FROM story_metadata WHERE slug = ${storySlug} LIMIT 1`
       if (metaResult.rows.length > 0) {
         const currentCount = metaResult.rows[0].chapter_count || 0
@@ -632,13 +553,11 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
       }
     }
 
-    // Nếu có quyển bắt đầu đúng tại chương bị xóa, xóa mốc quyển đó luôn (trừ quyển đầu tiên)
     await sql`
       DELETE FROM story_volumes 
       WHERE story_slug = ${storySlug} AND start_chapter = ${chapterNum} AND start_chapter > 1
     `
 
-    // 4. Lùi mốc phân quyển (volumes) lại 1 đơn vị bằng cơ chế âm tạm thời chống trùng khóa [1]
     await sql`
       UPDATE story_volumes 
       SET start_chapter = -(start_chapter - 1)
@@ -657,15 +576,12 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
   }
 }
 
-/**
- * ACTION: UPLOAD DANH SÁCH CHƯƠNG HÀNG LOẠT
- */
+// ACTION: UPLOAD DANH SÁCH CHƯƠNG HÀNG LOẠT
 export async function uploadChaptersFromText(storySlug: string, chapters: { number: number; title: string; content: string }[]) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
-    // 🌟 Áp dụng thuật toán chia lô lưu song song siêu tốc
     const chunkSize = 50;
     for (let i = 0; i < chapters.length; i += chunkSize) {
       const chunk = chapters.slice(i, i + chunkSize);
@@ -684,7 +600,6 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
       }));
     }
 
-    // 2. Cập nhật lại tổng số lượng chương (chapter_count) trong bảng stories
     const nextChapterCount = chapters.length
     await sql`
       UPDATE stories 
@@ -699,8 +614,7 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
   }
 }
 
-// 🌟 ACTION MỚI: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG ĐÃ QUA LỌC BÓC TÁCH [5]
-// Sử dụng cơ chế INSERT ON CONFLICT để ghi đè hoặc tạo mới tránh trùng lặp dữ liệu [5, 6]
+// ACTION: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG ĐÃ QUA LỌC BÓC TÁCH
 export async function bulkImportChapters(
   storySlug: string,
   startCount: number,
@@ -712,10 +626,9 @@ export async function bulkImportChapters(
       return { success: false, error: 'Quyền truy cập bị từ chối!' }
     }
 
-    // Thực hiện lưu từng chương một cách nhanh chóng và bảo vệ toàn vẹn dữ liệu [5, 6]
     for (let i = 0; i < chapters.length; i++) {
       const chap = chapters[i]
-      const nextChapterNum = startCount + i + 1 // Tự động đánh số liên tiếp bù trừ tránh trùng lặp [6]
+      const nextChapterNum = startCount + i + 1
 
       const safeChapterTitle = chap.title.trim().length > 250 
         ? chap.title.trim().slice(0, 247) + '...' 
@@ -729,7 +642,6 @@ export async function bulkImportChapters(
       `
     }
 
-    // 2. Cập nhật lại tổng số lượng chương (chapter_count) trong bảng stories hoặc metadata [6]
     const nextTotalCount = startCount + chapters.length
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
     
@@ -751,6 +663,77 @@ export async function bulkImportChapters(
     return { success: true }
   } catch (error: any) {
     console.error("Lỗi import chương đồng loạt:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+// ACTION: XÓA CÙNG LÚC NHIỀU CHƯƠNG ĐÃ CHỌN VÀ TỰ ĐỘNG ĐÁNH LẠI SỐ CHƯƠNG LIÊN TIẾP
+export async function bulkDeleteChapters(storySlug: string, chapterNums: number[]) {
+  const { userId } = await auth()
+  if (!checkIsAdmin(userId)) {
+    return { success: false, error: 'Bạn không có quyền quản trị!' }
+  }
+
+  if (!chapterNums || chapterNums.length === 0) {
+    return { success: true }
+  }
+
+  try {
+    // 1. Xóa tất cả các chương được chọn trong bảng chapter_contents
+    await sql`
+      DELETE FROM chapter_contents
+      WHERE story_slug = ${storySlug} AND chapter_number = ANY(${chapterNums}::int[])
+    `
+
+    // 2. Lấy lại toàn bộ danh sách các chương còn lại sắp xếp theo thứ tự cũ
+    const remaining = await sql`
+      SELECT chapter_number, title, content
+      FROM chapter_contents
+      WHERE story_slug = ${storySlug}
+      ORDER BY chapter_number ASC
+    `
+
+    // 3. Đánh lại số chương liên tiếp từ 1 đến N để không bị hổng đứt quãng
+    await sql`
+      UPDATE chapter_contents
+      SET chapter_number = -chapter_number
+      WHERE story_slug = ${storySlug}
+    `
+
+    for (let i = 0; i < remaining.rows.length; i++) {
+      const row = remaining.rows[i]
+      const oldNum = row.chapter_number
+      const newNum = i + 1
+
+      await sql`
+        UPDATE chapter_contents
+        SET chapter_number = ${newNum}
+        WHERE story_slug = ${storySlug} AND chapter_number = -${oldNum}
+      `
+    }
+
+    // 4. Cập nhật lại tổng số lượng chương (chapter_count) trong database
+    const newTotalCount = remaining.rows.length
+    const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
+
+    if (dbStoryResult.rows.length > 0) {
+      await sql`
+        UPDATE stories
+        SET chapter_count = ${newTotalCount}
+        WHERE slug = ${storySlug}
+      `
+    } else {
+      await sql`
+        INSERT INTO story_metadata (slug, chapter_count)
+        VALUES (${storySlug}, ${newTotalCount})
+        ON CONFLICT (slug)
+        DO UPDATE SET chapter_count = ${newTotalCount}
+      `
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Lỗi xóa hàng loạt chương:", error)
     return { success: false, error: error.message }
   }
 }
