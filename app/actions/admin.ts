@@ -14,9 +14,17 @@ function checkIsAdmin(userId: string | null | undefined) {
   return userId && userId === ADMIN_ID
 }
 
-// 🌟 ACTION: GỘP TRUYỆN VÀ TỰ ĐỘNG BỎ CHẶN TRUYỆN TẠM ẨN CHO ADMIN [1]
+// 🌟 ACTION: GỘP TRUYỆN VÀ PHÒNG VỆ AN TOÀN CHO CẢ NEXT.JS BUILD-TIME
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
-  const { userId } = await auth()
+  // 🌟 Phòng vệ try/catch cho lệnh auth() tránh làm crash hàm generateStaticParams lúc Build
+  let userId: string | null = null
+  try {
+    const authObj = await auth()
+    userId = authObj.userId
+  } catch (_) {
+    userId = null // Khi Next.js chạy next build (SSG), auth() sẽ rơi vào đây an toàn 100%
+  }
+
   const isAdmin = checkIsAdmin(userId)
 
   try {
@@ -81,7 +89,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       }
     })
     
-    // 🌟 NẾU LÀ ADMIN -> CHO PHÉP XEM TOÀN BỘ TRUYỆN ẨN (BỎ QUA LỌC onlyPublic) [1]
+    // Nếu chế độ chỉ công khai được bật VÀ người dùng KHÔNG PHẢI Admin -> Lọc bỏ truyện tạm ẩn
     if (onlyPublic && !isAdmin) {
       return fullyMergedStories.filter((s) => s.is_public !== false)
     }
