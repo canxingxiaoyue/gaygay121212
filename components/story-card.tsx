@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, Eye, BookOpen, Star } from 'lucide-react'
+import { Heart, Eye, BookOpen, Star, EyeOff } from 'lucide-react'
 import type { Story } from '@/lib/stories'
 import { cn } from '@/lib/utils'
 
@@ -14,11 +14,11 @@ export function StoryCard({ story }: { story: Story }) {
       href={`/truyen/${story.slug}`}
       className="group relative flex flex-col overflow-hidden rounded-[22px] border border-stone-200/80 dark:border-white/10 bg-[#FFFDFB] dark:bg-[#221C1A] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:border-[#D89A52]/80 dark:hover:shadow-[0_8px_25px_rgba(216,154,82,0.12)] select-none"
     >
-      {/* 🌟 HUY HIỆU TẠM ẨN DÀNH RIÊNG CHO ADMIN XEM [MỚI] */}
+      {/* 🌟 HUY HIỆU TẠM ẨN CUTE, ẤM ÁP MANG PHONG CÁCH MOONLIGHT DÀNH CHO ADMIN */}
       {isHidden && (
-        <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 rounded-full bg-red-950/80 backdrop-blur-md border border-red-500/40 px-2.5 py-0.5 text-[10px] font-bold text-red-300 shadow-sm">
-          <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span>Tạm ẩn</span>
+        <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 rounded-full bg-[#2A201C]/85 backdrop-blur-md border border-[#D89A52]/50 px-3 py-1 text-[11px] font-bold text-[#F4C27A] shadow-md transition-all">
+          <EyeOff className="size-3.5 text-[#F4C27A]" />
+          <span>Tạm ẩn 🌙</span>
         </div>
       )}
 
