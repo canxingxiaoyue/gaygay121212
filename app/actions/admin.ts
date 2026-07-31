@@ -14,8 +14,11 @@ function checkIsAdmin(userId: string | null | undefined) {
   return userId && userId === ADMIN_ID
 }
 
-// ACTION: GỘP TRUYỆN VÀ ĐỒNG BỘ CẢ METADATA VÀ MẬT KHẨU
+// 🌟 ACTION: GỘP TRUYỆN VÀ TỰ ĐỘNG BỎ CHẶN TRUYỆN TẠM ẨN CHO ADMIN [1]
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
+  const { userId } = await auth()
+  const isAdmin = checkIsAdmin(userId)
+
   try {
     const dbResult = await sql`SELECT * FROM stories ORDER BY created_at DESC`
     const dbStories: Story[] = dbResult.rows.map((row) => ({
@@ -78,7 +81,8 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       }
     })
     
-    if (onlyPublic) {
+    // 🌟 NẾU LÀ ADMIN -> CHO PHÉP XEM TOÀN BỘ TRUYỆN ẨN (BỎ QUA LỌC onlyPublic) [1]
+    if (onlyPublic && !isAdmin) {
       return fullyMergedStories.filter((s) => s.is_public !== false)
     }
 
@@ -224,7 +228,7 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
   }
 }
 
-// ACTION: TẠO TRUYỆN MỚI TRÊN WEB (ĐÃ BỔ SUNG LƯU MẬT KHẨU VÀ TỰ TẠO CỘT PASSWORD)
+// ACTION: TẠO TRUYỆN MỚI TRÊN WEB
 export async function createNewStory(data: {
   slug: string; 
   title: string; 
@@ -244,7 +248,6 @@ export async function createNewStory(data: {
   if (!data.title || !data.slug) return { success: false, error: 'Tên truyện và Slug đường dẫn là bắt buộc!' }
 
   try {
-    // 🌟 PHÒNG VỆ: Tự động tạo cột password nếu database chưa có [1]
     try {
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
@@ -413,7 +416,7 @@ export async function updateStoryMetadata(slug: string, description: string, lin
   }
 }
 
-// 🌟 ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN (TỰ ĐỘNG TẠO CỘT PASSWORD NẾU THIẾU)
+// ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
 export async function updateFullStoryInfo(
   slug: string,
   data: { title: string; author: string; cover: string; description: string; link: string; genres: string; password?: string }
@@ -422,7 +425,6 @@ export async function updateFullStoryInfo(
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
-    // 🌟 PHÒNG VỆ: Tự động tạo cột password nếu database chưa có [1]
     try {
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
