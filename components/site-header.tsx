@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs' // <-- Sử dụng Clerk lấy thông tin người dùng
+import { useUser } from '@clerk/nextjs'
 import { ArrowRight, Menu, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,35 +18,33 @@ import { AccountMenu } from '@/components/account-menu'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 
+// 🌟 ĐÃ ĐỔI "TÌM KIẾM" THÀNH "NGUYÊN TÁC" VÀ SẮP XẾP MENU QUY CỦ [1]
 const NAV = [
   { href: '/', label: 'Trang chủ' },
-  { href: '/truyen', label: 'Tủ truyện' },
-  { href: '/tim-kiem', label: 'Tìm kiếm' }, // <-- ĐÃ SỬA THÀNH TÌM KIẾM CHUẨN XÁC
+  { href: '/tim-kiem', label: 'Nguyên tác' }, // 🌟 ĐỔI THÀNH NGUYÊN TÁC [1]
+  { href: '/fanfic', label: 'Fanfic' },
   { href: '/luu-y', label: 'Lưu ý của chủ nhà' }, 
   { href: '/yeu-thich', label: 'Yêu thích' },
 ]
 
 export function SiteHeader() {
-  const { user, isSignedIn } = useUser() // Thao tác lấy tài khoản hiện tại từ Clerk
+  const { user, isSignedIn } = useUser()
   const pathname = usePathname()
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Kiểm tra quyền Admin (ID Clerk trùng khớp)
   const isAdmin = isSignedIn && user?.id === process.env.NEXT_PUBLIC_ADMIN_ID
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
-    router.push(q ? `/truyen?q=${encodeURIComponent(q)}` : '/truyen')
+    router.push(q ? `/tim-kiem?q=${encodeURIComponent(q)}` : '/tim-kiem')
     setMobileOpen(false)
   }
 
   return (
-    // 🌟 Đã giữ nguyên cấu hình không ghim cố định (non-sticky) để trang đọc truyện thoáng đãng
     <header className="w-full border-b border-border bg-background font-cute-quicksand">
-      {/* Nhúng mã tải font chữ Quicksand (menu) và Great Vibes + Dancing Script (thư pháp) trực tiếp cực kỳ an toàn */}
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Quicksand:wght@500;600;700&display=swap');
         .font-cute-quicksand {
@@ -55,7 +53,6 @@ export function SiteHeader() {
         .font-cute-thu-phap {
           font-family: 'Great Vibes', 'Dancing Script', cursive !important;
         }
-        /* 🌟 GIẢI CỨU CLERK: Ép mở khóa click chuột trên di động khi mở lồng trong Menu trượt [MỚI] */
         .cl-userButtonPopoverCard, .cl-portal, .cl-popover {
           pointer-events: auto !important;
         }
@@ -63,14 +60,14 @@ export function SiteHeader() {
 
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         
-        {/* LOGO: Đã áp dụng font-cute-thu-phap bay bổng nghệ thuật và tăng nhẹ kích cỡ để dễ đọc [MỚI] */}
+        {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity select-none min-w-0">
           <span className="font-cute-thu-phap text-[18px] sm:text-xl lg:text-2xl font-normal tracking-wide whitespace-nowrap pt-1">
             ⋆｡˚☾Tàn Tinh Hiểu Nguyệt.✦ ݁˖
           </span>
         </Link>
 
-        {/* ĐIỀU HƯỚNG MÁY TÍNH (AN TOÀN TRÊN lg) */}
+        {/* ĐIỀU HƯỚNG MÁY TÍNH (lg) */}
         <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => {
             const active =
@@ -93,7 +90,7 @@ export function SiteHeader() {
             )
           })}
 
-          {/* HIỂN THỊ NÚT ĐĂNG TRUYỆN MỚI TRÊN DESKTOP CHO RIÊNG ADMIN */}
+          {/* HIỂN THỊ NÚT ĐĂNG TRUYỆN MỚI CHO ADMIN */}
           {isAdmin && (
             <Link
               href="/admin/new-story"
@@ -109,10 +106,10 @@ export function SiteHeader() {
           )}
         </nav>
 
-        {/* CONTAINER CHỨA CÁC NÚT ĐIỀU KHIỂN ĐÃ CO GIÃN THEO DI ĐỘNG [1.1.2] */}
+        {/* CÁC NÚT ĐIỀU KHIỂN */}
         <div className="flex items-center gap-2 shrink-0">
           
-          {/* 🌟 CHỈ HIỂN THỊ TRÊN MÀY TÍNH (lg): KHUNG SEARCH VÀ CÁC ICON TIỆN ÍCH [1.1.2] */}
+          {/* SEARCH & TIỆN ÍCH DESKTOP */}
           <div className="hidden lg:flex items-center gap-2 shrink-0">
             <form onSubmit={submitSearch}>
               <div className="relative">
@@ -130,7 +127,7 @@ export function SiteHeader() {
             <AccountMenu />
           </div>
 
-          {/* 🌟 DI ĐỘNG (DƯỚI lg): CHỈ HIỆN DUY NHẤT NÚT BA GẠCH [1.1.2] */}
+          {/* MOBILE MENU SHEET */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -143,16 +140,14 @@ export function SiteHeader() {
               </Button>
             </SheetTrigger>
             
-            {/* 🌟 NÂNG CẤP MENU BA GẠCH DI ĐỘNG: GOM TOÀN BỘ CHỨC NĂNG BÊN LỀ VÀO TRONG [1.1.2] */}
             <SheetContent side="right" className="w-72 flex flex-col gap-5 pt-6 font-sans">
               <SheetHeader className="text-left border-b border-stone-100 dark:border-stone-850 pb-3">
-                {/* Áp dụng font chữ thư pháp bay bổng cho tiêu đề mobile */}
                 <SheetTitle className="font-cute-thu-phap text-2xl tracking-wide pt-1">
                   Tàn Tinh Hiểu Nguyệt
                 </SheetTitle>
               </SheetHeader>
 
-              {/* 1. Thanh tìm kiếm trên mobile [1.1.2] */}
+              {/* Thanh tìm kiếm trên mobile */}
               <form onSubmit={submitSearch} className="px-2">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -165,7 +160,7 @@ export function SiteHeader() {
                 </div>
               </form>
 
-              {/* 2. Dòng tiện ích phụ xếp cạnh nhau siêu đẹp: Theme, Chuông, Avatar Đăng nhập [1.1.2] */}
+              {/* Tiện ích */}
               <div className="flex items-center justify-between px-3 py-2 border-y border-stone-100 dark:border-stone-850/60 bg-stone-50/50 dark:bg-stone-950/20 rounded-2xl mx-2">
                 <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Hộp tiện ích:</span>
                 <div className="flex items-center gap-2.5">
@@ -175,7 +170,7 @@ export function SiteHeader() {
                 </div>
               </div>
 
-              {/* 3. Luồng điều hướng các mục chính của Web */}
+              {/* Navigation Menu Mobile */}
               <nav className="flex flex-col gap-1 px-2 mt-2">
                 <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider mb-2 px-1">Danh mục chính:</span>
                 {NAV.map((item) => {
@@ -200,7 +195,6 @@ export function SiteHeader() {
                   )
                 })}
 
-                {/* HIỂN THỊ NÚT ĐĂNG TRUYỆN MỚI TRÊN MOBILE CHO RIÊNG ADMIN */}
                 {isAdmin && (
                   <Link
                     href="/admin/new-story"

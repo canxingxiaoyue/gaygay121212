@@ -1,12 +1,12 @@
-'use server' // Khai báo Server Action
+'use server'
 
 import { sql } from '@vercel/postgres'
 import { auth } from '@clerk/nextjs/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { put } from '@vercel/blob' 
-import { Story } from '@/lib/stories' // Đã xóa STORIES
-const STORIES: Story[] = [] // Tự khai báo mảng rỗng để không bị lỗi Webpack biên dịch
+import { Story } from '@/lib/stories'
+const STORIES: Story[] = []
 
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
 
@@ -14,7 +14,7 @@ function checkIsAdmin(userId: string | null | undefined) {
   return userId && userId === ADMIN_ID
 }
 
-// ACTION: GỘP TRUYỆN VÀ ĐỒNG BỘ CẢ METADATA SỬA ĐÈ TỪ DATABASE
+// ACTION: GỘP TRUYỆN VÀ ĐỒNG BỘ CẢ METADATA VÀ MẬT KHẨU
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
   try {
     const dbResult = await sql`SELECT * FROM stories ORDER BY created_at DESC`
@@ -31,6 +31,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       link: row.link || '',
       tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
       is_public: row.is_public !== undefined ? row.is_public : true,
+      password: row.password || '',
       chapters: Array.from({ length: row.chapter_count || 0 }, (_, i) => ({
         number: i + 1,
         title: `Chương ${i + 1}`
@@ -65,6 +66,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
           link: meta.link || s.link,
           genres: meta.genres ? meta.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : s.genres,
           tags: meta.genres ? meta.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : s.tags,
+          password: meta.password !== undefined ? meta.password : (s as any).password || '',
           chapters: meta.chapter_count 
             ? Array.from({ length: finalChapterCount }, (_, i) => ({ number: i + 1, title: `Chương ${i + 1}` }))
             : s.chapters
@@ -87,7 +89,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
   }
 }
 
-// ACTION: BẬT / TẮT TRẠNG THÁI CÔNG KHAI TRUYỆN (HỦY ĐĂNG)
+// ACTION: BẬT / TẮT TRẠNG THÁI CÔNG KHAI TRUYỆN
 export async function togglePublishStory(storySlug: string, currentIsPublic: boolean) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -118,7 +120,7 @@ export async function togglePublishStory(storySlug: string, currentIsPublic: boo
   }
 }
 
-// ACTION: XÓA SẠCH TRUYỆN VÀ DỌN DẸP DỮ LIỆU LIÊN QUAN
+// ACTION: XÓA SẠCH TRUYỆN
 export async function deleteStory(storySlug: string) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -143,7 +145,7 @@ export async function deleteStory(storySlug: string) {
   }
 }
 
-// ACTION: TỰ ĐỘNG TĂNG SỐ LƯỢNG CHƯƠNG KHI KHỞI TẠO CHƯƠNG MỚI
+// ACTION: TỰ ĐỘNG TĂNG SỐ LƯỢNG CHƯƠNG
 export async function addNewChapter(storySlug: string, currentChapterCount: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -222,7 +224,7 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
   }
 }
 
-// ACTION: TẠO TRUYỆN MỚI TRÊN WEB
+// ACTION: TẠO TRUYỆN MỚI TRÊN WEB (ĐÃ BỔ SUNG LƯU MẬT KHẨU VÀ TỰ TẠO CỘT PASSWORD)
 export async function createNewStory(data: {
   slug: string; 
   title: string; 
@@ -232,6 +234,7 @@ export async function createNewStory(data: {
   description: string; 
   link: string; 
   tags: string; 
+  password?: string;
   chapter_count: number;
   chapters?: { number: number; title: string; content: string }[]
 }) {
@@ -241,12 +244,19 @@ export async function createNewStory(data: {
   if (!data.title || !data.slug) return { success: false, error: 'Tên truyện và Slug đường dẫn là bắt buộc!' }
 
   try {
+    // 🌟 PHÒNG VỆ: Tự động tạo cột password nếu database chưa có [1]
+    try {
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
+    } catch (_) {}
+
     const cleanSlug = data.slug.trim().toLowerCase();
     const safeGenres = data.genres.trim().length > 250 ? data.genres.trim().slice(0, 250) : data.genres.trim();
     const safeTags = data.tags.trim().length > 250 ? data.tags.trim().slice(0, 250) : data.tags.trim();
+    const cleanPassword = (data.password || '').trim();
 
     await sql`
-      INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public)
+      INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public, password)
       VALUES (
         ${cleanSlug}, 
         ${data.title.trim()}, 
@@ -258,9 +268,16 @@ export async function createNewStory(data: {
         ${data.link.trim()}, 
         ${safeTags}, 
         ${data.chapter_count},
-        true
+        true,
+        ${cleanPassword}
       )
       ON CONFLICT (slug) DO NOTHING
+    `
+
+    await sql`
+      INSERT INTO story_metadata (slug, password)
+      VALUES (${cleanSlug}, ${cleanPassword})
+      ON CONFLICT (slug) DO UPDATE SET password = ${cleanPassword}
     `
 
     if (data.chapters && data.chapters.length > 0) {
@@ -280,33 +297,6 @@ export async function createNewStory(data: {
             DO UPDATE SET content = ${ch.content}, title = ${safeChapterTitle}
           `;
         }));
-      }
-    }
-
-    let userIds: string[] = []
-    try {
-      const usersRes = await sql`SELECT id FROM users`
-      userIds = usersRes.rows.map(r => r.id)
-    } catch (err) {
-      const activeUsersRes = await sql`SELECT DISTINCT recipient_id FROM notifications`
-      userIds = activeUsersRes.rows.map(r => r.recipient_id)
-    }
-
-    if (userIds.length > 0) {
-      for (const uid of userIds) {
-        await sql`
-          INSERT INTO notifications (recipient_id, sender_name, sender_avatar, story_slug, type, target_link, is_read, created_at)
-          VALUES (
-            ${uid}, 
-            ${data.title.trim()}, 
-            ${data.cover.trim()}, 
-            ${cleanSlug}, 
-            'new_story', 
-            ${`/truyen/${cleanSlug}`}, 
-            false, 
-            NOW()
-          )
-        `
       }
     }
 
@@ -423,32 +413,42 @@ export async function updateStoryMetadata(slug: string, description: string, lin
   }
 }
 
-// ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
+// 🌟 ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN (TỰ ĐỘNG TẠO CỘT PASSWORD NẾU THIẾU)
 export async function updateFullStoryInfo(
   slug: string,
-  data: { title: string; author: string; cover: string; description: string; link: string; genres: string }
+  data: { title: string; author: string; cover: string; description: string; link: string; genres: string; password?: string }
 ) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
 
   try {
+    // 🌟 PHÒNG VỆ: Tự động tạo cột password nếu database chưa có [1]
+    try {
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
+    } catch (_) {}
+
+    const cleanPassword = (data.password || '').trim();
+
     const dbStory = await sql`SELECT slug FROM stories WHERE slug = ${slug}`
     if (dbStory.rows.length > 0) {
       await sql`
         UPDATE stories 
         SET title = ${data.title}, author = ${data.author}, cover = ${data.cover}, 
-            description = ${data.description}, link = ${data.link}, genres = ${data.genres}
+            description = ${data.description}, link = ${data.link}, genres = ${data.genres},
+            password = ${cleanPassword}
         WHERE slug = ${slug}
       `
     }
 
     await sql`
-      INSERT INTO story_metadata (slug, title, author, cover, description, link, genres)
-      VALUES (${slug}, ${data.title}, ${data.author}, ${data.cover}, ${data.description}, ${data.link}, ${data.genres})
+      INSERT INTO story_metadata (slug, title, author, cover, description, link, genres, password)
+      VALUES (${slug}, ${data.title}, ${data.author}, ${data.cover}, ${data.description}, ${data.link}, ${data.genres}, ${cleanPassword})
       ON CONFLICT (slug)
       DO UPDATE SET 
         title = ${data.title}, author = ${data.author}, cover = ${data.cover}, 
-        description = ${data.description}, link = ${data.link}, genres = ${data.genres}
+        description = ${data.description}, link = ${data.link}, genres = ${data.genres},
+        password = ${cleanPassword}
     `
     return { success: true }
   } catch (err: any) {
@@ -506,7 +506,7 @@ export async function deleteVolume(storySlug: string, startChapter: number) {
   }
 }
 
-// ACTION: XÓA CHƯƠNG VÀ TỰ ĐỘNG DỒN SỐ CHƯƠNG PHÍA SAU LÊN
+// ACTION: XÓA CHƯƠNG
 export async function deleteChapter(storySlug: string, chapterNum: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) {
@@ -614,7 +614,7 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
   }
 }
 
-// ACTION: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG ĐÃ QUA LỌC BÓC TÁCH
+// ACTION: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG BÓC TÁCH
 export async function bulkImportChapters(
   storySlug: string,
   startCount: number,
@@ -667,7 +667,7 @@ export async function bulkImportChapters(
   }
 }
 
-// 🌟 ACTION: XÓA CÙNG LÚC NHIỀU CHƯƠNG ĐÃ CHỌN VÀ TỰ ĐỘNG ĐÁNH LẠI SỐ CHƯƠNG LIÊN TIẾP (ĐÃ SỬA LỖI TYPESCRIPT)
+// ACTION: XÓA CÙNG LÚC NHIỀU CHƯƠNG ĐÃ CHỌN
 export async function bulkDeleteChapters(storySlug: string, chapterNums: number[]) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) {
@@ -679,18 +679,15 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
   }
 
   try {
-    // 1. Lọc danh sách số chương an toàn
     const safeChapterNums = chapterNums.map(n => Number(n)).filter(n => !isNaN(n))
     if (safeChapterNums.length === 0) return { success: true }
 
-    // 2. Xóa tất cả các chương được chọn bằng sql.query an toàn không bị lỗi TypeScript Primitive
     await sql.query(
       `DELETE FROM chapter_contents 
        WHERE story_slug = $1 AND chapter_number IN (${safeChapterNums.join(',')})`,
       [storySlug]
     )
 
-    // 3. Lấy lại toàn bộ danh sách các chương còn lại sắp xếp theo thứ tự cũ
     const remaining = await sql`
       SELECT chapter_number, title, content
       FROM chapter_contents
@@ -698,7 +695,6 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
       ORDER BY chapter_number ASC
     `
 
-    // 4. Đánh lại số chương liên tiếp từ 1 đến N để không bị hổng đứt quãng
     await sql`
       UPDATE chapter_contents
       SET chapter_number = -chapter_number
@@ -717,7 +713,6 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
       `
     }
 
-    // 5. Cập nhật lại tổng số lượng chương (chapter_count) trong database
     const newTotalCount = remaining.rows.length
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
 

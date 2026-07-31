@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
-import { ChevronRight, Home, Sparkles, Star, Moon } from 'lucide-react' // 🌟 Đã xóa Coffee khỏi import
+import { ChevronRight, Home, Sparkles, Star, Moon } from 'lucide-react'
 
-// DANH SÁCH 4 ĐIỀU LƯU Ý
+// 🌟 DANH SÁCH 5 ĐIỀU LƯU Ý (ĐÃ BỔ SUNG ĐIỀU SỐ 5) [1]
 const NOTES = [
   { id: 1, body: 'Nhà của tớ dùng để chia sẻ tất cả những sở thích của tớ, chủ yếu là truyện niên hạ.' },
   { id: 2, body: 'Tớ không đọc sinh tử văn, ABO (AO), tra công tiện thụ, còn lại cái gì cũng húp.' },
   { id: 3, body: 'Không được phép đăng lại, sử dụng nội dung trong blog của tớ với mục đích lợi nhuận.' },
-  { id: 4, body: 'Sử dụng ngôn từ lịch sự, tôn trọng chủ nhà cũng như các khách đến thăm khác.' }
+  { id: 4, body: 'Sử dụng ngôn từ lịch sự, tôn trọng chủ nhà cũng như các khách đến thăm khác.' },
+  { id: 5, body: 'Fanfic sẽ được đặt pass riêng, pass là tên của cp đó không dấu, không cách, không viết hoa. Ví dụ: Leonard x Klein sẽ là leoklein' }
 ]
 
 export default function OwnerNotesPage() {
