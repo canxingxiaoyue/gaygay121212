@@ -1,18 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 🌟 NÂNG HẠN MỨC TẢI FILE SERVER ACTIONS TỪ 1MB LÊN 10MB
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.public.blob.vercel-storage.com', // Cấp phép cho kho ảnh Vercel Blob
+        hostname: '*.public.blob.vercel-storage.com',
       },
       {
         protocol: 'https',
-        hostname: '**.public.blob.vercel-storage.com', // Cấp phép cho các sub-domain kho ảnh
+        hostname: '**.public.blob.vercel-storage.com',
       },
       {
         protocol: 'https',
-        hostname: 'img.clerk.com', // Cấp phép cho ảnh đại diện Clerk
+        hostname: 'img.clerk.com',
       },
     ],
   },

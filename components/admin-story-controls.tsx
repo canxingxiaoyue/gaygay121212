@@ -24,8 +24,6 @@ export function AdminStoryControls({ story }: { story: Story }) {
   const [description, setDescription] = useState(story.description)
   const [link, setLink] = useState(story.link || '')
   const [genres, setGenres] = useState((story.genres || []).join(', '))
-  
-  // 🌟 STATE MẬT KHẨU BẢO VỆ
   const [password, setPassword] = useState((story as any).password || '')
 
   const isPublic = (story as any).is_public !== false
@@ -58,17 +56,27 @@ export function AdminStoryControls({ story }: { story: Story }) {
     }
   }
 
-  // Upload ảnh bìa mới
+  // 🌟 HÀM UPLOAD ẢNH BÌA MỚI (ĐÃ BỌC FINALLY TRÁNH 100% LỖI BỊ KẸT MỜ NÚT TẢI)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await uploadImage(formData)
-    if (res.success && res.url) setCover(res.url)
-    else alert('Lỗi upload ảnh: ' + res.error)
-    setIsUploading(false)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await uploadImage(formData)
+      if (res.success && res.url) {
+        setCover(res.url)
+      } else {
+        alert('Lỗi upload ảnh: ' + (res.error || 'Không thể tải ảnh'))
+      }
+    } catch (err: any) {
+      alert('Lỗi kết nối upload ảnh: ' + (err.message || 'Vui lòng thử lại'))
+    } finally {
+      setIsUploading(false) // Đảm bảo nút Tải ảnh luôn mở khóa trở lại
+      if (e.target) e.target.value = '' // Reset input để có thể chọn lại file khác
+    }
   }
 
   // Lưu thông tin đầy đủ
@@ -83,7 +91,7 @@ export function AdminStoryControls({ story }: { story: Story }) {
         description: description.trim(),
         link: link.trim(),
         genres: genres.trim(),
-        password: password.trim() // 🌟 Gửi mật khẩu lên Server Action
+        password: password.trim()
       })
       if (res.success) {
         setIsModalOpen(false)
@@ -166,18 +174,42 @@ export function AdminStoryControls({ story }: { story: Story }) {
                 <Input value={author} onChange={(e) => setAuthor(e.target.value)} required className="h-9 rounded-xl text-xs bg-stone-50 dark:bg-stone-950" />
               </div>
 
+              {/* 🌟 ẢNH BÌA: CÓ KHUNG PREVIEW XEM TRỰC TIẾP */}
               <div className="space-y-1">
                 <label className="font-bold text-stone-700 dark:text-stone-300">Ảnh bìa:</label>
                 <div className="flex gap-2">
-                  <Input value={cover} onChange={(e) => setCover(e.target.value)} className="h-9 rounded-xl text-xs bg-stone-50 dark:bg-stone-950 flex-1" />
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="h-9 text-xs rounded-xl">
-                    {isUploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5 mr-1" />} Tải ảnh
+                  <Input 
+                    value={cover} 
+                    onChange={(e) => setCover(e.target.value)} 
+                    placeholder="/covers/ten-anh.png hoặc dán link URL..." 
+                    className="h-9 rounded-xl text-xs bg-stone-50 dark:bg-stone-950 flex-1" 
+                  />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                    className="hidden" 
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()} 
+                    disabled={isUploading} 
+                    className="h-9 text-xs rounded-xl border-stone-200 dark:border-stone-800 shrink-0 font-bold"
+                  >
+                    {isUploading ? <Loader2 className="size-3.5 animate-spin mr-1 text-amber-800" /> : <Upload className="size-3.5 mr-1" />} 
+                    {isUploading ? 'Đang tải...' : 'Tải ảnh'}
                   </Button>
                 </div>
+                {cover && (
+                  <div className="mt-2 relative w-20 aspect-[3/4] rounded-lg overflow-hidden border border-stone-200 shadow-xs">
+                    <img src={cover} alt="Bìa preview" className="object-cover w-full h-full" />
+                  </div>
+                )}
               </div>
 
-              {/* 🌟 Ô NHẬP MẬT KHẨU BẢO VỆ TRUYỆN */}
+              {/* Ô NHẬP MẬT KHẨU BẢO VỆ TRUYỆN */}
               <div className="space-y-1 p-3 rounded-xl bg-amber-50/60 dark:bg-stone-850/60 border border-amber-200/60 dark:border-stone-800">
                 <label className="font-bold text-amber-900 dark:text-amber-400 flex items-center gap-1.5">
                   <Lock className="size-3.5" /> Mật khẩu bảo vệ truyện (Để trống nếu công khai):
