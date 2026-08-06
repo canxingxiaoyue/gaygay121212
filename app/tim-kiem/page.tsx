@@ -8,18 +8,19 @@ import { Home, ChevronRight } from 'lucide-react'
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; genre?: string; tag?: string }>
 }) {
-  const { q } = await searchParams
+  // 🌟 LẤY THAM SỐ genre HOẶC tag TỪ URL
+  const { q, genre, tag } = await searchParams
   const allStories = await getMergedStories(true) 
 
-  // 🌟 LỌC BỎ HOÀN TOÀN TRUYỆN FANFIC KHỎI TRANG TÌM KIẾM CHUNG
+  // Lọc bỏ Fanfic
   const originalStories = allStories.filter(s => {
     const isFanfic = 
       (s.genres || []).some(g => g.toLowerCase().includes('fanfic') || g.toLowerCase().includes('đồng nhân')) ||
       (s.tags || []).some(t => t.toLowerCase().includes('fanfic') || t.toLowerCase().includes('đồng nhân'))
     
-    return !isFanfic // Chỉ giữ lại truyện KHÔNG PHẢI fanfic
+    return !isFanfic
   })
 
   return (
@@ -42,8 +43,12 @@ export default async function SearchPage({
           </h1>
         </header>
 
-        {/* 🌟 GỌI BỘ LỌC ĐÃ LOẠI BỎ FANFIC VÀ TRUYỀN TỪ KHÓA TỪ HEADER XUỐNG */}
-        <SearchFilterSection originalStories={originalStories} initialQ={q || ''} />
+        {/* 🌟 TRUYỀN THAM SỐ genre/tag XUỐNG BỘ LỌC */}
+        <SearchFilterSection 
+          originalStories={originalStories} 
+          initialQ={q || ''} 
+          initialGenre={genre || tag || ''} 
+        />
         
       </main>
       <SiteFooter />

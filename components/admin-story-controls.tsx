@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { Story } from '@/lib/stories'
 import { togglePublishStory, deleteStory, updateFullStoryInfo, uploadImage } from '@/app/actions/admin'
+import { cn } from '@/lib/utils'
 
 export function AdminStoryControls({ story }: { story: Story }) {
   const router = useRouter()
@@ -17,7 +18,7 @@ export function AdminStoryControls({ story }: { story: Story }) {
   const [isPending, setIsPending] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
-  // State chỉnh sửa
+  // State chỉnh sửa thông tin truyện
   const [title, setTitle] = useState(story.title)
   const [author, setAuthor] = useState(story.author)
   const [cover, setCover] = useState(story.cover)
@@ -25,6 +26,9 @@ export function AdminStoryControls({ story }: { story: Story }) {
   const [link, setLink] = useState(story.link || '')
   const [genres, setGenres] = useState((story.genres || []).join(', '))
   const [password, setPassword] = useState((story as any).password || '')
+
+  // 🌟 STATE MỚI: QUẢN LÝ TRẠNG THÁI TRUYỆN (Đang ra / Hoàn thành / Tạm ngưng)
+  const [status, setStatus] = useState((story as any).status || 'Đang ra')
 
   const isPublic = (story as any).is_public !== false
 
@@ -56,7 +60,7 @@ export function AdminStoryControls({ story }: { story: Story }) {
     }
   }
 
-  // 🌟 HÀM UPLOAD ẢNH BÌA MỚI (ĐÃ BỌC FINALLY TRÁNH 100% LỖI BỊ KẸT MỜ NÚT TẢI)
+  // Upload ảnh bìa mới
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -74,8 +78,8 @@ export function AdminStoryControls({ story }: { story: Story }) {
     } catch (err: any) {
       alert('Lỗi kết nối upload ảnh: ' + (err.message || 'Vui lòng thử lại'))
     } finally {
-      setIsUploading(false) // Đảm bảo nút Tải ảnh luôn mở khóa trở lại
-      if (e.target) e.target.value = '' // Reset input để có thể chọn lại file khác
+      setIsUploading(false)
+      if (e.target) e.target.value = ''
     }
   }
 
@@ -91,7 +95,8 @@ export function AdminStoryControls({ story }: { story: Story }) {
         description: description.trim(),
         link: link.trim(),
         genres: genres.trim(),
-        password: password.trim()
+        password: password.trim(),
+        status: status.trim() // 🌟 GỬI TRẠNG THÁI TRUYỆN LÊN SERVER
       })
       if (res.success) {
         setIsModalOpen(false)
@@ -174,7 +179,7 @@ export function AdminStoryControls({ story }: { story: Story }) {
                 <Input value={author} onChange={(e) => setAuthor(e.target.value)} required className="h-9 rounded-xl text-xs bg-stone-50 dark:bg-stone-950" />
               </div>
 
-              {/* 🌟 ẢNH BÌA: CÓ KHUNG PREVIEW XEM TRỰC TIẾP */}
+              {/* ẢNH BÌA */}
               <div className="space-y-1">
                 <label className="font-bold text-stone-700 dark:text-stone-300">Ảnh bìa:</label>
                 <div className="flex gap-2">
@@ -207,6 +212,32 @@ export function AdminStoryControls({ story }: { story: Story }) {
                     <img src={cover} alt="Bìa preview" className="object-cover w-full h-full" />
                   </div>
                 )}
+              </div>
+
+              {/* 🌟 NÚT CHỌN TRẠNG THÁI TRUYỆN: ĐANG TIẾN HÀNH / HOÀN THÀNH / TẠM NGƯNG */}
+              <div className="space-y-1.5 p-3 rounded-2xl bg-[#FFFDFB] dark:bg-stone-950 border border-[#EEDFD0] dark:border-stone-800">
+                <label className="font-bold text-[#5A3823] dark:text-[#E9D7C3] block">Trạng thái truyện:</label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    { id: 'Đang ra', label: 'Đang tiến hành' },
+                    { id: 'Hoàn thành', label: 'Hoàn thành' },
+                    { id: 'Tạm ngưng', label: 'Tạm ngưng' },
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setStatus(st.id)}
+                      className={cn(
+                        "h-8 px-4 rounded-full text-xs font-bold transition-all border select-none",
+                        status === st.id
+                          ? "bg-[#A45C12] text-white border-[#A45C12] shadow-xs"
+                          : "bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-[#D89A52] hover:text-[#A45C12]"
+                      )}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Ô NHẬP MẬT KHẨU BẢO VỆ TRUYỆN */}

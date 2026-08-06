@@ -6,19 +6,40 @@ import { StoryCard } from '@/components/story-card'
 import { Search, X, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export function SearchFilterSection({ originalStories, initialQ }: { originalStories: Story[], initialQ: string }) {
-  // 🌟 ĐỒNG BỘ TỪ KHÓA GÕ TỪ THANH SEARCH TRÊN HEADER XUỐNG
+export function SearchFilterSection({ 
+  originalStories, 
+  initialQ, 
+  initialGenre 
+}: { 
+  originalStories: Story[]
+  initialQ: string
+  initialGenre?: string 
+}) {
   const [searchTerm, setSearchTerm] = useState(initialQ)
-  useEffect(() => { setSearchTerm(initialQ) }, [initialQ])
+  
+  // 🌟 NẾU CÓ genre TỪ URL TRUYỀN VÀO THÌ KÍCH HOẠT SÁNG NÚT CHIP
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(
+    initialGenre && initialGenre.trim() ? [initialGenre.trim()] : []
+  )
 
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [selectedStatus, setSelectedStatus] = useState('')
   const [sortBy, setSortBy] = useState('views')
 
-  // 🌟 CHỈ CÒN LẠI 3 TAB CHO TRUYỆN NGUYÊN TÁC
   const [activeTab, setActiveTab] = useState<'genre' | 'status' | 'sort'>('genre')
 
-  // 1. TRÍCH XUẤT THỂ LOẠI (Lúc này Database đưa xuống đã sạch bóng Fanfic)
+  // ĐỒNG BỘ NẾU URL THAY ĐỔI
+  useEffect(() => {
+    setSearchTerm(initialQ)
+  }, [initialQ])
+
+  useEffect(() => {
+    if (initialGenre && initialGenre.trim()) {
+      setSelectedGenres([initialGenre.trim()])
+      setActiveTab('genre') // Mở sẵn tab Tất cả thể loại
+    }
+  }, [initialGenre])
+
+  // TRÍCH XUẤT THỂ LOẠI
   const { allGenres } = useMemo(() => {
     const genreSet = new Set<string>()
     originalStories.forEach((s) => {
@@ -27,7 +48,7 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
     return { allGenres: Array.from(genreSet).sort() }
   }, [originalStories])
 
-  // 2. CẤU HÌNH TÊN HIỂN THỊ CỦA CÁC TAB
+  // CẤU HÌNH TABS
   const TABS = [
     { 
       id: 'genre', 
@@ -45,14 +66,12 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
     }
   ] as const
 
-  // 3. CẤU HÌNH DỮ LIỆU CÁC CHIP TRONG TỪNG TAB
   const optionsMap: Record<string, string[]> = {
     genre: ['Tất cả', ...allGenres],
     status: ['Tất cả', 'Đang tiến hành', 'Hoàn thành', 'Tạm ngưng'],
     sort: ['Đọc nhiều nhất', 'Mới cập nhật', 'Đánh giá cao'],
   }
 
-  // 4. KIỂM TRA TRẠNG THÁI ACTIVE CỦA CHIP
   const isPillActive = (opt: string) => {
     if (activeTab === 'genre') return opt === 'Tất cả' ? selectedGenres.length === 0 : selectedGenres.includes(opt)
     if (activeTab === 'status') {
@@ -71,7 +90,6 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
     return false
   }
 
-  // 5. XỬ LÝ KHI BẤM CHỌN MỘT CHIP
   const handleSelectOption = (opt: string) => {
     const isAll = opt === 'Tất cả'
     if (activeTab === 'genre') {
@@ -91,7 +109,7 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
     }
   }
 
-  // 6. THUẬT TOÁN LỌC
+  // THUẬT TOÁN LỌC
   const filtered = useMemo(() => {
     return originalStories
       .filter((story) => {
@@ -131,7 +149,6 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
   return (
     <div className="space-y-6 font-sans text-left pb-16">
       
-      {/* KHUNG BỘ LỌC CHÍNH ĐỒNG BỘ PHONG CÁCH TỐI GIẢN */}
       <div className="p-6 sm:p-7 rounded-[28px] border border-[#F2E8DC] dark:border-white/10 bg-white dark:bg-[#241D18] shadow-[0_8px_30px_rgba(80,50,20,0.06)] space-y-6">
         
         {/* Ô Nhập Tìm kiếm */}
@@ -155,7 +172,7 @@ export function SearchFilterSection({ originalStories, initialQ }: { originalSto
           )}
         </div>
 
-        {/* DÃY CÁC TAB CHUYỂN ĐỔI CHIP (CHỈ CÒN 3 TABS) */}
+        {/* DÃY CÁC TAB CHUYỂN ĐỔI CHIP */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm">
           <span className="font-semibold text-stone-500 dark:text-stone-400 whitespace-nowrap">Lọc nhanh:</span>
           

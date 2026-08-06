@@ -14,21 +14,161 @@ function checkIsAdmin(userId: string | null | undefined) {
   return userId && userId === ADMIN_ID
 }
 
-// 🌟 ACTION: GỘP TRUYỆN VÀ PHÒNG VỆ AN TOÀN CHO CẢ NEXT.JS BUILD-TIME
+// ACTION: LẤY TAG VÀ TỰ ĐỘNG GỠ BỎ CONSTRAINT CŨ "hidden_tags_name_key"
+export async function getManagedTags() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS managed_tags (
+        id SERIAL PRIMARY KEY,
+        type TEXT NOT NULL,
+        name TEXT NOT NULL
+      );
+    `
+    await sql`
+      CREATE TABLE IF NOT EXISTS hidden_tags (
+        id SERIAL PRIMARY KEY,
+        type TEXT NOT NULL DEFAULT 'genre',
+        name TEXT NOT NULL
+      );
+    `
+
+    try {
+      await sql`ALTER TABLE hidden_tags DROP CONSTRAINT IF EXISTS hidden_tags_name_key;`
+    } catch (_) {}
+
+    try {
+      await sql`ALTER TABLE hidden_tags ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'genre';`
+    } catch (_) {}
+
+    const res = await sql`SELECT type, name FROM managed_tags ORDER BY id ASC`
+    const hiddenRes = await sql`SELECT type, name FROM hidden_tags`
+
+    const fandoms: string[] = []
+    const shipdoms: string[] = []
+    const genres: string[] = []
+
+    res.rows.forEach(r => {
+      if (r.type === 'fandom') fandoms.push(r.name)
+      if (r.type === 'shipdom') shipdoms.push(r.name)
+      if (r.type === 'genre') genres.push(r.name)
+    })
+
+    const hiddenFandoms: string[] = []
+    const hiddenShipdoms: string[] = []
+    const hiddenGenres: string[] = []
+
+    hiddenRes.rows.forEach(r => {
+      if (r.type === 'fandom') hiddenFandoms.push(r.name)
+      if (r.type === 'shipdom') hiddenShipdoms.push(r.name)
+      if (r.type === 'genre') hiddenGenres.push(r.name)
+    })
+
+    return { 
+      fandoms, 
+      shipdoms, 
+      genres, 
+      hiddenFandoms, 
+      hiddenShipdoms, 
+      hiddenGenres 
+    }
+  } catch (e) {
+    console.error("Lỗi getManagedTags:", e)
+    return { fandoms: [], shipdoms: [], genres: [], hiddenFandoms: [], hiddenShipdoms: [], hiddenGenres: [] }
+  }
+}
+
+// ACTION: ADMIN XÓA TAG TRIỆT ĐỂ
+export async function deleteManagedTag(type: 'fandom' | 'shipdom' | 'genre', name: string) {
+  const { userId } = await auth()
+  if (!checkIsAdmin(userId)) return { success: false, error: 'Quyền quản trị bị từ chối!' }
+
+  try {
+    const cleanName = name.trim()
+
+    try {
+      await sql`ALTER TABLE hidden_tags DROP CONSTRAINT IF EXISTS hidden_tags_name_key;`
+    } catch (_) {}
+    
+    if (type === 'genre') {
+      await sql`DELETE FROM managed_tags WHERE name = ${cleanName}`
+      await sql`DELETE FROM hidden_tags WHERE name = ${cleanName}`
+      await sql`
+        INSERT INTO hidden_tags (type, name)
+        VALUES ('genre', ${cleanName})
+      `
+    } else {
+      await sql`DELETE FROM managed_tags WHERE type = ${type} AND name = ${cleanName}`
+      await sql`DELETE FROM hidden_tags WHERE type = ${type} AND name = ${cleanName}`
+      await sql`
+        INSERT INTO hidden_tags (type, name)
+        VALUES (${type}, ${cleanName})
+      `
+    }
+
+    return { success: true }
+  } catch (e: any) {
+    console.error("Lỗi deleteManagedTag:", e)
+    return { success: false, error: e.message }
+  }
+}
+
+// ACTION: ADMIN THÊM TAG
+export async function addManagedTag(type: 'fandom' | 'shipdom' | 'genre', name: string) {
+  const { userId } = await auth()
+  if (!checkIsAdmin(userId)) return { success: false, error: 'Quyền quản trị bị từ chối!' }
+
+  const cleanName = name.trim()
+  if (!cleanName) return { success: false, error: 'Tên tag không được để trống!' }
+
+  try {
+    try {
+      await sql`ALTER TABLE hidden_tags DROP CONSTRAINT IF EXISTS hidden_tags_name_key;`
+    } catch (_) {}
+
+    await sql`DELETE FROM managed_tags WHERE type = ${type} AND name = ${cleanName}`
+    await sql`
+      INSERT INTO managed_tags (type, name)
+      VALUES (${type}, ${cleanName})
+    `
+
+    if (type === 'genre') {
+      await sql`DELETE FROM hidden_tags WHERE name = ${cleanName}`
+    } else {
+      await sql`DELETE FROM hidden_tags WHERE (type = ${type} OR type = 'genre') AND name = ${cleanName}`
+    }
+
+    return { success: true }
+  } catch (e: any) {
+    console.error("Lỗi addManagedTag:", e)
+    return { success: false, error: e.message }
+  }
+}
+
+// 🌟 ACTION: GỘP TRUYỆN ĐỌC TRẠNG THÁI (status) TỪ DATABASE HOẶC METADATA
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
-  // 🌟 Phòng vệ try/catch cho lệnh auth() tránh làm crash hàm generateStaticParams lúc Build
   let userId: string | null = null
   try {
     const authObj = await auth()
     userId = authObj.userId
   } catch (_) {
-    userId = null // Khi Next.js chạy next build (SSG), auth() sẽ rơi vào đây an toàn 100%
+    userId = null
   }
 
   const isAdmin = checkIsAdmin(userId)
 
   try {
-    const dbResult = await sql`SELECT * FROM stories ORDER BY created_at DESC`
+    try {
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+    } catch (_) {}
+
+    const dbResult = await sql`
+      SELECT *, COALESCE(updated_at, created_at) as last_updated 
+      FROM stories 
+      ORDER BY COALESCE(updated_at, created_at) DESC
+    `
     const dbStories: Story[] = dbResult.rows.map((row) => ({
       slug: row.slug,
       title: row.title,
@@ -43,6 +183,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
       is_public: row.is_public !== undefined ? row.is_public : true,
       password: row.password || '',
+      updated_at: row.last_updated || row.updated_at || row.created_at,
       chapters: Array.from({ length: row.chapter_count || 0 }, (_, i) => ({
         number: i + 1,
         title: `Chương ${i + 1}`
@@ -60,16 +201,26 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
 
     const fullyMergedStories = allCombinedStories.map((s) => {
       let isPublic = (s as any).is_public !== undefined ? (s as any).is_public : true
-      
+      let updatedAt = (s as any).updated_at || (s as any).created_at
+      let currentStatus = s.status || 'Đang ra'
+
       const meta = metadataMap.get(s.slug)
       if (meta) {
         const finalChapterCount = meta.chapter_count || s.chapters.length
         if (meta.is_public !== null && meta.is_public !== undefined) {
           isPublic = meta.is_public
         }
+        if (meta.updated_at) {
+          updatedAt = meta.updated_at
+        }
+        if (meta.status) {
+          currentStatus = meta.status
+        }
         return {
           ...s,
           is_public: isPublic,
+          updated_at: updatedAt,
+          status: currentStatus,
           title: meta.title || s.title,
           author: meta.author || s.author,
           cover: meta.cover || s.cover,
@@ -85,11 +236,18 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       }
       return {
         ...s,
-        is_public: isPublic
+        is_public: isPublic,
+        updated_at: updatedAt,
+        status: currentStatus
       }
     })
+
+    fullyMergedStories.sort((a, b) => {
+      const timeA = new Date((a as any).updated_at || (a as any).created_at || 0).getTime()
+      const timeB = new Date((b as any).updated_at || (b as any).created_at || 0).getTime()
+      return timeB - timeA
+    })
     
-    // Nếu chế độ chỉ công khai được bật VÀ người dùng KHÔNG PHẢI Admin -> Lọc bỏ truyện tạm ẩn
     if (onlyPublic && !isAdmin) {
       return fullyMergedStories.filter((s) => s.is_public !== false)
     }
@@ -157,7 +315,7 @@ export async function deleteStory(storySlug: string) {
   }
 }
 
-// ACTION: TỰ ĐỘNG TĂNG SỐ LƯỢNG CHƯƠNG
+// ACTION: THÊM 1 CHƯƠNG MỚI
 export async function addNewChapter(storySlug: string, currentChapterCount: number) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -165,20 +323,25 @@ export async function addNewChapter(storySlug: string, currentChapterCount: numb
   const nextChapterNum = currentChapterCount + 1
 
   try {
+    try {
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+    } catch (_) {}
+
     const dbStoryResult = await sql`SELECT slug FROM stories WHERE slug = ${storySlug} LIMIT 1`
     
     if (dbStoryResult.rows.length > 0) {
       await sql`
         UPDATE stories 
-        SET chapter_count = ${nextChapterNum} 
+        SET chapter_count = ${nextChapterNum}, updated_at = NOW() 
         WHERE slug = ${storySlug}
       `
     } else {
       await sql`
-        INSERT INTO story_metadata (slug, chapter_count)
-        VALUES (${storySlug}, ${nextChapterNum})
+        INSERT INTO story_metadata (slug, chapter_count, updated_at)
+        VALUES (${storySlug}, ${nextChapterNum}, NOW())
         ON CONFLICT (slug)
-        DO UPDATE SET chapter_count = ${nextChapterNum}
+        DO UPDATE SET chapter_count = ${nextChapterNum}, updated_at = NOW()
       `
     }
 
@@ -259,6 +422,10 @@ export async function createNewStory(data: {
     try {
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
     } catch (_) {}
 
     const cleanSlug = data.slug.trim().toLowerCase();
@@ -267,7 +434,7 @@ export async function createNewStory(data: {
     const cleanPassword = (data.password || '').trim();
 
     await sql`
-      INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public, password)
+      INSERT INTO stories (slug, title, author, cover, genres, status, rating, views, description, link, tags, chapter_count, is_public, password, updated_at)
       VALUES (
         ${cleanSlug}, 
         ${data.title.trim()}, 
@@ -280,15 +447,16 @@ export async function createNewStory(data: {
         ${safeTags}, 
         ${data.chapter_count},
         true,
-        ${cleanPassword}
+        ${cleanPassword},
+        NOW()
       )
       ON CONFLICT (slug) DO NOTHING
     `
 
     await sql`
-      INSERT INTO story_metadata (slug, password)
-      VALUES (${cleanSlug}, ${cleanPassword})
-      ON CONFLICT (slug) DO UPDATE SET password = ${cleanPassword}
+      INSERT INTO story_metadata (slug, password, updated_at)
+      VALUES (${cleanSlug}, ${cleanPassword}, NOW())
+      ON CONFLICT (slug) DO UPDATE SET password = ${cleanPassword}, updated_at = NOW()
     `
 
     if (data.chapters && data.chapters.length > 0) {
@@ -328,24 +496,22 @@ export async function uploadImage(formData: FormData) {
     if (!file) return { success: false, error: 'Không tìm thấy file ảnh!' }
 
     if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
-      const blob = await put(`story-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
-        access: 'public',
-      })
-      return { success: true, url: blob.url }
+      try {
+        const blob = await put(`story-images/${Date.now()}-${file.name.replace(/\s+/g, '-')}`, file, {
+          access: 'public',
+        })
+        return { success: true, url: blob.url }
+      } catch (e) {
+        console.warn("Vercel Blob failed, switching to Base64 Data URL fallback")
+      }
     }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const mimeType = file.type || 'image/jpeg'
+    const base64String = `data:${mimeType};base64,${buffer.toString('base64')}`
 
-    const dirPath = path.join(process.cwd(), 'public', 'story-images')
-    await fs.mkdir(dirPath, { recursive: true })
-
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`
-    const filePath = path.join(dirPath, fileName)
-
-    await fs.writeFile(filePath, buffer)
-
-    return { success: true, url: `/story-images/${fileName}` }
+    return { success: true, url: base64String }
   } catch (error: any) {
     console.error("Lỗi upload ảnh:", error)
     return { success: false, error: error.message }
@@ -370,16 +536,10 @@ export async function uploadCommentImage(formData: FormData) {
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const mimeType = file.type || 'image/jpeg'
+    const base64String = `data:${mimeType};base64,${buffer.toString('base64')}`
 
-    const dirPath = path.join(process.cwd(), 'public', 'comment-images')
-    await fs.mkdir(dirPath, { recursive: true })
-
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`
-    const filePath = path.join(dirPath, fileName)
-
-    await fs.writeFile(filePath, buffer)
-
-    return { success: true, url: `/comment-images/${fileName}` }
+    return { success: true, url: base64String }
   } catch (error: any) {
     console.error("Lỗi upload ảnh bình luận:", error)
     return { success: false, error: error.message }
@@ -398,6 +558,15 @@ export async function updateChapterContent(storySlug: string, chapterNum: number
       ON CONFLICT (story_slug, chapter_number)
       DO UPDATE SET content = ${content}, title = ${title}
     `
+
+    try {
+      await sql`UPDATE stories SET updated_at = NOW() WHERE slug = ${storySlug}`
+      await sql`
+        INSERT INTO story_metadata (slug, updated_at) VALUES (${storySlug}, NOW())
+        ON CONFLICT (slug) DO UPDATE SET updated_at = NOW()
+      `
+    } catch (_) {}
+
     return { success: true }
   } catch (error: any) {
     console.error("Lỗi Postgres:", error)
@@ -424,10 +593,10 @@ export async function updateStoryMetadata(slug: string, description: string, lin
   }
 }
 
-// ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
+// 🌟 ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN (LƯU TRẠNG THÁI status VÀO DATABASE)
 export async function updateFullStoryInfo(
   slug: string,
-  data: { title: string; author: string; cover: string; description: string; link: string; genres: string; password?: string }
+  data: { title: string; author: string; cover: string; description: string; link: string; genres: string; password?: string; status?: string }
 ) {
   const { userId } = await auth()
   if (!checkIsAdmin(userId)) return { success: false, error: 'Bạn không có quyền quản trị!' }
@@ -436,9 +605,14 @@ export async function updateFullStoryInfo(
     try {
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS password TEXT;`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS password TEXT;`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
     } catch (_) {}
 
     const cleanPassword = (data.password || '').trim();
+    const cleanStatus = (data.status || 'Đang ra').trim();
 
     const dbStory = await sql`SELECT slug FROM stories WHERE slug = ${slug}`
     if (dbStory.rows.length > 0) {
@@ -446,19 +620,19 @@ export async function updateFullStoryInfo(
         UPDATE stories 
         SET title = ${data.title}, author = ${data.author}, cover = ${data.cover}, 
             description = ${data.description}, link = ${data.link}, genres = ${data.genres},
-            password = ${cleanPassword}
+            password = ${cleanPassword}, status = ${cleanStatus}, updated_at = NOW()
         WHERE slug = ${slug}
       `
     }
 
     await sql`
-      INSERT INTO story_metadata (slug, title, author, cover, description, link, genres, password)
-      VALUES (${slug}, ${data.title}, ${data.author}, ${data.cover}, ${data.description}, ${data.link}, ${data.genres}, ${cleanPassword})
+      INSERT INTO story_metadata (slug, title, author, cover, description, link, genres, password, status, updated_at)
+      VALUES (${slug}, ${data.title}, ${data.author}, ${data.cover}, ${data.description}, ${data.link}, ${data.genres}, ${cleanPassword}, ${cleanStatus}, NOW())
       ON CONFLICT (slug)
       DO UPDATE SET 
         title = ${data.title}, author = ${data.author}, cover = ${data.cover}, 
         description = ${data.description}, link = ${data.link}, genres = ${data.genres},
-        password = ${cleanPassword}
+        password = ${cleanPassword}, status = ${cleanStatus}, updated_at = NOW()
     `
     return { success: true }
   } catch (err: any) {
@@ -531,12 +705,12 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
 
     await sql`
       UPDATE chapter_contents 
-      SET chapter_number = -(chapter_number - 1)
+      SET chapter_number = ((chapter_number - 1) * -1)
       WHERE story_slug = ${storySlug} AND chapter_number > ${chapterNum}
     `
     await sql`
       UPDATE chapter_contents 
-      SET chapter_number = -chapter_number 
+      SET chapter_number = (chapter_number * -1)
       WHERE story_slug = ${storySlug} AND chapter_number < 0
     `
 
@@ -570,12 +744,12 @@ export async function deleteChapter(storySlug: string, chapterNum: number) {
 
     await sql`
       UPDATE story_volumes 
-      SET start_chapter = -(start_chapter - 1)
+      SET start_chapter = ((start_chapter - 1) * -1)
       WHERE story_slug = ${storySlug} AND start_chapter > ${chapterNum}
     `
     await sql`
       UPDATE story_volumes 
-      SET start_chapter = -start_chapter
+      SET start_chapter = (start_chapter * -1)
       WHERE story_slug = ${storySlug} AND start_chapter < 0
     `
 
@@ -613,8 +787,12 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
     const nextChapterCount = chapters.length
     await sql`
       UPDATE stories 
-      SET chapter_count = ${nextChapterCount} 
+      SET chapter_count = ${nextChapterCount}, updated_at = NOW() 
       WHERE slug = ${storySlug}
+    `
+    await sql`
+      INSERT INTO story_metadata (slug, updated_at) VALUES (${storySlug}, NOW())
+      ON CONFLICT (slug) DO UPDATE SET updated_at = NOW()
     `
 
     return { success: true }
@@ -624,7 +802,7 @@ export async function uploadChaptersFromText(storySlug: string, chapters: { numb
   }
 }
 
-// ACTION: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG BÓC TÁCH
+// ACTION: NHẬP ĐỒNG LOẠT DANH SÁCH CHƯƠNG
 export async function bulkImportChapters(
   storySlug: string,
   startCount: number,
@@ -658,15 +836,15 @@ export async function bulkImportChapters(
     if (dbStoryResult.rows.length > 0) {
       await sql`
         UPDATE stories 
-        SET chapter_count = ${nextTotalCount} 
+        SET chapter_count = ${nextTotalCount}, updated_at = NOW() 
         WHERE slug = ${storySlug}
       `
     } else {
       await sql`
-        INSERT INTO story_metadata (slug, chapter_count)
-        VALUES (${storySlug}, ${nextTotalCount})
+        INSERT INTO story_metadata (slug, chapter_count, updated_at)
+        VALUES (${storySlug}, ${nextTotalCount}, NOW())
         ON CONFLICT (slug)
-        DO UPDATE SET chapter_count = ${nextTotalCount}
+        DO UPDATE SET chapter_count = ${nextTotalCount}, updated_at = NOW()
       `
     }
 
@@ -707,19 +885,20 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
 
     await sql`
       UPDATE chapter_contents
-      SET chapter_number = -chapter_number
-      WHERE story_slug = ${storySlug}
+      SET chapter_number = (chapter_number * -1)
+      WHERE story_slug = ${storySlug} AND chapter_number > 0
     `
 
     for (let i = 0; i < remaining.rows.length; i++) {
       const row = remaining.rows[i]
       const oldNum = row.chapter_number
       const newNum = i + 1
+      const targetOldNum = 0 - Math.abs(oldNum)
 
       await sql`
         UPDATE chapter_contents
         SET chapter_number = ${newNum}
-        WHERE story_slug = ${storySlug} AND chapter_number = -${oldNum}
+        WHERE story_slug = ${storySlug} AND chapter_number = ${targetOldNum}
       `
     }
 

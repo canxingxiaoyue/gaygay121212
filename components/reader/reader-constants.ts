@@ -221,5 +221,5 @@ export const KLEIN_STICKERS = [
   { id: 'xoadau', file: 'Kleinxoadau.png', label: 'Xoa đầu' },
   { id: 'xulong', file: 'Kleinxulong.png', label: 'Xù lông' },
   { id: 'nungniu', file: 'Kleinnungniu.png', label: 'Nũng nịu' },
-  { id: 'oeoe', file: 'Kleinọeọe.png', label: 'Oẹ oẹ' },
+  { id: 'oeoe', file: 'Kleinoeoe.png', label: 'Oẹ oẹ' },
 ]

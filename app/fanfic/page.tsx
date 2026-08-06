@@ -5,11 +5,16 @@ import { FanficSearchFilter } from '@/components/fanfic-search-filter'
 import { getMergedStories } from '@/app/actions/admin'
 import { ChevronRight, Home } from 'lucide-react'
 
-export default async function FanficPage() {
-  // Lấy danh sách tất cả các truyện công khai
+export default async function FanficPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; genre?: string; tag?: string }>
+}) {
+  // 🌟 LẤY THAM SỐ tag HOẶC genre TỪ URL VỀ
+  const { genre, tag } = await searchParams
   const allStories = await getMergedStories(true)
   
-  // Lọc các truyện thuộc dòng Fanfic / Đồng nhân
+  // Lọc lấy các truyện thuộc dòng Fanfic / Đồng nhân
   const fanficStories = allStories.filter(s => 
     (s.genres || []).some(g => g.toLowerCase().includes('fanfic') || g.toLowerCase().includes('đồng nhân')) ||
     (s.tags || []).some(t => t.toLowerCase().includes('fanfic') || t.toLowerCase().includes('đồng nhân'))
@@ -36,8 +41,11 @@ export default async function FanficPage() {
           </h1>
         </div>
 
-        {/* 🌟 NHÚNG BỘ LỌC TÌM KIẾM FANFIC Y HỆT ÁNH 2 */}
-        <FanficSearchFilter fanficStories={fanficStories} />
+        {/* 🌟 TRUYỀN THAM SỐ TAG TỪ URL XUỐNG BỘ LỌC TÌM KIẾM FANFIC */}
+        <FanficSearchFilter 
+          fanficStories={fanficStories} 
+          initialGenre={genre || tag || ''} 
+        />
       </main>
 
       <SiteFooter />

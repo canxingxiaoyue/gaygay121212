@@ -13,7 +13,7 @@ import { incrementViews, getStoryViews } from '@/app/actions/views'
 import { getMergedStories, getStoryVolumes } from '@/app/actions/admin'
 import { AdminStoryControls } from '@/components/admin-story-controls'
 import { ChapterVolumeList } from '@/components/chapter-volume-list' 
-import { StoryPasswordGuard } from '@/components/story-password-guard' // 🌟 IMPORT KHUNG BẢO VỆ MẬT KHẨU [1]
+import { StoryPasswordGuard } from '@/components/story-password-guard'
 import { auth } from '@clerk/nextjs/server' 
 
 export async function generateStaticParams() {
@@ -85,6 +85,11 @@ export default async function StoryDetailPage({
     }
   })
 
+  // 🌟 KIỂM TRA BỘ TRUYỆN NÀY CÓ PHẢI LÀ FANFIC HAY KHÔNG
+  const isFanficStory =
+    (story.genres || []).some((g) => g.toLowerCase().includes('fanfic') || g.toLowerCase().includes('đồng nhân')) ||
+    (story.tags || []).some((t) => t.toLowerCase().includes('fanfic') || t.toLowerCase().includes('đồng nhân'))
+
   return (
     <div className="flex min-h-screen flex-col font-sans">
       <SiteHeader />
@@ -94,14 +99,14 @@ export default async function StoryDetailPage({
             <Home className="size-3.5" /> Trang chủ
           </Link>
           <ChevronRight className="size-3.5" />
-          <Link href="/tim-kiem" className="hover:text-foreground">
-            Tủ truyện
+          <Link href={isFanficStory ? "/fanfic" : "/tim-kiem"} className="hover:text-foreground">
+            {isFanficStory ? "Góc Fanfic" : "Tủ truyện"}
           </Link>
           <ChevronRight className="size-3.5" />
           <span className="text-foreground line-clamp-1">{story.title}</span>
         </nav>
 
-        {/* 🌟 BỌC TOÀN BỘ TRANG TRUYỆN BẰNG STORY PASSWORD GUARD [1] */}
+        {/* BỌC NỘI DUNG VÀ DANH SÁCH CHƯƠNG BẰNG STORY PASSWORD GUARD */}
         <StoryPasswordGuard
           password={(story as any).password}
           storySlug={story.slug}
@@ -128,16 +133,23 @@ export default async function StoryDetailPage({
                 </p>
               </div>
 
+              {/* 🌟 ĐIỀU HƯỚNG THÔNG MINH CHO CÁC THẺ TAG: FANFIC DẪN VỀ GÓC FANFIC, NGUYÊN TÁC DẪN VỀ TỦ NGUYÊN TÁC */}
               <div className="flex flex-wrap gap-2">
-                {story.genres.map((g) => (
-                  <Link
-                    key={g}
-                    href={`/tim-kiem?genre=${encodeURIComponent(g)}`}
-                    className="rounded-full border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 px-3 py-1 text-xs font-medium text-stone-600 dark:text-stone-400 hover:border-[#8B5E3C] hover:text-[#8B5E3C] transition-colors"
-                  >
-                    {g}
-                  </Link>
-                ))}
+                {story.genres.map((g) => {
+                  const targetHref = isFanficStory
+                    ? `/fanfic?tag=${encodeURIComponent(g)}`
+                    : `/tim-kiem?genre=${encodeURIComponent(g)}`
+
+                  return (
+                    <Link
+                      key={g}
+                      href={targetHref}
+                      className="rounded-full border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 px-3 py-1 text-xs font-medium text-stone-600 dark:text-stone-400 hover:border-[#8B5E3C] hover:text-[#8B5E3C] transition-colors"
+                    >
+                      {g}
+                    </Link>
+                  )
+                })}
               </div>
 
               <div className="flex flex-wrap gap-4 text-sm text-stone-600 dark:text-stone-400">
