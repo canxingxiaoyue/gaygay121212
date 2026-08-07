@@ -144,7 +144,7 @@ export async function addManagedTag(type: 'fandom' | 'shipdom' | 'genre', name: 
   }
 }
 
-// 🌟 ACTION: GỘP TRUYỆN ĐỌC TRẠNG THÁI (status) TỪ DATABASE HOẶC METADATA
+// 🌟 ACTION: GỘP TRUYỆN VÀ QUÉT LẤY LƯỢT XEM CHÍNH XÁC NHẤT (Math.max)
 export async function getMergedStories(onlyPublic: boolean = false): Promise<Story[]> {
   let userId: string | null = null
   try {
@@ -162,6 +162,17 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
+    } catch (_) {}
+
+    // 1. NẠP TOÀN BỘ LƯỢT XEM REAL-TIME TỪ BẢNG story_views
+    const viewsMap = new Map<string, number>()
+    try {
+      const viewsRes = await sql`SELECT story_slug, views FROM story_views`
+      viewsRes.rows.forEach(r => {
+        viewsMap.set(r.story_slug, Number(r.views || 0))
+      })
     } catch (_) {}
 
     const dbResult = await sql`
@@ -169,26 +180,33 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       FROM stories 
       ORDER BY COALESCE(updated_at, created_at) DESC
     `
-    const dbStories: Story[] = dbResult.rows.map((row) => ({
-      slug: row.slug,
-      title: row.title,
-      author: row.author || 'Ẩn danh',
-      cover: row.cover || '/placeholder.svg',
-      genres: row.genres ? row.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : [],
-      status: row.status || 'Đang ra',
-      rating: Number(row.rating || 5.0),
-      views: Number(row.views || 0),
-      description: row.description || '',
-      link: row.link || '',
-      tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
-      is_public: row.is_public !== undefined ? row.is_public : true,
-      password: row.password || '',
-      updated_at: row.last_updated || row.updated_at || row.created_at,
-      chapters: Array.from({ length: row.chapter_count || 0 }, (_, i) => ({
-        number: i + 1,
-        title: `Chương ${i + 1}`
-      }))
-    }))
+    const dbStories: Story[] = dbResult.rows.map((row) => {
+      const baseViews = Number(row.views || 0)
+      const realTimeViews = viewsMap.get(row.slug) || 0
+      // 🌟 LẤY GIÁ TRỊ LỚN NHẤT ĐỂ TRÁNH TRÙNG HOẶC MẤT LƯỢT XEM
+      const accurateViews = Math.max(baseViews, realTimeViews)
+
+      return {
+        slug: row.slug,
+        title: row.title,
+        author: row.author || 'Ẩn danh',
+        cover: row.cover || '/placeholder.svg',
+        genres: row.genres ? row.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : [],
+        status: row.status || 'Đang ra',
+        rating: Number(row.rating || 5.0),
+        views: accurateViews, // 🌟 GÁN LƯỢT XEM CHÍNH XÁC
+        description: row.description || '',
+        link: row.link || '',
+        tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+        is_public: row.is_public !== undefined ? row.is_public : true,
+        password: row.password || '',
+        updated_at: row.last_updated || row.updated_at || row.created_at,
+        chapters: Array.from({ length: row.chapter_count || 0 }, (_, i) => ({
+          number: i + 1,
+          title: `Chương ${i + 1}`
+        }))
+      }
+    })
 
     const metaResult = await sql`SELECT * FROM story_metadata`
     const metadataMap = new Map<string, any>()
@@ -205,6 +223,13 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
       let currentStatus = s.status || 'Đang ra'
 
       const meta = metadataMap.get(s.slug)
+      const realTimeViews = viewsMap.get(s.slug) || 0
+      const baseViews = Number(s.views || 0)
+      const metaViews = Number(meta?.views || 0)
+      
+      // 🌟 LẤY GIÁ TRỊ LƯỢT XEM TỔNG LỚN NHẤT TỪ TẤT CẢ CÁC BẢNG
+      const finalViews = Math.max(baseViews, realTimeViews, metaViews)
+
       if (meta) {
         const finalChapterCount = meta.chapter_count || s.chapters.length
         if (meta.is_public !== null && meta.is_public !== undefined) {
@@ -221,6 +246,7 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
           is_public: isPublic,
           updated_at: updatedAt,
           status: currentStatus,
+          views: finalViews, // 🌟 LƯỢT XEM HIỂN THỊ CHUẨN XÁC 100%
           title: meta.title || s.title,
           author: meta.author || s.author,
           cover: meta.cover || s.cover,
@@ -238,7 +264,8 @@ export async function getMergedStories(onlyPublic: boolean = false): Promise<Sto
         ...s,
         is_public: isPublic,
         updated_at: updatedAt,
-        status: currentStatus
+        status: currentStatus,
+        views: finalViews
       }
     })
 
@@ -426,6 +453,8 @@ export async function createNewStory(data: {
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
     } catch (_) {}
 
     const cleanSlug = data.slug.trim().toLowerCase();
@@ -593,7 +622,7 @@ export async function updateStoryMetadata(slug: string, description: string, lin
   }
 }
 
-// 🌟 ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN (LƯU TRẠNG THÁI status VÀO DATABASE)
+// ACTION: CHỈNH SỬA TOÀN DIỆN THÔNG TIN TRUYỆN
 export async function updateFullStoryInfo(
   slug: string,
   data: { title: string; author: string; cover: string; description: string; link: string; genres: string; password?: string; status?: string }
@@ -609,6 +638,8 @@ export async function updateFullStoryInfo(
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();`
       await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
       await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Đang ra';`
+      await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
+      await sql`ALTER TABLE story_metadata ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;`
     } catch (_) {}
 
     const cleanPassword = (data.password || '').trim();

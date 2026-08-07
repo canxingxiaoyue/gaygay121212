@@ -446,7 +446,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
                     </p>
                   )}
 
-                  {/* 🌟 HÀNG NÚT TÁC VỤ: DÁN CHUẨN THẺ <span>🐾 Thả dấu chân</span> */}
+                  {/* 🌟 HÀNG NÚT TÁC VỤ */}
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold text-stone-500 pt-1">
                     {isSignedIn && (
                       <button 
@@ -473,7 +473,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
                         <span>🐾 Thả dấu chân</span>
                       </button>
 
-                      {/* POPUP BẢNG CHỌN 19 STICKER KLEIN */}
+                      {/* POPUP BẢNG CHỌN 19 STICKER KLEIN NỔI LÊN TRÊN (bottom-full mb-2) */}
                       {activePickerCommentId === comment.id && (
                         <div className="absolute left-0 bottom-full mb-2 z-[99999] w-[280px] sm:w-[330px] p-3.5 rounded-[22px] border-2 border-[#D89A52] bg-[#FAF3EB] dark:bg-[#1E1410] shadow-[0_12px_35px_rgba(0,0,0,0.3)] animate-in fade-in zoom-in-95 duration-200 font-sans">
                           <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#EADBC8] dark:border-stone-800">
@@ -577,6 +577,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
                           {renderContent(reply.content)}
                         </p>
 
+                        {/* TÁC VỤ TRÊN BÌNH LUẬN CON */}
                         <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] font-semibold text-stone-500">
                           {isSignedIn && (
                             <button 
@@ -593,7 +594,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
 
                           {isSignedIn && <span>•</span>}
 
-                          {/* NÚT THẢ DẤU CHÂN TRÊN PHẢN HỒI CON */}
+                          {/* 🌟 NÚT "🐾 Thả dấu chân" CHO PHẢN HỒI CON [ĐÃ SỬA CHUẨN reply.user_id] */}
                           {isSignedIn && (
                             <div className="relative inline-block">
                               <button
@@ -633,10 +634,10 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
                             </div>
                           )}
 
-                          {(isAdmin || (isSignedIn && user?.id === rCommentUserId)) && (
+                          {/* 🌟 PHÂN QUYỀN XÓA / SỬA BẰNG reply.user_id CHUẨN TYPESCRIPT [SỬA LỖI VERCEL BUILD] */}
+                          {(isAdmin || (isSignedIn && user?.id === reply.user_id)) && (
                             <>
-                              <button onClick={() => handleStartCommentEdit(reply.id, rTextPart)} className="hover:text-stone-800 transition-colors">Sửa</button>
-                              <button onClick={() => handleDeleteComment(reply.id)} className="hover:text-red-600 transition-colors">Xóa</button>
+                              <button onClick={() => handleDelete(reply.id)} className="hover:text-red-600 transition-colors">Xóa</button>
                             </>
                           )}
 
@@ -669,7 +670,7 @@ export function CommentSection({ storySlug }: { storySlug: string }) {
                         </div>
                       </div>
 
-                      {(isAdmin || user?.id === rCommentUserId) && (
+                      {(isAdmin || (isSignedIn && user?.id === reply.user_id)) && (
                         <button 
                           type="button"
                           onClick={() => handleDelete(reply.id)}
