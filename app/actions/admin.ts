@@ -957,3 +957,61 @@ export async function bulkDeleteChapters(storySlug: string, chapterNums: number[
     return { success: false, error: error.message }
   }
 }
+// 🌟 10. ACTION: LẤY NHANH 1 TRUYỆN DUY NHẤT ĐỂ TRANG CHI TIẾT TẢI TRONG 0.1 GIÂY (CHỐNG LAG)
+export async function getStoryBySlug(slug: string): Promise<Story | null> {
+  try {
+    // Chạy song song 3 truy vấn để lấy đúng 1 truyện thay vì quét toàn bộ database
+    const [dbStoryRes, metaRes, viewsRes] = await Promise.all([
+      sql`SELECT * FROM stories WHERE slug = ${slug} LIMIT 1`,
+      sql`SELECT * FROM story_metadata WHERE slug = ${slug} LIMIT 1`,
+      sql`SELECT views FROM story_views WHERE story_slug = ${slug} LIMIT 1`.catch(() => ({ rows: [] }))
+    ])
+
+    if (dbStoryRes.rows.length === 0) return null
+    
+    const row = dbStoryRes.rows[0]
+    const meta = metaRes.rows.length > 0 ? metaRes.rows[0] : null
+    
+    // Gộp chính xác số lượt xem
+    const baseViews = Number(row.views || 0)
+    const realTimeViews = viewsRes.rows.length > 0 ? Number(viewsRes.rows[0].views || 0) : 0
+    const metaViews = Number(meta?.views || 0)
+    const finalViews = Math.max(baseViews, realTimeViews, metaViews)
+
+    let isPublic = row.is_public !== undefined ? row.is_public : true
+    let updatedAt = row.updated_at || row.created_at
+    let currentStatus = row.status || 'Đang ra'
+    let finalChapterCount = row.chapter_count || 0
+
+    if (meta) {
+      if (meta.is_public !== null && meta.is_public !== undefined) isPublic = meta.is_public
+      if (meta.updated_at) updatedAt = meta.updated_at
+      if (meta.status) currentStatus = meta.status
+      if (meta.chapter_count) finalChapterCount = meta.chapter_count
+    }
+
+    return {
+      slug: row.slug,
+      title: meta?.title || row.title,
+      author: meta?.author || row.author || 'Ẩn danh',
+      cover: meta?.cover || row.cover || '/placeholder.svg',
+      description: meta?.description || row.description || '',
+      link: meta?.link || row.link || '',
+      genres: meta?.genres ? meta.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : (row.genres ? row.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : []),
+      tags: meta?.genres ? meta.genres.split(',').map((g: string) => g.trim()).filter(Boolean) : (row.tags ? row.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      password: meta?.password !== undefined ? meta.password : row.password || '',
+      status: currentStatus,
+      rating: Number(row.rating || 5.0),
+      views: finalViews,
+      is_public: isPublic,
+      updated_at: updatedAt,
+      chapters: Array.from({ length: finalChapterCount }, (_, i) => ({
+        number: i + 1,
+        title: `Chương ${i + 1}`
+      }))
+    }
+  } catch (e) {
+    console.error("Lỗi getStoryBySlug:", e)
+    return null
+  }
+}

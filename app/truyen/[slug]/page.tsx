@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { sql } from '@vercel/postgres'
 import { Eye, BookOpen, ChevronRight, Home } from 'lucide-react'
@@ -9,8 +8,8 @@ import { StoryRating } from '@/components/story-rating'
 import { formatViews } from '@/lib/stories'
 import { CommentSection } from '@/components/comment-section'
 import { AddChapterButton } from '@/components/add-chapter-button' 
-import { incrementViews, getStoryViews } from '@/app/actions/views'
-import { getMergedStories, getStoryVolumes } from '@/app/actions/admin'
+import { incrementViews } from '@/app/actions/views'
+import { getMergedStories, getStoryVolumes, getStoryBySlug } from '@/app/actions/admin'
 import { AdminStoryControls } from '@/components/admin-story-controls'
 import { ChapterVolumeList } from '@/components/chapter-volume-list' 
 import { StoryPasswordGuard } from '@/components/story-password-guard'
@@ -29,17 +28,23 @@ export default async function StoryDetailPage({
 }) {
   const { slug } = await params
   
-  // 1. Kiểm tra tài khoản Admin đăng nhập
-  const { userId } = await auth()
+  // 🌟 GIẢI PHÁP TỐI ƯU SIÊU TỐC ĐỘ (Bắn 4 lệnh chạy SONG SONG cùng 1 lúc thay vì xếp hàng)
+  const [authObj, story, volumes, dbChaptersResult] = await Promise.all([
+    auth().catch(() => ({ userId: null })),
+    getStoryBySlug(slug), // 🌟 Dùng hàm chuyên biệt chỉ quét 1 truyện
+    getStoryVolumes(slug),
+    sql`SELECT chapter_number, title FROM chapter_contents WHERE story_slug = ${slug}`.catch(() => ({ rows: [] }))
+  ])
+
+  const userId = authObj?.userId
   const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID
   const isAdmin = userId && userId === ADMIN_ID
 
-  // 2. Nạp truyện
-  const allStories = await getMergedStories(false)
-  const story = allStories.find((s) => s.slug === slug)
   if (!story) notFound()
 
-  // 3. Bức tường bảo mật
+  // 🌟 KHÔNG ĐỢI DATABASE CỘNG LƯỢT XEM NỮA MÀ CHO CHẠY NGẦM BACKGROUND ĐỂ TRANG LOAD NGAY LẬP TỨC
+  incrementViews(slug).catch(() => {})
+
   const isPublic = (story as any).is_public !== false
   if (!isPublic && !isAdmin) {
     return (
@@ -56,27 +61,8 @@ export default async function StoryDetailPage({
     )
   }
 
-  // 4. Lượt xem
-  await incrementViews(slug)
-  const dbViews = await getStoryViews(slug)
-  const totalViews = (story.views || 0) + dbViews
-
-  // 5. Lấy danh sách phân Quyển (Volumes) từ Database
-  const volumes = await getStoryVolumes(slug)
-
-  // 6. LẤY TOÀN BỘ TIÊU ĐỀ CHƯƠNG ĐÃ SỬA TỪ DATABASE
-  let dbChapters: { chapter_number: number; title: string }[] = []
-  try {
-    const dbChaptersResult = await sql`
-      SELECT chapter_number, title FROM chapter_contents 
-      WHERE story_slug = ${slug}
-    `
-    dbChapters = dbChaptersResult.rows as any[]
-  } catch (error) {
-    console.error("Lỗi đọc dữ liệu chương từ Postgres:", error)
-  }
-
-  // 7. ĐỒNG BỘ TIÊU ĐỀ CHƯƠNG TỪ DATABASE VÀO DANH SÁCH GỐC
+  // Đồng bộ tiêu đề chương
+  const dbChapters = dbChaptersResult.rows as any[]
   const mergedChapters = story.chapters.map((ch) => {
     const dbMatch = dbChapters.find((dbc) => dbc.chapter_number === ch.number)
     return {
@@ -85,10 +71,12 @@ export default async function StoryDetailPage({
     }
   })
 
-  // 🌟 KIỂM TRA BỘ TRUYỆN NÀY CÓ PHẢI LÀ FANFIC HAY KHÔNG
   const isFanficStory =
     (story.genres || []).some((g) => g.toLowerCase().includes('fanfic') || g.toLowerCase().includes('đồng nhân')) ||
     (story.tags || []).some((t) => t.toLowerCase().includes('fanfic') || t.toLowerCase().includes('đồng nhân'))
+
+  // Tính lượt xem đã được cộng 1 (Do ta không await lệnh cộng views ở trên nữa nên lấy thủ công + 1)
+  const displayViews = (story.views || 0) + 1
 
   return (
     <div className="flex min-h-screen flex-col font-sans">
@@ -106,14 +94,12 @@ export default async function StoryDetailPage({
           <span className="text-foreground line-clamp-1">{story.title}</span>
         </nav>
 
-        {/* BỌC NỘI DUNG VÀ DANH SÁCH CHƯƠNG BẰNG STORY PASSWORD GUARD */}
         <StoryPasswordGuard
           password={(story as any).password}
           storySlug={story.slug}
           isAdmin={!!isAdmin}
         >
           <div className="grid gap-6 md:grid-cols-[260px_1fr] items-start">
-            {/* KHUNG ẢNH BÌA */}
             <div className="relative mx-auto w-full max-w-[260px] overflow-hidden rounded-[22px] border border-stone-200/80 dark:border-stone-800/80 bg-stone-100 dark:bg-stone-950 shadow-md self-start shrink-0">
               <img
                 src={story.cover || '/placeholder.svg'}
@@ -122,7 +108,6 @@ export default async function StoryDetailPage({
               />
             </div>
 
-            {/* THÔNG TIN BÊN PHẢI */}
             <div className="flex flex-col gap-4">
               <div>
                 <h1 className="font-serif text-3xl font-bold leading-tight md:text-4xl text-stone-800 dark:text-stone-100">
@@ -133,7 +118,6 @@ export default async function StoryDetailPage({
                 </p>
               </div>
 
-              {/* 🌟 ĐIỀU HƯỚNG THÔNG MINH CHO CÁC THẺ TAG: FANFIC DẪN VỀ GÓC FANFIC, NGUYÊN TÁC DẪN VỀ TỦ NGUYÊN TÁC */}
               <div className="flex flex-wrap gap-2">
                 {story.genres.map((g) => {
                   const targetHref = isFanficStory
@@ -158,7 +142,7 @@ export default async function StoryDetailPage({
                   <span>/ 5</span>
                 </div>
                 <span className="flex items-center gap-1.5">
-                  <Eye className="size-4" /> {formatViews(totalViews)} lượt đọc
+                  <Eye className="size-4" /> {formatViews(displayViews)} lượt đọc
                 </span>
                 <span className="flex items-center gap-1.5">
                   <BookOpen className="size-4" /> {story.chapters.length} chương
