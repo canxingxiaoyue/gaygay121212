@@ -127,11 +127,130 @@
   }
 }
 
-/* =========================================
-   ẨN CON TRỎ MẶC ĐỊNH ĐỂ DÙNG ẢNH ĐỘNG GIF
-========================================= */
+/* ==========================================================================
+   HỆ THỐNG CON TRỎ CHUỘT PIXEL ART (HONKAI THEME)
+   Ưu tiên: GIF -> Dự phòng: CUR -> Native Fallback
+   ========================================================================== */
+
 @media (pointer: fine) {
-  * {
-    cursor: none !important;
+  /* 1. Trạng thái cơ bản toàn trang */
+  html,
+  body {
+    cursor: url('/cursors/pointer.gif'), url('/cursors/Normal.cur'), auto !important;
+  }
+
+  /* 2. Liên kết, Nút bấm, Menu điều hướng, Thẻ truyện, Checkbox, Radio */
+  a,
+  button,
+  [role="button"],
+  [role="link"],
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [role="combobox"],
+  select,
+  summary,
+  label,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  .cursor-pointer,
+  [data-radix-collection-item] {
+    cursor: url('/cursors/link.gif'), url('/cursors/Link.cur'), pointer !important;
+  }
+
+  /* 3. Vùng nhập liệu, Soạn thảo văn bản, Textarea */
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  [contenteditable="true"] {
+    cursor: url('/cursors/text.gif'), url('/cursors/Text.cur'), text !important;
+  }
+
+  /* 4. Thành phần bị vô hiệu hóa / Bị cấm (Disabled) */
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  [aria-disabled="true"],
+  .disabled,
+  .cursor-not-allowed {
+    cursor: url('/cursors/unavailable.gif'), url('/cursors/Unavailable.cur'), not-allowed !important;
+  }
+
+  /* 5. Trợ giúp, Hướng dẫn, Chú thích (Help & Tooltips) */
+  abbr,
+  [role="tooltip"],
+  .help,
+  [data-tooltip] {
+    cursor: url('/cursors/help.gif'), url('/cursors/Help.cur'), help !important;
+  }
+
+  /* 6. Đang bận, Tải dữ liệu, Nút đang load */
+  [aria-busy="true"],
+  .loading,
+  .is-loading {
+    cursor: url('/cursors/busy.gif'), url('/cursors/Busy.cur'), wait !important;
+  }
+
+  /* 7. Xử lý nền (Progress) */
+  .in-progress,
+  .working {
+    cursor: url('/cursors/working.gif'), url('/cursors/Working.cur'), progress !important;
+  }
+
+  /* 8. Hồ sơ người dùng, Avatar cá nhân */
+  [href*="/user"],
+  [href*="/profile"],
+  .user-avatar,
+  .user-profile {
+    cursor: url('/cursors/person.gif'), url('/cursors/Person.cur'), pointer !important;
+  }
+
+  /* 9. Chọn chính xác / Tâm ngắm (Precision / Crosshair) */
+  .cursor-crosshair,
+  canvas {
+    cursor: url('/cursors/cross.gif'), url('/cursors/Precision.cur'), crosshair !important;
+  }
+
+  /* 10. Di chuyển đối tượng (Move) */
+  [draggable="true"],
+  .cursor-move {
+    cursor: url('/cursors/Move.cur'), move !important;
+  }
+
+  /* 11. Kéo giãn kích thước (Resize controls) */
+  .cursor-ew-resize,
+  .col-resize {
+    cursor: url('/cursors/Horizontal.cur'), ew-resize !important;
+  }
+
+  .cursor-ns-resize,
+  .row-resize {
+    cursor: url('/cursors/Vertical.cur'), ns-resize !important;
+  }
+
+  .cursor-nwse-resize {
+    cursor: url('/cursors/Diagonal1.cur'), nwse-resize !important;
+  }
+
+  .cursor-nesw-resize {
+    cursor: url('/cursors/Diagonal2.cur'), nesw-resize !important;
+  }
+
+  /* 12. Ghim & Viết tay */
+  .cursor-pin {
+    cursor: url('/cursors/Pin.cur'), pointer !important;
+  }
+
+  .cursor-handwriting {
+    cursor: url('/cursors/Handwriting.cur'), cell !important;
   }
 }

@@ -4,7 +4,6 @@ import { Analytics } from '@vercel/analytics/next'
 import { FavoritesProvider } from '@/components/favorites-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ClerkProvider } from '@clerk/nextjs'
-import AnimatedCursor from '@/components/animated-cursor' // <-- THÊM DÒNG NÀY (1)
 import './globals.css'
 
 const lora = Lora({
@@ -42,9 +41,6 @@ export default function RootLayout({
             <FavoritesProvider>{children}</FavoritesProvider>
           </ThemeProvider>
           {process.env.NODE_ENV === 'production' && <Analytics />}
-          
-          {/* <-- THÊM DÒNG NÀY (2): Đặt ngay trước thẻ đóng </body> */}
-          <AnimatedCursor />
         </body>
       </html>
     </ClerkProvider>
