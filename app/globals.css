@@ -126,3 +126,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* =========================================
+   CUSTOM CURSOR HONKAI THEME
+========================================= */
+
+/* 1. Trạng thái chuột bình thường trên toàn trang */
+body {
+  cursor: url('/cursors/Normal.cur'), auto;
+}
+
+/* 2. Khi chỉ chuột vào Nút bấm, Link, Tên truyện, Ảnh bìa */
+a, button, [role="button"], label {
+  cursor: url('/cursors/Link.cur'), pointer !important;
+}
+
+/* 3. Khi chỉ chuột vào văn bản (Để đọc truyện, bôi đen) */
+p, span, h1, h2, h3, h4, h5, h6, input, textarea, article {
+  cursor: url('/cursors/Text.cur'), text;
+}
