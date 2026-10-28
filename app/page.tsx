@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpen, Coffee, Sparkles, Star, Moon } from 'lucide-react' // Giữ nguyên để tránh lỗi biên dịch
+import { ArrowRight, BookOpen, Coffee, Sparkles, Star, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { StoryCard } from '@/components/story-card'
@@ -45,7 +45,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Cột bên phải: 🌟 KHUNG BẦU TRỜI THIÊN VĂN HIỆN ĐẠI, SANG TRỌNG & SỐNG ĐỘNG (BẢN TINH CHỈNH TINH TẾ) */}
+            {/* Cột bên phải: 🌟 KHUNG TRANH ANAXA SỐNG ĐỘNG CÙNG ÁNH SAO */}
             <div className="relative aspect-video w-full rounded-3xl border border-stone-200/40 dark:border-stone-800 shadow-2xl overflow-hidden select-none transition-all duration-500">
               {/* Nhúng mã CSS Animation lấp lánh tự đóng gói */}
               <style dangerouslySetInnerHTML={{ __html: `
@@ -64,28 +64,18 @@ export default async function HomePage() {
                 }
               `}} />
 
-              {/* 1. HAI LỚP ẢNH NỀN FADE MƯỢT MÀ THEO LIGHT/DARK MODE */}
-              {/* Ảnh nền Light Mode (Ban ngày) */}
+              {/* ẢNH NỀN ANAXA.PNG */}
               <Image
-                src="/sky-light.png"
-                alt="Sky Light"
+                src="/anaxa.png"
+                alt="Anaxa - 残星晓月"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="absolute top-0 left-0 w-full h-full object-cover scale-[1.06] opacity-100 dark:opacity-0 transition-all duration-500 ease-in-out"
-                priority
-              />
-              {/* Ảnh nền Dark Mode (Ban đêm) */}
-              <Image
-                src="/Bautroidem.png"
-                alt="Sky Dark"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="absolute top-0 left-0 w-full h-full object-cover scale-[1.06] opacity-0 dark:opacity-100 transition-all duration-500 ease-in-out"
+                className="absolute top-0 left-0 w-full h-full object-cover transition-all duration-500 ease-in-out hover:scale-[1.03]"
                 priority
               />
 
-              {/* 2. CHÒM SAO LẤP LÁNH ĐÈ LÊN TRÊN (CHỈ BẬT RÕ NÉT Ở DARK MODE) */}
-              <div className="absolute inset-0 pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-500">
+              {/* LỚP PHỦ ÁNH SAO LẤP LÁNH ĐÈ LÊN TRANH */}
+              <div className="absolute inset-0 pointer-events-none opacity-70 dark:opacity-100 transition-opacity duration-500">
                 {/* Sao lớn lấp lánh */}
                 <div className="absolute top-[25%] left-[18%] w-1.5 h-1.5 bg-white rounded-full animate-twinkle-slow filter drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]" />
                 <div className="absolute top-[45%] left-[35%] w-1.5 h-1.5 bg-yellow-100 rounded-full animate-twinkle-medium filter drop-shadow-[0_0_3px_rgba(253,224,71,0.6)]" />
