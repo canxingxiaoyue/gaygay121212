@@ -19,7 +19,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: '残星晓月',
+  title: '风雨',
   description: 'Chúc mọi người một ngày vui vẻ.',
   generator: 'v0.app',
 }

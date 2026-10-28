@@ -25,10 +25,10 @@ export default async function HomePage() {
                 “Chúc cho mỗi người đều sở hữu bình minh của riêng mình.”
               </p>
               <h1 className="text-balance font-serif text-4xl font-bold leading-tight md:text-5xl text-stone-800 dark:text-stone-100">
-               残星晓月
+               风雨
               </h1>
               <p className="text-pretty text-lg leading-relaxed text-stone-600 dark:text-stone-300">
-                残星晓月，为何内心依然眷恋往事？
+                不经历风雨，怎么见彩虹？
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-[#5C3D2E] hover:bg-[#4A2E22] text-white rounded-xl shadow-md transition-all hover:scale-[1.02] border-none">
@@ -67,7 +67,7 @@ export default async function HomePage() {
               {/* ẢNH NỀN ANAXA.PNG */}
               <Image
                 src="/anaxa.png"
-                alt="Anaxa - 残星晓月"
+                alt="Anaxa - 风雨无阻"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="absolute top-0 left-0 w-full h-full object-cover transition-all duration-500 ease-in-out hover:scale-[1.03]"
