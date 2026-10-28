@@ -51,7 +51,7 @@ export default async function TruyenPage({
           <p className="mt-1 text-sm text-stone-500">
             {q
               ? `Tìm thấy ${filteredStories.length} bộ truyện phù hợp.`
-              : 'Nơi lưu trữ tất cả các bộ truyện tại Tàn Tinh Hiểu Nguyệt.'}
+              : 'Nơi lưu trữ tất cả các bộ truyện.'}
           </p>
         </header>
 

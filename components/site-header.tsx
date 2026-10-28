@@ -63,7 +63,7 @@ export function SiteHeader() {
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0 hover:opacity-90 transition-opacity select-none min-w-0">
           <span className="font-cute-thu-phap text-[18px] sm:text-xl lg:text-2xl font-normal tracking-wide whitespace-nowrap pt-1">
-            ⋆｡˚☾Tàn Tinh Hiểu Nguyệt.✦ ݁˖
+            ⋆｡˚☾Fengyu.✦ ݁˖
           </span>
         </Link>
 
@@ -143,7 +143,7 @@ export function SiteHeader() {
             <SheetContent side="right" className="w-72 flex flex-col gap-5 pt-6 font-sans">
               <SheetHeader className="text-left border-b border-stone-100 dark:border-stone-850 pb-3">
                 <SheetTitle className="font-cute-thu-phap text-2xl tracking-wide pt-1">
-                  Tàn Tinh Hiểu Nguyệt
+                  Phong Vũ
                 </SheetTitle>
               </SheetHeader>
 
