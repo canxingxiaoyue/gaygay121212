@@ -128,34 +128,10 @@
 }
 
 /* =========================================
-   CUSTOM CURSOR HONKAI THEME
+   ẨN CON TRỎ MẶC ĐỊNH ĐỂ DÙNG ẢNH ĐỘNG GIF
 ========================================= */
-
-/* 1. Trạng thái chuột bình thường trên toàn trang */
-body, html {
-  cursor: url('/cursors/Normal.cur'), auto !important;
-}
-
-/* 2. Khi chỉ chuột vào Nút bấm, Link, Menu, Danh sách lựa chọn */
-/* Đã thêm role="option", role="menuitem", role="combobox" cho các menu thả xuống */
-a, 
-button, 
-[role="button"], 
-[role="option"], 
-[role="menuitem"], 
-[role="combobox"], 
-[role="tab"], 
-label, 
-select {
-  cursor: url('/cursors/Link.cur'), pointer !important;
-}
-
-/* 3. Khi chỉ chuột vào văn bản (Để đọc truyện, bôi đen) */
-p, span, h1, h2, h3, h4, h5, h6, input, textarea, article {
-  cursor: url('/cursors/Text.cur'), text;
-}
-
-/* Ép các thành phần của Radix UI / Shadcn (thường dùng làm menu) phải nhận chuột */
-[data-radix-popper-content-wrapper] * {
-  cursor: url('/cursors/Link.cur'), pointer !important;
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
 }
